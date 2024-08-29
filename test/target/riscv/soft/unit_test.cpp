@@ -988,15 +988,15 @@ TEST(vtype_decode, HandleBitfieldEncodingZLMULgtNLMUL) {
 	EXPECT_EQ(x, 1);
 	EXPECT_EQ(ta, 1);
 	EXPECT_EQ(ma, 0);
-	EXPECT_EQ(sew, 128);
-	EXPECT_EQ(z_lmul, 4);
+	EXPECT_EQ(sew, 32);
+	EXPECT_EQ(z_lmul, 4); // LMUL=4
 	EXPECT_EQ(n_lmul, 1);
 
 }
 
 TEST(vtype_encode, HandleBitfieldEncodingZLMULgtNLMUL) {
 	uint16_t x;
-	uint16_t sew = 128;
+	uint16_t sew = 32;
 	uint8_t z_lmul = 8;
 	uint8_t n_lmul = 2;
 	uint8_t ta = 1;
@@ -1013,19 +1013,19 @@ TEST(vtype_encode, HandleBitfieldEncodingZLMULltNLMUL) {
 	uint8_t ta = 0;
 	uint8_t ma = 1;
 	x = vtype_encode(sew, z_lmul, n_lmul, ta, ma);
-	EXPECT_EQ(x, 0xae);
+	EXPECT_EQ(x, ma << 7 | ta << 6 | (/*sew*/ 0b011 << 3 ) | /*lmul*/ 0b110 );
 	z_lmul = 1;
 	n_lmul = 2;
 	x = vtype_encode(sew, z_lmul, n_lmul, ta, ma);
-	EXPECT_EQ(x, 0xaf);
+	EXPECT_EQ(x, ma << 7 | ta << 6 | (/*sew*/ 0b011 << 3 ) | /*lmul*/ 0b111 );
 	z_lmul = 1;
 	n_lmul = 4;
 	x = vtype_encode(sew, z_lmul, n_lmul, ta, ma);
-	EXPECT_EQ(x, 0xae);
+	EXPECT_EQ(x, ma << 7 | ta << 6 | (/*sew*/ 0b011 << 3 ) | /*lmul*/ 0b110 );
 	z_lmul = 1;
 	n_lmul = 8;
 	x = vtype_encode(sew, z_lmul, n_lmul, ta, ma);
-	EXPECT_EQ(x, 0xad);
+	EXPECT_EQ(x, ma << 7 | ta << 6 | (/*sew*/ 0b011 << 3 ) | /*lmul*/ 0b101 );
 }
 
 TEST(vtype_extractSEWTest, HandleBitFieldExtract) {
