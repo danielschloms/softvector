@@ -70,7 +70,7 @@ uint16_t VTYPE::encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta,
 		}
 	}
 
-	vtype = (ma ? 0x80 : 0) | (ta ? 0x40 : 0) | ((lmulF & 0x4) << 3)  | ((sewF) << 2) | (lmulF &0x3);
+	vtype = (ma ? 0x80 : 0) | (ta ? 0x40 : 0) | ((sewF) << 3) | (lmulF &0x7);
 
 	return (vtype);
 }
