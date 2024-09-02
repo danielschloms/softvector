@@ -54,6 +54,20 @@ inline SVElement u_mul_u(const SVElement& target, const SVElement& op1, const SV
 	return out;
 }
 
+inline SVElement u_div_u(const SVElement& target, const SVElement& dividend, const SVElement& divisor) {
+	SVElement out(target.width_in_bits_);
+
+	if(divisor == 0){
+		// According to ISA manual:
+		// DIVU, DIVUW: 2^L - 1
+		// DIV, DIVW: -1
+		out = -1;
+	}
+
+	// Idea: treat this as a base 256 long division
+	
+}
+
 inline size_t get_shiftamount(size_t target_width_bits, const uint8_t* rhs) {
 	size_t numberofbits = 0;
 	size_t shiftamount = 0;
@@ -756,4 +770,39 @@ SVElement& SVElement::s_sumulh(const SVElement& opL, const int64_t rhs) {
 	_op2 = rhs;
 
 	return(this->s_sumulh(opL, _op2));
+}
+
+//DIV 12.11
+///////////////////////////////////////////////////////////////////////////////////////////
+SVElement& SVElement::s_ssdiv(const SVElement& opL, const SVElement &rhs) {
+	SVElement _op1(opL);
+	SVElement _op2(rhs);
+
+	bool op1_neg = _op1 < 0;
+	bool op2_neg = _op2 < 0;
+
+	if(op1_neg)
+		_op1.twos_complement();
+
+	if(op2_neg)
+		_op2.twos_complement();
+
+	auto x = u_mul_u(*this, _op1, _op2);
+
+	if ( (op1_neg && !op2_neg)
+		||
+		(!op1_neg && op2_neg)
+	) {
+		x.twos_complement();
+	}
+
+	*this = x;
+
+	return (*this);
+}
+
+SVElement& SVElement::s_ssdiv(const SVElement& opL, const int64_t rhs) {
+	SVElement _op2(opL.width_in_bits_);
+	_op2 = rhs;
+	return(this->s_ssdiv(opL, _op2));
 }
