@@ -19,7 +19,21 @@
 /// \date 07/03/2020
 //////////////////////////////////////////////////////////////////////////////////////
 
+#include <cstring>
+
 #include "vpu/softvector-types.hpp"
+
+auto SVElement::to_i64() const -> int64_t {
+	int64_t value = 0;
+	std::memcpy(&value, mem_, width_in_bits_ >> 3);
+	return value;
+}
+
+auto SVElement::to_u64() const -> uint64_t {
+	uint64_t value = 0U;
+	std::memcpy(&value, mem_, width_in_bits_ >> 3);
+	return value;
+}
 
 inline SVElement u_mul_u(const SVElement& target, const SVElement& op1, const SVElement& op2) {
 	size_t size = target.width_in_bits_ >> 3;
@@ -52,20 +66,6 @@ inline SVElement u_mul_u(const SVElement& target, const SVElement& op1, const SV
 		}
 	}
 	return out;
-}
-
-inline SVElement u_div_u(const SVElement& target, const SVElement& dividend, const SVElement& divisor) {
-	SVElement out(target.width_in_bits_);
-
-	if(divisor == 0){
-		// According to ISA manual:
-		// DIVU, DIVUW: 2^L - 1
-		// DIV, DIVW: -1
-		out = -1;
-	}
-
-	// Idea: treat this as a base 256 long division
-	
 }
 
 inline size_t get_shiftamount(size_t target_width_bits, const uint8_t* rhs) {
@@ -775,34 +775,22 @@ SVElement& SVElement::s_sumulh(const SVElement& opL, const int64_t rhs) {
 //DIV 12.11
 ///////////////////////////////////////////////////////////////////////////////////////////
 SVElement& SVElement::s_ssdiv(const SVElement& opL, const SVElement &rhs) {
-	SVElement _op1(opL);
-	SVElement _op2(rhs);
 
-	bool op1_neg = _op1 < 0;
-	bool op2_neg = _op2 < 0;
-
-	if(op1_neg)
-		_op1.twos_complement();
-
-	if(op2_neg)
-		_op2.twos_complement();
-
-	auto x = u_mul_u(*this, _op1, _op2);
-
-	if ( (op1_neg && !op2_neg)
-		||
-		(!op1_neg && op2_neg)
-	) {
-		x.twos_complement();
+	if (opL == 0){
+		*this = -1;
+		return (*this);
 	}
 
-	*this = x;
-
+	*this = rhs.to_i64() / opL.to_i64();
 	return (*this);
 }
 
 SVElement& SVElement::s_ssdiv(const SVElement& opL, const int64_t rhs) {
-	SVElement _op2(opL.width_in_bits_);
-	_op2 = rhs;
-	return(this->s_ssdiv(opL, _op2));
+	if (rhs == 0){
+		*this = -1;
+		return (*this);
+	}
+	
+	*this = opL.to_i64() / rhs;
+	return (*this);
 }

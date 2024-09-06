@@ -246,6 +246,9 @@ public:
 	const size_t width_in_bits_; //!< Element size (width) in bits
 	uint8_t* mem_; //!< Main memory
 
+	auto to_i64() const -> int64_t;
+	auto to_u64() const -> uint64_t;
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Overloaded array subscript to return the indexed byte of memory as reference
 	uint8_t& operator[](const size_t index) const {
