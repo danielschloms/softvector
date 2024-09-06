@@ -24,8 +24,10 @@
 #include "vpu/softvector-types.hpp"
 
 auto SVElement::to_i64() const -> int64_t {
-	int64_t value = 0;
-	std::memcpy(&value, mem_, width_in_bits_ >> 3);
+	auto width_in_bytes = width_in_bits_ >> 3;
+	auto sign_bit = mem_[width_in_bytes - 1] >> 7;
+	int64_t value = sign_bit ? -1 : 0;
+	std::memcpy(&value, mem_, width_in_bytes);
 	return value;
 }
 
