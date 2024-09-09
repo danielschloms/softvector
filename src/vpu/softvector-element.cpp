@@ -783,7 +783,7 @@ SVElement& SVElement::s_ssdiv(const SVElement& opL, const SVElement &rhs) {
 		return (*this);
 	}
 
-	*this = rhs.to_i64() / opL.to_i64();
+	*this = opL.to_i64() / rhs.to_i64();
 	return (*this);
 }
 
@@ -804,7 +804,7 @@ SVElement& SVElement::s_uudiv(const SVElement& opL, const SVElement &rhs) {
 		return (*this);
 	}
 
-	*this = rhs.to_u64() / opL.to_u64();
+	*this = opL.to_u64() / rhs.to_u64();
 	return (*this);
 }
 
