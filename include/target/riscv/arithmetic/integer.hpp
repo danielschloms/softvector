@@ -1020,7 +1020,7 @@ namespace VARITH_INT {
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 	);
 
-/*12.11. Vector Single-Width Integer Divide Instructions */
+	/*12.11. Vector Single-Width Integer Divide Instructions */
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Signed division vector-vector
 	/// \details For all i: D[i] = L[i] / R[i]
@@ -1037,6 +1037,7 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start, //!< Starting element [index]
 		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
 	);
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Signed division vector-vector
 	/// \details For all i: D[i] = L[i] / sign_extend(X[rs1])
@@ -1054,6 +1055,7 @@ namespace VARITH_INT {
 		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 	);
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Unsigned division vector-vector
 	/// \details For all i: D[i] = L[i] / R[i]
@@ -1070,10 +1072,81 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start, //!< Starting element [index]
 		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
 	);
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Unsigned division vector-scalar
 	/// \details For all i: D[i] = L[i] / X[rs1]
 	VILL::vpu_return_t vdivu_vx(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t* scalar_reg_mem, //!< Memory space holding scalar data (min. _xlenb bytes)
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
+		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+	);
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Signed remainder vector-vector
+	/// \details For all i: D[i] = L[i] % R[i]
+	VILL::vpu_return_t vrem_vv(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_rhs, //!< Source vector R [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Signed remainder vector-vector
+	/// \details For all i: D[i] = L[i] % sign_extend(X[rs1])
+	VILL::vpu_return_t vrem_vx(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t* scalar_reg_mem, //!< Memory space holding scalar data (min. _xlenb bytes)
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
+		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+	);
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Unsigned remainder vector-vector
+	/// \details For all i: D[i] = L[i] % R[i]
+	VILL::vpu_return_t vremu_vv(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_rhs, //!< Source vector R [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Unsigned remainder vector-scalar
+	/// \details For all i: D[i] = L[i] % X[rs1]
+	VILL::vpu_return_t vremu_vx(
 		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
 		uint64_t emul_num, //!< Register multiplicity numerator
 		uint64_t emul_denom, //!< Register multiplicity denominator
