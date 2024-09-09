@@ -768,6 +768,36 @@ uint8_t vmulhsu_vx(
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed DIV vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vdiv_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed DIV vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vdiv_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned DIV vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vdivu_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned DIV vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vdivu_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
