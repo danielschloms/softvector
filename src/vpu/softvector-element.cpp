@@ -817,3 +817,45 @@ SVElement& SVElement::s_uudiv(const SVElement& opL, const uint64_t rhs) {
 	*this = opL.to_u64() / rhs;
 	return (*this);
 }
+
+SVElement& SVElement::s_ssrem(const SVElement& opL, const SVElement &rhs) {
+
+	if (opL == 0){
+		*this = -1;
+		return (*this);
+	}
+
+	*this = opL.to_i64() % rhs.to_i64();
+	return (*this);
+}
+
+SVElement& SVElement::s_ssrem(const SVElement& opL, const int64_t rhs) {
+	if (rhs == 0){
+		*this = -1;
+		return (*this);
+	}
+	
+	*this = opL.to_i64() % rhs;
+	return (*this);
+}
+
+SVElement& SVElement::s_uurem(const SVElement& opL, const SVElement &rhs) {
+
+	if (opL == 0){
+		*this = -1;
+		return (*this);
+	}
+
+	*this = opL.to_u64() % rhs.to_u64();
+	return (*this);
+}
+
+SVElement& SVElement::s_uurem(const SVElement& opL, const uint64_t rhs) {
+	if (rhs == 0){
+		*this = -1;
+		return (*this);
+	}
+	
+	*this = opL.to_u64() % rhs;
+	return (*this);
+}

@@ -504,6 +504,19 @@ public:
 	//// \brief Signed/signed division for right-hand-side 64 bit value
 	SVElement& s_uudiv(const SVElement& opL, const uint64_t rhs);
 
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// \brief Signed/signed remainder for right-hand-side SVElement
+	SVElement& s_ssrem(const SVElement& opL, const SVElement &rhs);
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// \brief Signed/signed remainder for right-hand-side 64 bit value
+	SVElement& s_ssrem(const SVElement& opL, const int64_t rhs);
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// \brief Signed/signed remainder for right-hand-side SVElement
+	SVElement& s_uurem(const SVElement& opL, const SVElement &rhs);
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//// \brief Signed/signed remainder for right-hand-side 64 bit value
+	SVElement& s_uurem(const SVElement& opL, const uint64_t rhs);
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for referenced main memory, i.e. externally allocated memory
 	SVElement(const size_t width_in_bits, uint8_t* mem_)
@@ -822,6 +835,19 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked unsigned/unsigned DIV for right-hand-side signed 64 bit value. rhs is sign extended to element size
 	SVector& m_uudiv(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+
+		/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed REM for right-hand-side SVector
+	SVector& m_ssrem(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed REM for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_ssrem(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+		/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned REM for right-hand-side SVector
+	SVector& m_uurem(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned REM for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_uurem(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for referenced elements, i.e. externally allocated elements
