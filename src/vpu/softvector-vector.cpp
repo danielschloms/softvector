@@ -515,6 +515,20 @@ SVector& SVector::m_ssdiv(const SVector& opL, const int64_t rhs, const SVRegiste
 	}
 	return(*this);
 }
+SVector& SVector::m_uudiv(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element))
+			(*this)[i_element].s_uudiv(opL[i_element], rhs[i_element]);
+	}
+	return(*this);
+}
+SVector& SVector::m_uudiv(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element))
+			(*this)[i_element].s_uudiv(opL[i_element], rhs);
+	}
+	return(*this);
+}
 
 SVector& SVector::m_and(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
