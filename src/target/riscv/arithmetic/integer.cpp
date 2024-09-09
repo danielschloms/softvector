@@ -1956,7 +1956,6 @@ VILL::vpu_return_t VARITH_INT::vmulhsu_vx(
 }
 
 /*12.11. Vector Single-Width Integer Divide Instructions */
-//TODO
 VILL::vpu_return_t VARITH_INT::vdiv_vv(
 	uint8_t* vec_reg_mem,
 	uint64_t emul_num,
@@ -1985,8 +1984,6 @@ VILL::vpu_return_t VARITH_INT::vdiv_vv(
 		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
 		RVVector& vd = V.get_vec(dst_vec_reg);
 
-		// rs1: dividend
-		// rs2: divisor
 		vd.m_ssdiv(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
@@ -2021,6 +2018,72 @@ VILL::vpu_return_t VARITH_INT::vdiv_vx(
 		RVVector& vd = V.get_vec(dst_vec_reg);
 
 		vd.m_ssdiv(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+	}
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+VILL::vpu_return_t VARITH_INT::vdivu_vv(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_rhs,
+	uint16_t src_vec_reg_lhs,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	RVVRegField V(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
+
+	if(! V.vec_reg_is_aligned(src_vec_reg_rhs) ) {
+		return(VILL::VPU_RETURN::SRC1_VEC_ILL);
+	} else if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	} else if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	} else {
+		V.init();
+
+		RVVector& vs1 = V.get_vec(src_vec_reg_rhs);
+		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
+		RVVector& vd = V.get_vec(dst_vec_reg);
+
+		vd.m_uudiv(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+	}
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+
+VILL::vpu_return_t VARITH_INT::vdivu_vx(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint8_t* scalar_reg_mem,
+	uint16_t vec_elem_start,
+	bool mask_f,
+	uint8_t scalar_reg_len_bytes
+) {
+	RVVRegField V(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
+
+	if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	} else if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	} else {
+		V.init();
+
+		uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t*>(scalar_reg_mem)) : *(reinterpret_cast<uint32_t*>(scalar_reg_mem));
+		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
+		RVVector& vd = V.get_vec(dst_vec_reg);
+
+		vd.m_uudiv(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
