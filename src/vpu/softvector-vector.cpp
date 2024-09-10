@@ -565,7 +565,7 @@ SVector& SVector::m_uurem(const SVector& opL, const uint64_t rhs, const SVRegist
 SVector& SVector::m_ssmax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_int64() > rhs[i_element].to_int64()){
+			if (opL[i_element].to_i64() > rhs[i_element].to_i64()){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -579,7 +579,7 @@ SVector& SVector::m_ssmax(const SVector& opL, const SVector& rhs, const SVRegist
 SVector& SVector::m_ssmax(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_int64() > rhs){
+			if (opL[i_element].to_i64() > rhs){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -593,7 +593,7 @@ SVector& SVector::m_ssmax(const SVector& opL, const int64_t rhs, const SVRegiste
 SVector& SVector::m_uumax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_uint64() > rhs[i_element].to_uint64()){
+			if (opL[i_element].to_u64() > rhs[i_element].to_u64()){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -607,7 +607,7 @@ SVector& SVector::m_uumax(const SVector& opL, const SVector& rhs, const SVRegist
 SVector& SVector::m_uumax(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_uint64() > rhs){
+			if (opL[i_element].to_u64() > rhs){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -621,7 +621,7 @@ SVector& SVector::m_uumax(const SVector& opL, const uint64_t rhs, const SVRegist
 SVector& SVector::m_ssmin(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_int64() < rhs[i_element].to_int64()){
+			if (opL[i_element].to_i64() < rhs[i_element].to_i64()){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -635,7 +635,7 @@ SVector& SVector::m_ssmin(const SVector& opL, const SVector& rhs, const SVRegist
 SVector& SVector::m_ssmin(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_int64() < rhs){
+			if (opL[i_element].to_i64() < rhs){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -649,7 +649,7 @@ SVector& SVector::m_ssmin(const SVector& opL, const int64_t rhs, const SVRegiste
 SVector& SVector::m_uumin(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_uint64() < rhs[i_element].to_uint64()){
+			if (opL[i_element].to_u64() < rhs[i_element].to_u64()){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
@@ -663,7 +663,7 @@ SVector& SVector::m_uumin(const SVector& opL, const SVector& rhs, const SVRegist
 SVector& SVector::m_uumin(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)){
-			if (opL[i_element].to_uint64() < rhs){
+			if (opL[i_element].to_u64() < rhs){
 				(*this)[i_element] = opL[i_element];
 			}
 			else{
