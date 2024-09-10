@@ -770,14 +770,14 @@ uint8_t vmulhsu_vx(
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed DIV vector-vector
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vdiv_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed DIV vector-scalar
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vdiv_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
@@ -785,14 +785,14 @@ uint8_t vdiv_vx(
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief Unsigned DIV vector-vector
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vdivu_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Unsigned DIV vector-scalar
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vdivu_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
@@ -800,14 +800,14 @@ uint8_t vdivu_vx(
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed REM vector-vector
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vrem_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed REM vector-scalar
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vrem_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
@@ -815,15 +815,75 @@ uint8_t vrem_vx(
 
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief Unsigned REM vector-vector
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vremu_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Unsigned REM vector-scalar
-/// \return 0 if no exception triggered, else 1
+/// \return 0 if no exception triggered
 uint8_t vremu_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed MAX vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmax_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed MAX vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmax_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned MAX vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmaxu_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned MAX vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmaxu_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed MIN vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmin_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Signed MIN vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmin_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned MIN vector-vector
+/// \return 0 if no exception triggered
+uint8_t vminu_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Unsigned MIN vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vminu_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);

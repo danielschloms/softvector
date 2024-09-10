@@ -829,14 +829,14 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked signed/signed DIV for right-hand-side signed 64 bit value. rhs is sign extended to element size
 	SVector& m_ssdiv(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
-		/////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked unsigned/unsigned DIV for right-hand-side SVector
 	SVector& m_uudiv(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked unsigned/unsigned DIV for right-hand-side signed 64 bit value. rhs is sign extended to element size
-	SVector& m_uudiv(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	SVector& m_uudiv(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 
-		/////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked signed/signed REM for right-hand-side SVector
 	SVector& m_ssrem(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -847,7 +847,33 @@ public:
 	SVector& m_uurem(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief masked unsigned/unsigned REM for right-hand-side signed 64 bit value. rhs is sign extended to element size
-	SVector& m_uurem(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	SVector& m_uurem(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+
+	/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed MAX for right-hand-side SVector
+	SVector& m_ssmax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed MAX for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_ssmax(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned MAX for right-hand-side SVector
+	SVector& m_uumax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned MAX for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_uumax(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+
+	/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed MIN for right-hand-side SVector
+	SVector& m_ssmin(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked signed/signed MIN for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_ssmin(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned MIN for right-hand-side SVector
+	SVector& m_uumin(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief masked unsigned/unsigned MIN for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_uumin(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for referenced elements, i.e. externally allocated elements
