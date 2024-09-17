@@ -244,7 +244,7 @@ SVRegister& SVRegister::m_madc(const SVector& opL, const SVector& rhs, const SVR
 									   rhs[i_element].to_i64(), 
 									   opL[i_element].width_in_bits_, 
 									   carry_in);
-		(*this).set_bit(i_element, carry_out);
+		carry_out ? set_bit(i_element) : reset_bit(i_element);
 	}
 	return(*this);
 }
@@ -256,7 +256,7 @@ SVRegister& SVRegister::m_madc(const SVector& opL, const int64_t rhs, const SVRe
 									   rhs, 
 									   opL[i_element].width_in_bits_, 
 									   carry_in);
-		(*this).set_bit(i_element, carry_out);
+		carry_out ? set_bit(i_element) : reset_bit(i_element);
 	}
 	return(*this);
 }
