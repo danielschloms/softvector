@@ -21,6 +21,27 @@
 
 #include "vpu/softvector-types.hpp"
 
+auto get_carry_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool carry_in) -> bool;
+
+auto get_carry_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool carry_in) -> bool {
+
+	auto result = lhs + rhs + carry_in;
+
+	auto msb = 1 << (sew_bits - 1);
+	auto msb_lhs = lhs & msb;
+	auto msb_rhs = rhs & msb;
+	auto msb_result = result & msb;
+
+	// Carry out if:
+	// - MSB of both operands are set
+	// - MSB of one operand is set, but result MSB is not set
+	auto carry_out = (msb_lhs && msb_rhs) || 
+					 (msb_lhs && !msb_rhs && !msb_result) ||
+					 (!msb_lhs && msb_rhs && !msb_result);
+
+	return carry_out;
+}
+
 SVRegister& SVRegister::operator=(const SVRegister& rhs) {
 	for (size_t i_byte = 0; i_byte < length_bits_/8; ++i_byte) {
 		(*this)[i_byte] = rhs[i_byte];
@@ -214,3 +235,29 @@ SVRegister& SVRegister::m_u_gte(const SVector& opL, const uint64_t rhs, const SV
 	}
 	return(*this);
 }
+
+// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+SVRegister& SVRegister::m_madc(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < opL.length_; ++i_element) {
+		auto carry_in = mask ? 0 : vm.get_bit(i_element);
+		auto carry_out = get_carry_out(opL[i_element].to_i64(), 
+									   rhs[i_element].to_i64(), 
+									   opL[i_element].width_in_bits_, 
+									   carry_in);
+		(*this).set_bit(i_element, carry_out);
+	}
+	return(*this);
+}
+
+SVRegister& SVRegister::m_madc(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < opL.length_; ++i_element) {
+		auto carry_in = mask ? 0 : vm.get_bit(i_element);
+		auto carry_out = get_carry_out(opL[i_element].to_i64(), 
+									   rhs, 
+									   opL[i_element].width_in_bits_, 
+									   carry_in);
+		(*this).set_bit(i_element, carry_out);
+	}
+	return(*this);
+}
+// End 11.4.
