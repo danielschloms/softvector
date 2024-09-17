@@ -888,6 +888,32 @@ uint8_t vminu_vx(
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
+// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Sum with carry vector-vector
+/// \return 0 if no exception triggered
+uint8_t vadc_vvm(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Sum with carry vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vadc_vxm(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Sum with carry vector-immediate
+/// \return 0 if no exception triggered
+uint8_t vadc_vim(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+// End 11.4.
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
