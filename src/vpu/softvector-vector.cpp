@@ -811,7 +811,7 @@ SVector& SVector::m_adc(const SVector& opL, const SVector& rhs,  const SVRegiste
 	return(*this);
 }
 
-SVector& SVector::m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index ) {
+SVector& SVector::m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		(*this)[i_element] = opL[i_element].to_i64() + rhs + vm.get_bit(i_element);
 	}

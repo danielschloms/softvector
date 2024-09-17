@@ -175,6 +175,16 @@ public:
 	/// \return A SVRegister, which each bit holds the on-element logic comparison's result. I.e. LSB for element index 0
 	SVRegister& m_u_gte(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Produce carry-out for right-hand-side SVector. If mask is false, use carry-in.
+	/// \return A SVRegister, which each bit holds the carry-out of the relevant addition
+	SVRegister& m_madc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index = 0);
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Produce carry-out for right-hand-side signed 64 bit value. If mask is false, use carry-in.
+	/// \return A SVRegister, which each bit holds the carry-out of the relevant addition
+	SVRegister& m_madc(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Overloaded array subscript to return the indexed byte of memory as reference
 	uint8_t& operator[](const size_t index) const {
@@ -878,10 +888,10 @@ public:
 	// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Sum with carry for right-hand-side SVector.
-	SVector& m_adc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index);
+	SVector& m_adc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index = 0);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Sum with carry for right-hand-side signed 64 bit value.
-	SVector& m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index );
+	SVector& m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index = 0);
 	// End 11.4.
 
 	//////////////////////////////////////////////////////////////////////////////////////

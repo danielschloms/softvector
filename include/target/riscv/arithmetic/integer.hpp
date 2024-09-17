@@ -1395,6 +1395,49 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start,
 		uint8_t scalar_reg_len_bytes
 	);
+
+	VILL::vpu_return_t vmadc_vv(
+		uint8_t* vec_reg_mem,
+		uint64_t emul_num,
+		uint64_t emul_denom,
+		uint16_t sew_bytes,
+		uint16_t vec_len,
+		uint16_t vec_reg_len_bytes,
+		uint16_t dst_vec_reg,
+		uint16_t src_vec_reg_rhs,
+		uint16_t src_vec_reg_lhs,
+		uint16_t vec_elem_start,
+		bool mask_f
+	);
+
+	VILL::vpu_return_t vmadc_vi(
+		uint8_t* vec_reg_mem,
+		uint64_t emul_num,
+		uint64_t emul_denom,
+		uint16_t sew_bytes,
+		uint16_t vec_len,
+		uint16_t vec_reg_len_bytes,
+		uint16_t dst_vec_reg,
+		uint16_t src_vec_reg_lhs,
+		uint8_t s_imm,
+		uint16_t vec_elem_start,
+		bool mask_f
+	);
+
+	VILL::vpu_return_t vmadc_vx(
+		uint8_t* vec_reg_mem,
+		uint64_t emul_num,
+		uint64_t emul_denom,
+		uint16_t sew_bytes,
+		uint16_t vec_len,
+		uint16_t vec_reg_len_bytes,
+		uint16_t dst_vec_reg,
+		uint16_t src_vec_reg_lhs,
+		uint8_t* scalar_reg_mem,
+		uint16_t vec_elem_start,
+		bool mask_f,
+		uint8_t scalar_reg_len_bytes
+	);
 	// End 11.4
 
 };
