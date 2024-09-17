@@ -1356,7 +1356,7 @@ namespace VARITH_INT {
 	);
 
 	// 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
-	VILL::vpu_return_t VARITH_INT::vadc_vvm(
+	VILL::vpu_return_t vadc_vvm(
 		uint8_t* vec_reg_mem,
 		uint64_t emul_num,
 		uint64_t emul_denom,
@@ -1369,7 +1369,7 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start
 	);
 
-	VILL::vpu_return_t VARITH_INT::vadc_vim(
+	VILL::vpu_return_t vadc_vim(
 		uint8_t* vec_reg_mem,
 		uint64_t emul_num,
 		uint64_t emul_denom,
@@ -1382,7 +1382,7 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start
 	);
 
-	VILL::vpu_return_t VARITH_INT::vadc_vxm(
+	VILL::vpu_return_t vadc_vxm(
 		uint8_t* vec_reg_mem,
 		uint64_t emul_num,
 		uint64_t emul_denom,
