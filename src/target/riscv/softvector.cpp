@@ -1754,4 +1754,48 @@ uint8_t vminu_vx(
 	return (0);
 }
 
+// 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+uint8_t vadc_vvm(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vadc_vvm(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART);
+
+	return (0);
+}
+
+uint8_t vadc_vxm(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* ScalarReg;
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+	if(pXLEN <= 32) ScalarReg = &((static_cast<uint8_t*>(pR))[pRs1*4]);
+	else ScalarReg = &(static_cast<uint8_t*>(pR)[pRs1*8]);
+
+	VARITH_INT::vadc_vxm(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg, pVSTART, pXLEN/8);
+
+	return (0);
+}
+
+uint8_t vadc_vim(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vadc_vim(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, pVimm, pVSTART);
+
+	return (0);
+}
+
 } // extern "C"

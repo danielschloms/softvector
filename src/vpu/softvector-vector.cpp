@@ -347,7 +347,6 @@ SVector& SVector::m_add(const SVector& opL, const SVector& rhs,  const SVRegiste
 	return(*this);
 }
 
-
 SVector& SVector::m_add(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -500,7 +499,9 @@ SVector& SVector::m_sumulh(const SVector& opL, const int64_t rhs, const SVRegist
 	}
 	return(*this);
 }
-// 12.11 Division
+
+// 11.11. Vector Integer Divide Instructions
+
 SVector& SVector::m_ssdiv(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -508,6 +509,7 @@ SVector& SVector::m_ssdiv(const SVector& opL, const SVector& rhs, const SVRegist
 	}
 	return(*this);
 }
+
 SVector& SVector::m_ssdiv(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -515,6 +517,7 @@ SVector& SVector::m_ssdiv(const SVector& opL, const int64_t rhs, const SVRegiste
 	}
 	return(*this);
 }
+
 SVector& SVector::m_uudiv(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -522,6 +525,7 @@ SVector& SVector::m_uudiv(const SVector& opL, const SVector& rhs, const SVRegist
 	}
 	return(*this);
 }
+
 SVector& SVector::m_uudiv(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -561,6 +565,8 @@ SVector& SVector::m_uurem(const SVector& opL, const uint64_t rhs, const SVRegist
 	}
 	return(*this);
 }
+
+// End 11.11.
 
 SVector& SVector::m_ssmax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
@@ -796,3 +802,19 @@ SVector& SVector::m_slidedown(const SVector& opL, const uint64_t rhs, const SVRe
 	}
 	return(*this);
 }
+
+// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+SVector& SVector::m_adc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		(*this)[i_element] = opL[i_element].to_i64() + rhs[i_element].to_i64() + vm.get_bit(i_element);
+	}
+	return(*this);
+}
+
+SVector& SVector::m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		(*this)[i_element] = opL[i_element].to_i64() + rhs + vm.get_bit(i_element);
+	}
+	return(*this);
+}
+// End 11.4.
