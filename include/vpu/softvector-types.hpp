@@ -878,10 +878,10 @@ public:
 	// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Sum with carry for right-hand-side SVector.
-	SVector& SVector::m_adc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index);
+	SVector& m_adc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Sum with carry for right-hand-side signed 64 bit value.
-	SVector& SVector::m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index );
+	SVector& m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index );
 	// End 11.4.
 
 	//////////////////////////////////////////////////////////////////////////////////////
