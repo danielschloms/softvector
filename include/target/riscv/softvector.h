@@ -913,14 +913,14 @@ uint8_t vadc_vim(
 	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Produce carry out in mask register format vector-vector
+/// \brief Produce carry-out in mask register format vector-vector
 /// \return 0 if no exception triggered
 uint8_t vmadc_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Produce carry out in mask register format vector-scalar
+/// \brief Produce carry-out in mask register format vector-scalar
 /// \return 0 if no exception triggered
 uint8_t vmadc_vx(
 	void* pV,
@@ -928,11 +928,41 @@ uint8_t vmadc_vx(
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Produce carry out in mask register format vector-immediate
+/// \brief Produce carry-out in mask register format vector-immediate
 /// \return 0 if no exception triggered
 uint8_t vmadc_vi(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Difference with borrow vector-vector
+/// \return 0 if no exception triggered
+uint8_t vsbc_vvm(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Difference with borrow vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vsbc_vxm(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Produce borrow-out in mask register format vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmsbc_vv(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Produce borrow-out in mask register format vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmsbc_vx(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
 // End 11.4.
 
