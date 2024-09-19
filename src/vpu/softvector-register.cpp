@@ -23,6 +23,8 @@
 
 auto get_carry_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool carry_in) -> bool;
 
+auto get_borrow_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool borrow_in) -> bool;
+
 auto get_carry_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool carry_in) -> bool {
 
 	auto result = lhs + rhs + carry_in;
@@ -40,6 +42,25 @@ auto get_carry_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool carry_in) -> 
 					 (!msb_lhs && msb_rhs && !msb_result);
 
 	return carry_out;
+}
+
+auto get_borrow_out(int64_t lhs, int64_t rhs, size_t sew_bits, bool borrow_in) -> bool {
+
+	auto result = lhs - rhs - borrow_in;
+
+	auto msb = 1 << (sew_bits - 1);
+	auto msb_lhs = lhs & msb;
+	auto msb_rhs = rhs & msb;
+	auto msb_result = result & msb;
+
+	// Borrow out if:
+	// - MSB of rhs is set and MSB of lhs is not set
+	// - MSB of result is set and MSB of lhs = MSB of rhs
+	auto borrow_out = (msb_lhs && !msb_rhs) || 
+					 (msb_lhs && msb_rhs && msb_result) ||
+					 (!msb_lhs && !msb_rhs && msb_result);
+
+	return borrow_out;
 }
 
 SVRegister& SVRegister::operator=(const SVRegister& rhs) {
@@ -257,6 +278,30 @@ SVRegister& SVRegister::m_madc(const SVector& opL, const int64_t rhs, const SVRe
 									   opL[i_element].width_in_bits_, 
 									   carry_in);
 		carry_out ? set_bit(i_element) : reset_bit(i_element);
+	}
+	return(*this);
+}
+
+SVRegister& SVRegister::m_msbc(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < opL.length_; ++i_element) {
+		auto borrow_in = mask ? 0 : vm.get_bit(i_element);
+		auto borrow_out = get_borrow_out(opL[i_element].to_i64(), 
+									   rhs[i_element].to_i64(), 
+									   opL[i_element].width_in_bits_, 
+									   borrow_in);
+		borrow_out ? set_bit(i_element) : reset_bit(i_element);
+	}
+	return(*this);
+}
+
+SVRegister& SVRegister::m_msbc(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < opL.length_; ++i_element) {
+		auto borrow_in = mask ? 0 : vm.get_bit(i_element);
+		auto borrow_out = get_borrow_out(opL[i_element].to_i64(), 
+									   rhs, 
+									   opL[i_element].width_in_bits_, 
+									   borrow_in);
+		borrow_out ? set_bit(i_element) : reset_bit(i_element);
 	}
 	return(*this);
 }
