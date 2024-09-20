@@ -794,7 +794,7 @@ uint8_t vdiv_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
-//////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed DIV vector-scalar
 /// \return 0 if no exception triggered
 uint8_t vdiv_vx(
@@ -809,7 +809,7 @@ uint8_t vdivu_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
-//////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 /// \brief Unsigned DIV vector-scalar
 /// \return 0 if no exception triggered
 uint8_t vdivu_vx(
@@ -824,7 +824,7 @@ uint8_t vrem_vv(
 	void* pV, //!<[inout] Vector register field as local memory
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
-//////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed REM vector-scalar
 /// \return 0 if no exception triggered
 uint8_t vrem_vx(
@@ -984,6 +984,68 @@ uint8_t vmsbc_vx(
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
 // End 11.4.
+
+// 11.13. Vector Single-Width Integer Multiply-Add Instructions
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief MACC vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmacc_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief MACC vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmacc_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief NMSAC vector-vector
+/// \return 0 if no exception triggered
+uint8_t vnmsub_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief NMSAC vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vnmsub_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief MADD vector-vector
+/// \return 0 if no exception triggered
+uint8_t vmadd_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief MADD vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vmadd_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief NMSUB vector-vector
+/// \return 0 if no exception triggered
+uint8_t vnmsub_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief NMSUB vector-scalar
+/// \return 0 if no exception triggered
+uint8_t vnmsub_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.13.
 
 #ifdef __cplusplus
 } // extern "C"

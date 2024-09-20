@@ -902,13 +902,40 @@ public:
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Sum with carry for right-hand-side signed 64 bit value.
 	SVector& m_adc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index = 0);
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Difference with borrow for right-hand-side SVector.
 	SVector& m_sbc(const SVector& opL, const SVector& rhs,  const SVRegister& vm, size_t start_index = 0);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Difference with borrow for right-hand-side signed 64 bit value.
 	SVector& m_sbc(const SVector& opL, const int64_t rhs, const SVRegister& vm, size_t start_index = 0);
 	// End 11.4.
+
+	// 11.13. Vector Single-Width Integer Multiply-Add Instructions
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief MACC for right-hand-side SVector
+	SVector& m_macc(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief MACC for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_macc(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief NMSAC for right-hand-side SVector
+	SVector& m_nmsac(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief NMSAC for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_nmsac(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief MADD for right-hand-side SVector
+	SVector& m_madd(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief MADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_madd(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief NMSUB for right-hand-side SVector
+	SVector& m_nmsub(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// \brief NMSUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
+	SVector& m_nmsub(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	// End 11.13.
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for referenced elements, i.e. externally allocated elements
