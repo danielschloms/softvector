@@ -373,8 +373,9 @@ SVector& SVector::m_sub(const SVector& opL, const int64_t rhs, const SVRegister&
 
 SVector& SVector::m_rsub(const int64_t lhs, const SVector& opR, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_rsub(lhs, opR[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = lhs - opR[i_element].to_i64();
+		}
 	}
 	return(*this);
 }
