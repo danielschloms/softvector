@@ -153,6 +153,8 @@ uint8_t vstore_segment_stride(
 	uint16_t pVTYPE, uint8_t  pVm, uint16_t pEEW, uint8_t pNF, uint8_t pVd, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint64_t pMSTART, int16_t pStride);
 
 /* Vector Arithmetic Helpers*/
+
+// 11.1. Vector Single-Width Integer Add and Subtract
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief ADD vector-vector
 /// \return 0 if no exception triggered, else 1
@@ -190,6 +192,23 @@ uint8_t vsub_vx(
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Reverse SUB vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vrsub_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Reverse SUB vector-immediate
+/// \return 0 if no exception triggered, else 1
+uint8_t vrsub_vi(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+// End 11.1.
+
+// 11.2. Vector Widening Integer Add/Subtract
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Widening vector-vector unsigned ADD vector-vector. SEW*2: SEW op SEW
 /// \return 0 if no exception triggered, else 1
