@@ -755,13 +755,13 @@ public:
 	SVector& m_waddu(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening unsigned Masked ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
-	SVector& m_waddu(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	SVector& m_waddu(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening unsigned Masked SUB for right-hand-side SVector
 	SVector& m_wsubu(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening unsigned Masked SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
-	SVector& m_wsubu(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	SVector& m_wsubu(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening signed Masked ADD for right-hand-side SVector
 	SVector& m_wadd(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
