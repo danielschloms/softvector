@@ -288,8 +288,9 @@ uint8_t vstore_segment_stride(
 	return (0);
 }
 
-/* Vector Arithmetic functions*/
+// 11. Vector Integer Arithmetic Instructions
 
+// 11.1. Vector Single-Width Integer Add and Subtract
 uint8_t vadd_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -392,7 +393,9 @@ uint8_t vrsub_vi(
 
 	return (0);
 }
+// End 11.1.
 
+// 11.2. Vector Widening Integer Add/Subtract
 uint8_t vwaddu_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -632,6 +635,22 @@ uint8_t vwsub_w_vx(
 
 	return (0);
 }
+// End 11.2.
+
+// 11.3. Vector Integer Extension
+uint8_t vext_vf(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t extension_encoding, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vext_vf(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, extension_encoding, pVSTART, pVm);
+
+	return (0);
+}
+// End 11.3.
 
 uint8_t vand_vv(
 	void* pV,

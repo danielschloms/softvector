@@ -454,6 +454,17 @@ SVector& SVector::m_wsub(const SVector& opL, const int64_t rhs, const SVRegister
 }
 // End 11.2.
 
+// 11.3. Vector Integer Extension
+SVector& SVector::m_vext(const SVector& opL, const SVRegister& vm, bool mask, bool sign, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = sign ? opL[i_element].to_i64() : opL[i_element].to_u64();
+		}
+	}
+	return(*this);
+}
+// End 11.3.
+
 //12.10 Multiplikation
 SVector& SVector::m_ssmul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
