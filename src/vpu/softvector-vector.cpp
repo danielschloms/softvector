@@ -380,69 +380,80 @@ SVector& SVector::m_rsub(const int64_t lhs, const SVector& opR, const SVRegister
 	return(*this);
 }
 
+// 11.2. Vector Widening Integer Add/Subtract
 SVector& SVector::m_waddu(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_waddu(opL[i_element], rhs[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() + rhs[i_element].to_u64();
+		}
 	}
 	return(*this);
 }
 
-SVector& SVector::m_waddu(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+SVector& SVector::m_waddu(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_waddu(opL[i_element], rhs);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() + rhs;
+		}
 	}
 	return(*this);
 }
 
 SVector& SVector::m_wsubu(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wsubu(opL[i_element], rhs[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() - rhs[i_element].to_u64();
+		}
 	}
 	return(*this);
 }
 
-SVector& SVector::m_wsubu(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+SVector& SVector::m_wsubu(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wsubu(opL[i_element], rhs);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() - rhs;
+		}
 	}
 	return(*this);
 }
 
 SVector& SVector::m_wadd(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wadd(opL[i_element], rhs[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_i64() + rhs[i_element].to_i64();
+		}
 	}
 	return(*this);
 }
 
 SVector& SVector::m_wadd(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wadd(opL[i_element], rhs);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_i64() + rhs;
+		}
 	}
 	return(*this);
 }
 
 SVector& SVector::m_wsub(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wsub(opL[i_element], rhs[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_i64() - rhs[i_element].to_i64();
+		}
 	}
 	return(*this);
 }
 
 SVector& SVector::m_wsub(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_wsub(opL[i_element], rhs);
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() - rhs;
+		}
 	}
 	return(*this);
 }
+// End 11.2.
+
 //12.10 Multiplikation
 SVector& SVector::m_ssmul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
