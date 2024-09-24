@@ -425,6 +425,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Reverse-SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
 	SVElement& s_rsub(const int64_t lhs, const SVElement& opR);
+
+	// 11.2. Vector Widening Integer Add/Subtract
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening unsigned ADD and assign for right-hand-side SVElement
 	SVElement& s_waddu(const SVElement& opL, const SVElement& rhs);
@@ -449,6 +451,8 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening signed SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
 	SVElement& s_wsub(const SVElement& opL, const int64_t rhs);
+	// End 11.2.
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief bit-wise AND and assign for right-hand-side SVElement
 	SVElement& s_and(const SVElement& opL, const SVElement& rhs);
@@ -774,6 +778,12 @@ public:
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Widening signed Masked SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
 	SVector& m_wsub(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	// End 11.2.
+
+	// 11.3. Vector Integer Extension
+	SVector& m_vext(const SVector& opL, const SVRegister& vm, bool mask, bool sign, size_t start_index = 0);
+	// End 11.3.
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Masked bit-wise AND for right-hand-side SVector
 	SVector& m_and(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);

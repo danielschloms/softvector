@@ -328,6 +328,16 @@ uint8_t vwsub_w_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.2.
+
+// 11.3. Vector Integer Extension
+/////////////////////////////////////////////////////////////////////////////////////
+/// \brief Sign/zero-extend vector
+/// \return 0 if no exception triggered
+uint8_t vext_vf(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t extension_encoding, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+// End 11.3.
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief AND vector-vector

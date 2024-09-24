@@ -228,10 +228,27 @@ namespace VARITH_INT {
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 	);
 
-/* rvv spec. 12.3 - Vector Integer Extension */
-///TODO: vzext.vf{2,4,8}
-///TODO: vsext.vf{2,4,8}
+	///TODO: vzext.vf{2,4,8}
+	///TODO: vsext.vf{2,4,8}
 
+	// 11.3. Vector Integer Extension
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Sign/zero-extend vector
+	/// \details Sign/zero-extend SEW / {2|4|8} source to SEW destination
+	VILL::vpu_return_t vext_vf(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint16_t extension_encoding, //!< Encoding of sign/zero and divider
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+	// End 11.3.
 /* rvv spec. 12.4 - Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
 ///TODO: ...
 

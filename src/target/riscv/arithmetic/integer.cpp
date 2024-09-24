@@ -467,6 +467,60 @@ VILL::vpu_return_t VARITH_INT::wop_wx(
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
+// End 11.2.
+
+// 11.3. Vector Integer Extension
+VILL::vpu_return_t VARITH_INT::vext_vf(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint16_t extension_encoding,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	auto divider = 0;
+	bool sign = extension_encoding & 1;
+	extension_encoding >>= 1;
+	if (extension_encoding == 1) {
+		divider = 8;
+	} else if (extension_encoding == 2) {
+		divider = 4;
+	} else {
+		divider = 2;
+	}
+
+	// Source EEW: 1/8, 1/4, or 1/2 of SEW
+	// Source EMUL: (EEW/SEW)*LMUL
+	RVVRegField V(vec_reg_len_bytes*8, vec_len, (sew_bytes*8)/divider, SVMul(emul_num, emul_denom*divider), vec_reg_mem);
+
+	if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	} else {
+		RVVRegField VD(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
+		if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+			return(VILL::VPU_RETURN::DST_VEC_ILL);
+		}
+
+		V.init();
+		VD.init();
+
+		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
+		RVVector& vd = VD.get_vec(dst_vec_reg);
+
+		if(vd.check_mem_overlap(vs2) != 0) {
+			return(VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+		}
+
+		vd.m_vext(vs2, V.get_mask_reg(), !mask_f, sign, vec_elem_start);
+	}
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+// End 11.3.
 
 VILL::vpu_return_t VARITH_INT::and_vv(
 	uint8_t* vec_reg_mem,
