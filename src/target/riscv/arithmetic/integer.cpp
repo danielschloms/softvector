@@ -265,6 +265,7 @@ VILL::vpu_return_t VARITH_INT::wop_vv(
 	bool dir_f,
 	bool signed_f
 ) {
+	// TODO: Remove nesting for returning branches
 	RVVRegField V(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
 	if(! V.vec_reg_is_aligned(src_vec_reg_rhs) ) {
@@ -497,34 +498,32 @@ VILL::vpu_return_t VARITH_INT::vext_vf(
 	// Source EEW: 1/8, 1/4, or 1/2 of SEW
 	// Source EMUL: (EEW/SEW)*LMUL
 	RVVRegField V(vec_reg_len_bytes*8, vec_len, (sew_bytes*8)/divider, SVMul(emul_num, emul_denom*divider), vec_reg_mem);
-
 	if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
 		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
-	} else {
-		RVVRegField VD(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
-		if (! VD.vec_reg_is_aligned(dst_vec_reg) ) {
-			return(VILL::VPU_RETURN::DST_VEC_ILL);
-		}
+	} 
 
-		V.init();
-		VD.init();
-
-		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
-		RVVector& vd = VD.get_vec(dst_vec_reg);
-
-		// RVV1.0: Overlap allowed when destination EEW > source EEW (as is for vsext, vzext) if:
-		// - source EMUL >= 1
-		// - the overlap is in the highest-numbered part of the destination register group (e.g., when LMUL=8, vzext.vf4 v0, v6 is legal, but a source of v0, v2, or v4 is not).
-		int lmul = emul_num / emul_denom; // Destination EMUL = LMUL
-		int n_allowed_overlaps = lmul / divider;
-		int lowest_allowed_register = dst_vec_reg + lmul - n_allowed_overlaps;
-		if (emul_num < emul_denom * divider || src_vec_reg_lhs < lowest_allowed_register) {
-				if(vd.check_mem_overlap(vs2) != 0) {
-					return(VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
-				}
-		}
-		vd.m_vext(vs2, V.get_mask_reg(), !mask_f, sign, vec_elem_start);
+	RVVRegField VD(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if (! VD.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
 	}
+
+	V.init();
+	VD.init();
+	RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
+	RVVector& vd = VD.get_vec(dst_vec_reg);
+
+	// RVV1.0: Overlap allowed when destination EEW > source EEW (as is for vsext, vzext) if:
+	// - source EMUL >= 1
+	// - the overlap is in the highest-numbered part of the destination register group (e.g., when LMUL=8, vzext.vf4 v0, v6 is legal, but a source of v0, v2, or v4 is not).
+	int lmul = emul_num / emul_denom; // Destination EMUL = LMUL
+	int n_allowed_overlaps = lmul / divider;
+	int lowest_allowed_register = dst_vec_reg + lmul - n_allowed_overlaps;
+	if ((emul_num < emul_denom * divider || src_vec_reg_lhs < lowest_allowed_register) &&
+			vd.check_mem_overlap(vs2) != 0) {
+			return(VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+	}
+	vd.m_vext(vs2, V.get_mask_reg(), !mask_f, sign, vec_elem_start);
+	
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
 // End 11.3.
@@ -815,6 +814,7 @@ VILL::vpu_return_t VARITH_INT::xor_vx(
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
 
+// 11.6. Vector Single-Width Shift Instructions
 VILL::vpu_return_t VARITH_INT::sll_vv(
 	uint8_t* vec_reg_mem,
 	uint64_t emul_num,
@@ -1072,7 +1072,7 @@ VILL::vpu_return_t VARITH_INT::sra_vi(
 		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
 		RVVector& vd = V.get_vec(dst_vec_reg);
 
-		vd.m_sra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+		vd.m_nsra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
@@ -1105,11 +1105,283 @@ VILL::vpu_return_t VARITH_INT::sra_vx(
 		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
 		RVVector& vd = V.get_vec(dst_vec_reg);
 
-		vd.m_sra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+		vd.m_nsra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
 }
+// End 11.6.
 
+// 11.7. Vector Narrowing Integer Right Shift Instructions
+VILL::vpu_return_t VARITH_INT::vnsrl_wv(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_rhs,
+	uint16_t src_vec_reg_lhs,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	// vd and vs1: EEW = SEW, EMUL = LMUL
+	RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if(! V.vec_reg_is_aligned(src_vec_reg_rhs) ) {
+		return(VILL::VPU_RETURN::SRC1_VEC_ILL);
+	} 
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	// vs2: EEW = 2*SEW, EMUL = 2*LMUL
+	RVVRegField VS(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! VS.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	}
+
+	V.init();
+	VS.init();
+	RVVector& vs1 = V.get_vec(src_vec_reg_rhs);
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsrl.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+
+	vd.m_nsrl(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+VILL::vpu_return_t VARITH_INT::vnsrl_wi(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint8_t u_imm,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	RVVRegField V(vec_reg_len_bytes*8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	RVVRegField VS(vec_reg_len_bytes*8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! VS.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	} 
+	
+	V.init();
+	VS.init();
+
+	uint64_t imm = u_imm & 0x1F;
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsrl.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+
+	vd.m_nsrl(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+
+VILL::vpu_return_t VARITH_INT::vnsrl_wx(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint8_t* scalar_reg_mem,
+	uint16_t vec_elem_start,
+	bool mask_f,
+	uint8_t scalar_reg_len_bytes
+) {
+	RVVRegField V(vec_reg_len_bytes*8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	RVVRegField VS(vec_reg_len_bytes*8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	}
+
+	V.init();
+	VS.init();
+
+	uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t*>(scalar_reg_mem)) : *(reinterpret_cast<uint32_t*>(scalar_reg_mem));
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsrl.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+	
+	vd.m_nsrl(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+VILL::vpu_return_t VARITH_INT::vnsra_wv(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_rhs,
+	uint16_t src_vec_reg_lhs,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	// vd and vs1: EEW = SEW, EMUL = LMUL
+	RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if(! V.vec_reg_is_aligned(src_vec_reg_rhs) ) {
+		return(VILL::VPU_RETURN::SRC1_VEC_ILL);
+	} 
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	// vs2: EEW = 2*SEW, EMUL = 2*LMUL
+	RVVRegField VS(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! VS.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	}
+
+	V.init();
+	VS.init();
+	RVVector& vs1 = V.get_vec(src_vec_reg_rhs);
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsra.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+
+	vd.m_nsra(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+VILL::vpu_return_t VARITH_INT::vnsra_wi(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint8_t u_imm,
+	uint16_t vec_elem_start,
+	bool mask_f
+) {
+	RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	RVVRegField VS(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! VS.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	} 
+	
+	V.init();
+	VS.init();
+
+	uint64_t imm = u_imm & 0x1F;
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsra.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+
+	vd.m_nsra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+
+VILL::vpu_return_t VARITH_INT::vnsra_wx(
+	uint8_t* vec_reg_mem,
+	uint64_t emul_num,
+	uint64_t emul_denom,
+	uint16_t sew_bytes,
+	uint16_t vec_len,
+	uint16_t vec_reg_len_bytes,
+	uint16_t dst_vec_reg,
+	uint16_t src_vec_reg_lhs,
+	uint8_t* scalar_reg_mem,
+	uint16_t vec_elem_start,
+	bool mask_f,
+	uint8_t scalar_reg_len_bytes
+) {
+	RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		return(VILL::VPU_RETURN::DST_VEC_ILL);
+	}
+
+	RVVRegField VS(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+	if (! V.vec_reg_is_aligned(src_vec_reg_lhs) ) {
+		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
+	}
+
+	V.init();
+	VS.init();
+
+	uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t*>(scalar_reg_mem)) : *(reinterpret_cast<uint32_t*>(scalar_reg_mem));
+	RVVector& vs2 = VS.get_vec(src_vec_reg_lhs);
+	RVVector& vd = V.get_vec(dst_vec_reg);
+
+	// Overlap rules for narrowing instructions: 
+	// Destination and source (vs2) can overlap if the overlap is in the lowest-numbered part of the source register group, 
+	// e.g., when LMUL=1, vnsra.wi v0, v0, 3 is legal, but a destination of v1 is not.
+	if (src_vec_reg_lhs != dst_vec_reg &&
+			vd.check_mem_overlap(vs2) != 0) {
+		return(VILL::VPU_RETURN::NARROWING_OVERLAP_VD_VS2_ILL);
+	}
+	
+	vd.m_nsra(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+	
+	return(VILL::VPU_RETURN::NO_EXCEPT);
+}
+// End 11.7.
 
 VILL::vpu_return_t VARITH_INT::mseq_vv(
 	uint8_t* vec_reg_mem,
