@@ -821,6 +821,21 @@ public:
 	/// \brief Masked SRL for right-hand-side signed 64 bit value. rhs is zero extended to element size
 	SVector& m_srl(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
 
+	// 11.7. Vector Narrowing Integer Right Shift Instructions
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Masked narrowing SRA for right-hand-side SVector
+	SVector& m_nsra(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Masked narrowing SRA for right-hand-side signed 64 bit value. rhs is zero extended to element size
+	SVector& m_nsra(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Masked narrowing SRL for right-hand-side SVector
+	SVector& m_nsrl(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Masked narrowing SRL for right-hand-side signed 64 bit value. rhs is zero extended to element size
+	SVector& m_nsrl(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);
+	// End 11.7.
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Slide the Vector elements up by right-hand-side unsigned 64 bit value. rhs is zero extended to element size
 	SVector& m_slideup(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index = 0);

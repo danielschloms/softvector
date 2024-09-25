@@ -799,6 +799,46 @@ SVector& SVector::m_srl(const SVector& opL, const uint64_t rhs, const SVRegister
 	return(*this);
 }
 
+SVector& SVector::m_nsra(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		auto shiftamount_bitmask = opL[i_element].width_in_bits_ - 1; 
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_i64() >> (rhs[i_element].to_u64() & shiftamount_bitmask);
+		}
+	}
+	return(*this);
+}
+
+SVector& SVector::m_nsra(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		auto shiftamount_bitmask = opL[i_element].width_in_bits_ - 1; 
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_i64() >> (rhs & shiftamount_bitmask);
+		}
+	}
+	return(*this);
+}
+
+SVector& SVector::m_nsrl(const SVector& opL, const SVector& rhs,  const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		auto shiftamount_bitmask = opL[i_element].width_in_bits_ - 1; 
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() >> (rhs[i_element].to_u64() & shiftamount_bitmask);
+		}
+	}
+	return(*this);
+}
+
+SVector& SVector::m_nsrl(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		auto shiftamount_bitmask = opL[i_element].width_in_bits_ - 1; 
+		if(!mask || vm.get_bit(i_element)) {
+			(*this)[i_element] = opL[i_element].to_u64() >> (rhs & shiftamount_bitmask);
+		}
+	}
+	return(*this);
+}
+
 SVector& SVector::m_slideup(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	size_t max = rhs > start_index ? rhs : start_index;
 	for(size_t i_element = max; i_element < length_; ++i_element) {
