@@ -483,7 +483,7 @@ VILL::vpu_return_t VARITH_INT::vext_vf(
 	uint16_t vec_elem_start,
 	bool mask_f
 ) {
-	auto divider = 0;
+	int divider = 0;
 	bool sign = extension_encoding & 1;
 	extension_encoding >>= 1;
 	if (extension_encoding == 1) {
@@ -502,7 +502,7 @@ VILL::vpu_return_t VARITH_INT::vext_vf(
 		return(VILL::VPU_RETURN::SRC2_VEC_ILL);
 	} else {
 		RVVRegField VD(vec_reg_len_bytes*8, vec_len, sew_bytes*8, SVMul(emul_num, emul_denom), vec_reg_mem);
-		if (! V.vec_reg_is_aligned(dst_vec_reg) ) {
+		if (! VD.vec_reg_is_aligned(dst_vec_reg) ) {
 			return(VILL::VPU_RETURN::DST_VEC_ILL);
 		}
 
@@ -512,10 +512,17 @@ VILL::vpu_return_t VARITH_INT::vext_vf(
 		RVVector& vs2 = V.get_vec(src_vec_reg_lhs);
 		RVVector& vd = VD.get_vec(dst_vec_reg);
 
-		if(vd.check_mem_overlap(vs2) != 0) {
-			return(VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+		// RVV1.0: Overlap allowed when destination EEW > source EEW (as is for vsext, vzext) if:
+		// - source EMUL >= 1
+		// - the overlap is in the highest-numbered part of the destination register group (e.g., when LMUL=8, vzext.vf4 v0, v6 is legal, but a source of v0, v2, or v4 is not).
+		int lmul = emul_num / emul_denom; // Destination EMUL = LMUL
+		int n_allowed_overlaps = lmul / divider;
+		int lowest_allowed_register = dst_vec_reg + lmul - n_allowed_overlaps;
+		if (emul_num < emul_denom * divider || src_vec_reg_lhs < lowest_allowed_register) {
+				if(vd.check_mem_overlap(vs2) != 0) {
+					return(VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+				}
 		}
-
 		vd.m_vext(vs2, V.get_mask_reg(), !mask_f, sign, vec_elem_start);
 	}
 	return(VILL::VPU_RETURN::NO_EXCEPT);
