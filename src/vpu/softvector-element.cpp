@@ -774,6 +774,29 @@ SVElement& SVElement::s_sumulh(const SVElement& opL, const int64_t rhs) {
 	return(this->s_sumulh(opL, _op2));
 }
 
+SVElement& SVElement::s_sumul(const SVElement& opL, const SVElement &rhs) {
+	SVElement _op1(opL);
+	bool op1_neg = _op1 < 0;
+	if(op1_neg)
+		_op1.twos_complement();
+
+	auto x = u_mul_u(*this, _op1, rhs);
+
+	if(op1_neg)
+		x.twos_complement();
+
+	*this = x >> width_in_bits_;
+
+	return (*this);
+}
+
+SVElement& SVElement::s_sumul(const SVElement& opL, const int64_t rhs) {
+	SVElement _op2(opL.width_in_bits_);
+	_op2 = rhs;
+
+	return(this->s_sumulh(opL, _op2));
+}
+
 //DIV 12.11
 ///////////////////////////////////////////////////////////////////////////////////////////
 SVElement& SVElement::s_ssdiv(const SVElement& opL, const SVElement &rhs) {
@@ -859,3 +882,37 @@ SVElement& SVElement::s_uurem(const SVElement& opL, const uint64_t rhs) {
 	*this = opL.to_u64() % rhs;
 	return (*this);
 }
+
+SVElement& SVElement::s_uumul(const SVElement& opL, const SVElement &rhs) {
+	auto x = u_mul_u(*this, opL, rhs);
+	*this = x;
+	return (*this);
+}
+
+SVElement& SVElement::s_uumul(const SVElement& opL, const uint64_t rhs) {
+	SVElement _op2(opL.width_in_bits_);
+	_op2 = rhs;
+	return(this->s_uumul(opL, _op2));
+}
+
+// SVElement& SVElement::s_sumul(const SVElement& opL, const SVElement &rhs) {
+// 	SVElement _op1(opL);
+// 	bool op1_neg = _op1 < 0;
+// 	if(op1_neg)
+// 		_op1.twos_complement();
+
+// 	auto x = u_mul_u(*this, _op1, rhs);
+
+// 	if(op1_neg){
+// 		x.twos_complement();
+// 	}
+// 	*this = x;
+// 	return (*this);
+// }
+
+// SVElement& SVElement::s_sumul(const SVElement& opL, const int64_t rhs) {
+// 	SVElement _op2(opL.width_in_bits_);
+// 	_op2 = rhs;
+
+// 	return(this->s_sumulh(opL, _op2));
+// }

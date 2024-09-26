@@ -454,7 +454,7 @@ SVector& SVector::m_wsub(const SVector& opL, const int64_t rhs, const SVRegister
 }
 // End 11.2.
 
-// 11.3. Vector Integer Extension
+/* 11.3. Vector Integer Extension */
 SVector& SVector::m_vext(const SVector& opL, const SVRegister& vm, bool mask, bool sign, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)) {
@@ -463,20 +463,42 @@ SVector& SVector::m_vext(const SVector& opL, const SVRegister& vm, bool mask, bo
 	}
 	return(*this);
 }
-// End 11.3.
+/* End 11.3. */
 
-//12.10 Multiplikation
+/* 11.10 & 11.12. Vector (Widening) Integer Multiply Instructions */
 SVector& SVector::m_ssmul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+			(*this)[i_element] = opL[i_element].to_i64() * rhs[i_element].to_i64(); 
+		}
 	}
 	return(*this);
 }
 SVector& SVector::m_ssmul(const SVector& opL, const int64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
-		if(!mask || vm.get_bit(i_element))
-			(*this)[i_element].s_ssmul(opL[i_element], rhs);
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs);
+			(*this)[i_element] = opL[i_element].to_i64() * rhs; 
+		}
+	}
+	return(*this);
+}
+SVector& SVector::m_uumul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+			(*this)[i_element] = opL[i_element].to_u64() * rhs[i_element].to_u64(); 
+		}
+	}
+	return(*this);
+}
+SVector& SVector::m_uumul(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+			(*this)[i_element] = opL[i_element].to_u64() * rhs; 
+		}
 	}
 	return(*this);
 }
@@ -522,9 +544,29 @@ SVector& SVector::m_sumulh(const SVector& opL, const int64_t rhs, const SVRegist
 	}
 	return(*this);
 }
+SVector& SVector::m_sumul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+			// TODO: unsigned * signed in C++ -> converted to signed * signed!
+			(*this)[i_element] = opL[i_element].to_i64() * rhs[i_element].to_u64();
+		}
+	}
+	return(*this);
+}
+SVector& SVector::m_sumul(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
+	for(size_t i_element = start_index; i_element < length_; ++i_element) {
+		if(!mask || vm.get_bit(i_element)) {
+			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
+			// TODO: unsigned * signed in C++ -> converted to signed * signed!
+			// Tests work but check this
+			(*this)[i_element] = opL[i_element].to_i64() * rhs;
+		}
+	}
+	return(*this);
+}
 
-// 11.11. Vector Integer Divide Instructions
-
+/* 11.11. Vector Integer Divide Instructions */
 SVector& SVector::m_ssdiv(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element))
@@ -588,8 +630,7 @@ SVector& SVector::m_uurem(const SVector& opL, const uint64_t rhs, const SVRegist
 	}
 	return(*this);
 }
-
-// End 11.11.
+/* End 11.11. */
 
 SVector& SVector::m_ssmax(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {

@@ -288,9 +288,9 @@ uint8_t vstore_segment_stride(
 	return (0);
 }
 
-// 11. Vector Integer Arithmetic Instructions
+/* 11. Vector Integer Arithmetic Instructions */
 
-// 11.1. Vector Single-Width Integer Add and Subtract
+/* 11.1. Vector Single-Width Integer Add and Subtract */
 uint8_t vadd_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -393,9 +393,9 @@ uint8_t vrsub_vi(
 
 	return (0);
 }
-// End 11.1.
+/* End 11.1. */
 
-// 11.2. Vector Widening Integer Add/Subtract
+/* 11.2. Vector Widening Integer Add/Subtract */
 uint8_t vwaddu_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -635,9 +635,9 @@ uint8_t vwsub_w_vx(
 
 	return (0);
 }
-// End 11.2.
+/* End 11.2. */
 
-// 11.3. Vector Integer Extension
+/* 11.3. Vector Integer Extension */
 uint8_t vext_vf(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t extension_encoding, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -650,8 +650,9 @@ uint8_t vext_vf(
 
 	return (0);
 }
-// End 11.3.
+/* End 11.3. */
 
+/* 11.5. Vector Bitwise Logical Instructions */
 uint8_t vand_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -780,7 +781,9 @@ uint8_t vxor_vx(
 
 	return (0);
 }
+/* End 11.5. */
 
+/* 11.6. Vector Single-Width Shift Instructions */
 uint8_t vsll_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -908,9 +911,9 @@ uint8_t vsra_vx(
 
 	return (0);
 }
-// End 11.6.
+/* End 11.6. */
 
-// 11.7. Vector Narrowing Integer Right Shift Instructions
+/* 11.7. Vector Narrowing Integer Right Shift Instructions */
 uint8_t vnsrl_wv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -996,8 +999,9 @@ uint8_t vnsra_wx(
 
 	return (0);
 }
-// End 11.7.
+/* End 11.7. */
 
+/* 11.8. Vector Integer Compare Instructions */
 uint8_t vmseq_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -1315,6 +1319,7 @@ uint8_t vmsgt_vi(
 
 	return (0);
 }
+/* End 11.8. */
 
 uint8_t vmv_vv(
 	void* pV,
@@ -1558,6 +1563,7 @@ uint8_t vfslide1down(
 	return (0);
 }
 
+/* 11.10. Vector Single-Width Integer Multiply Instructions */
 uint8_t vmul_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -1677,7 +1683,9 @@ uint8_t vmulhsu_vx(
 
 	return (0);
 }
+/* End 11.10. */
 
+/* 11.11. Vector Integer Divide Instructions */
 uint8_t vdiv_vx(
 	void* pV,
 	void* pR,
@@ -1797,6 +1805,99 @@ uint8_t vremu_vv(
 
 	return (0);
 }
+/* End 11.11. */
+
+/* 11.12. */
+uint8_t vwmul_vv(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vwmul_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART, pVm, VARITH_INT::VWMUL_TYPE::S_S);
+
+	return (0);
+}
+
+uint8_t vwmul_vx(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* ScalarReg;
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+	if(pXLEN <= 32) ScalarReg = &((static_cast<uint8_t*>(pR))[pRs1*4]);
+	else ScalarReg = &(static_cast<uint8_t*>(pR)[pRs1*8]);
+
+	VARITH_INT::vwmul_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg, pVSTART, pVm, pXLEN/8, VARITH_INT::VWMUL_TYPE::S_S);
+
+	return (0);
+}
+
+uint8_t vwmulu_vv(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vwmul_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART, pVm, VARITH_INT::VWMUL_TYPE::U_U);
+
+	return (0);
+}
+
+uint8_t vwmulu_vx(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* ScalarReg;
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+	if(pXLEN <= 32) ScalarReg = &((static_cast<uint8_t*>(pR))[pRs1*4]);
+	else ScalarReg = &(static_cast<uint8_t*>(pR)[pRs1*8]);
+
+	VARITH_INT::vwmul_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg, pVSTART, pVm, pXLEN/8, VARITH_INT::VWMUL_TYPE::U_U);
+
+	return (0);
+}
+
+uint8_t vwmulsu_vv(
+	void* pV,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+
+	VARITH_INT::vwmul_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART, pVm, VARITH_INT::VWMUL_TYPE::S_U);
+
+	return (0);
+}
+
+uint8_t vwmulsu_vx(
+	void* pV,
+	void* pR,
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN) {
+	VTYPE::VTYPE _vt(pVTYPE);
+	uint8_t* ScalarReg;
+	uint8_t* VectorRegField;
+
+	VectorRegField = static_cast<uint8_t*>(pV);
+	if(pXLEN <= 32) ScalarReg = &((static_cast<uint8_t*>(pR))[pRs1*4]);
+	else ScalarReg = &(static_cast<uint8_t*>(pR)[pRs1*8]);
+
+	VARITH_INT::vwmul_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg, pVSTART, pVm, pXLEN/8, VARITH_INT::VWMUL_TYPE::S_U);
+
+	return (0);
+}
+/* End 11.12. */
 
 uint8_t vmax_vv(
 	void* pV,
@@ -1918,7 +2019,7 @@ uint8_t vminu_vx(
 	return (0);
 }
 
-// 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+/* 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
 uint8_t vadc_vvm(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -2064,9 +2165,9 @@ uint8_t vmsbc_vx(
 
 	return (0);
 }
-// End 11.4
+/* End 11.4 */
 
-// 11.13. Vector Single-Width Integer Multiply-Add Instructions
+/* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
 uint8_t vmacc_vv(
 	void* pV,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL) {
@@ -2186,6 +2287,6 @@ uint8_t vnmsub_vx(
 
 	return (0);
 }
-// End 11.13.
+/* End 11.13. */
 
 } // extern "C"

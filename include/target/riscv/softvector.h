@@ -751,6 +751,7 @@ uint8_t vfslide1down(
 	void* pF, //!<[inout] Floating point register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
+// 11.10. Vector Single-Width Integer Multiply Instructions
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief MUL vector-vector low bit of product
 /// \return 0 if no exception triggered, else 1
@@ -809,7 +810,9 @@ uint8_t vmulhsu_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.10.
 
+// 11.11. Vector Integer Divide Instructions
 /////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed DIV vector-vector
 /// \return 0 if no exception triggered
@@ -869,6 +872,51 @@ uint8_t vremu_vx(
 	void* pV, //!<[inout] Vector register field as local memory
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.11.
+
+// 11.12. Vector Widening Integer Multiply Instructions
+/// \brief Widening MUL signed-signed vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmul_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Widening MUL signed-signed vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmul_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/// \brief Widening MUL unsigned-unsigned vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmulu_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Widening MUL unsigned-unsigned vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmulu_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+/// \brief Widening MUL signed-unsigned vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmulsu_vv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Widening MUL signed-unsigned vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vwmulsu_vx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.12.
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Signed MAX vector-vector
