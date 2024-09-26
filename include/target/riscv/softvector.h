@@ -1005,8 +1005,53 @@ uint8_t vmsbc_vx(
 	void* pV,
 	void* pR,
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-
 // End 11.4.
+
+// 11.7. Vector Narrowing Integer Right Shift Instructions
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRL vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsrl_wv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRL vector-immediate
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsrl_wi(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRL vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsrl_wx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRA vector-vector
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsra_wv(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRA vector-immediate
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsra_wi(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Narrowing SRA vector-scalar
+/// \return 0 if no exception triggered, else 1
+uint8_t vnsra_wx(
+	void* pV, //!<[inout] Vector register field as local memory
+	void* pR, //!<[in] Integer/General Purpose register field
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+// End 11.7.
 
 // 11.13. Vector Single-Width Integer Multiply-Add Instructions
 /////////////////////////////////////////////////////////////////////////////////////

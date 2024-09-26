@@ -559,8 +559,111 @@ namespace VARITH_INT {
 		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 	);
-/* 12.7. Vector Narrowing Integer Right Shift Instructions */
-//TODO: vnsrl.wv ...
+	// End 11.6.
+
+	// 11.7. Vector Narrowing Integer Right Shift Instructions
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRL vector-vector
+	/// \details For all i: D[i] = R[i] >> (L[i] & possible SEW bits), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsrl_wv(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_rhs, //!< Source vector R [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRL vector-immediate
+	/// \details For all i: D[i] = L[i] >> (uimm), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsrl_wi(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t u_imm, //!< Zero extending 5-bit immediate
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRL vector-scalar
+	/// \details For all i: D[i] = L[i] >> (X & possible SEW bits), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsrl_wx(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t* scalar_reg_mem, //!< Memory space holding scalar data (min. _xlenb bytes)
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
+		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+	);
+
+/* SRA */
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRA vector-vector
+	/// \details For all i: D[i] = R[i] >> (L[i] & possible SEW bits), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsra_wv(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_rhs, //!< Source vector R [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRA vector-immediate
+	/// \details For all i: D[i] = L[i] >> (uimm), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsra_wi(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t u_imm, //!< Zero extending 5-bit immediate
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Narrowing SRA vector-scalar
+	/// \details For all i: D[i] = L[i] >> (X & possible SEW bits), SEW = 2*SEW >> SEW
+	VILL::vpu_return_t vnsra_wx(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t* scalar_reg_mem, //!< Memory space holding scalar data (min. _xlenb bytes)
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
+		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+	);
+	// End 11.7.
+
 
 /* 12.8 Vector Integer Comparison Instructions*/
 /* MSEQ */
@@ -1404,7 +1507,7 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start //!< Starting element [index]
 	);
 
-	// 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+	// 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
 	VILL::vpu_return_t vadc_vvm(
 		uint8_t* vec_reg_mem,
 		uint64_t emul_num,
