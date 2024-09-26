@@ -606,6 +606,13 @@ uint8_t vmsgtu_vx(
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
 //////////////////////////////////////////////////////////////////////////////////////
+/// \brief MSLE vector-immediate (less than or equal signed)
+/// \return 0 if no exception triggered, else 1
+uint8_t vmsgtu_vi(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+//////////////////////////////////////////////////////////////////////////////////////
 /// \brief MSGT vector-vector (greater than signed)
 /// \return 0 if no exception triggered, else 1
 uint8_t vmsgt_vv(
@@ -620,6 +627,12 @@ uint8_t vmsgt_vx(
 	void* pR, //!<[in] Integer/General Purpose register field
 	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief MSLE vector-immediate (less than or equal signed)
+/// \return 0 if no exception triggered, else 1
+uint8_t vmsgt_vi(
+	void* pV, //!<[inout] Vector register field as local memory
+	uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Move/Copy vector to vector

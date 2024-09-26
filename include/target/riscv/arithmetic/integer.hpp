@@ -865,6 +865,22 @@ namespace VARITH_INT {
 		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief (Mask register) SGTU vector-immediate (less than or equal signed)
+	/// \details For all i: MaskReg[i] = R[i] < immediate
+	VILL::vpu_return_t msgtu_vi(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t s_imm, //!< Sign extending 5-bit immediate
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
+	);
 /* MSGT */
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief (Mask register) SGT vector-vector (less than signed)
@@ -898,6 +914,22 @@ namespace VARITH_INT {
 		uint16_t vec_elem_start, //!< Starting element [index]
 		bool mask_f, //!< Vector mask flag. 1: masking 0: no masking
 		uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+	);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief (Mask register) GTU vector-immediate (less than or equal signed)
+	/// \details For all i: MaskReg[i] = R[i] < immediate
+	VILL::vpu_return_t msgt_vi(
+		uint8_t* vec_reg_mem, //!< Vector register file memory space. One dimensional
+		uint64_t emul_num, //!< Register multiplicity numerator
+		uint64_t emul_denom, //!< Register multiplicity denominator
+		uint16_t sew_bytes, //!< Element width [bytes]
+		uint16_t vec_len, //!< Vector length [elements]
+		uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+		uint16_t dst_vec_reg, //!< Destination vector D [index]
+		uint16_t src_vec_reg_lhs, //!< Source vector L [index]
+		uint8_t s_imm, //!< Sign extending 5-bit immediate
+		uint16_t vec_elem_start, //!< Starting element [index]
+		bool mask_f //!< Vector mask flag. 1: masking 0: no masking
 	);
 
 /* 12.9. Vector Integer Min/Max Instructions*/
