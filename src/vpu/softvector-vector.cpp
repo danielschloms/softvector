@@ -547,8 +547,10 @@ SVector& SVector::m_sumulh(const SVector& opL, const int64_t rhs, const SVRegist
 SVector& SVector::m_sumul(const SVector& opL, const SVector& rhs, const SVRegister& vm, bool mask, size_t start_index ) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)) {
-			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
-			// TODO: unsigned * signed in C++ -> converted to signed * signed!
+			// TODO: Review this
+			// This seems to work since:
+			// - I * U is automatically cast to U * U
+			// - = operator takes signed
 			(*this)[i_element] = opL[i_element].to_i64() * rhs[i_element].to_u64();
 		}
 	}
@@ -557,9 +559,10 @@ SVector& SVector::m_sumul(const SVector& opL, const SVector& rhs, const SVRegist
 SVector& SVector::m_sumul(const SVector& opL, const uint64_t rhs, const SVRegister& vm, bool mask, size_t start_index) {
 	for(size_t i_element = start_index; i_element < length_; ++i_element) {
 		if(!mask || vm.get_bit(i_element)) {
-			// (*this)[i_element].s_ssmul(opL[i_element], rhs[i_element]);
-			// TODO: unsigned * signed in C++ -> converted to signed * signed!
-			// Tests work but check this
+			// TODO: Review this
+			// This seems to work since:
+			// - I * U is automatically cast to U * U
+			// - = operator takes signed
 			(*this)[i_element] = opL[i_element].to_i64() * rhs;
 		}
 	}

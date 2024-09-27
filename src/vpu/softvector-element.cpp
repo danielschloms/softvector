@@ -161,6 +161,15 @@ void SVElement::twos_complement(void) {
 	++(*this) ;
 }
 
+void SVElement::inv_twos_complement(void) {
+
+	for(size_t i = 0; i < width_in_bits_/8; ++i)
+	{
+		mem_[i] = ~(mem_[i]);
+	}
+	++(*this) ;
+}
+
 SVElement SVElement::operator+(const SVElement& rhs) const {
 	SVElement ret(width_in_bits_);
 	uint8_t carry = 0;
@@ -777,24 +786,26 @@ SVElement& SVElement::s_sumulh(const SVElement& opL, const int64_t rhs) {
 SVElement& SVElement::s_sumul(const SVElement& opL, const SVElement &rhs) {
 	SVElement _op1(opL);
 	bool op1_neg = _op1 < 0;
-	if(op1_neg)
+	if(op1_neg) {
 		_op1.twos_complement();
+	}
 
 	auto x = u_mul_u(*this, _op1, rhs);
 
-	if(op1_neg)
+	if(op1_neg) {
 		x.twos_complement();
+	}
 
-	*this = x >> width_in_bits_;
+	*this = x;
 
 	return (*this);
 }
 
-SVElement& SVElement::s_sumul(const SVElement& opL, const int64_t rhs) {
+SVElement& SVElement::s_sumul(const SVElement& opL, const uint64_t rhs) {
 	SVElement _op2(opL.width_in_bits_);
 	_op2 = rhs;
 
-	return(this->s_sumulh(opL, _op2));
+	return(this->s_sumul(opL, _op2));
 }
 
 //DIV 12.11

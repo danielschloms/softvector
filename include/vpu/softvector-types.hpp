@@ -294,8 +294,11 @@ public:
 	SVElement operator--(int);
 
 	//////////////////////////////////////////////////////////////////////////////////////
-	/// \brief Makes two's complement of element, i.e. self*(-1)
+	/// \brief Makes two's complement of element, i.e. ~self + 1
 	void twos_complement(void);
+	//////////////////////////////////////////////////////////////////////////////////////
+	/// \brief Makes inverse two's complement of element, i.e. ~self - 1
+	void inv_twos_complement(void);
 
 	/* ALU */
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -552,7 +555,7 @@ public:
 	SVElement& s_sumul(const SVElement& opL, const SVElement &rhs);
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//// \brief Signed*unsigned multiplication for right-hand-side 64 bit value
-	SVElement& s_sumul(const SVElement& opL, const int64_t rhs);
+	SVElement& s_sumul(const SVElement& opL, const uint64_t rhs);
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	/// \brief Constructor for referenced main memory, i.e. externally allocated memory
