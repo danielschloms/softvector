@@ -1020,15 +1020,15 @@ class SVector
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// \brief Difference with borrow for right-hand-side signed 64 bit value.
     SVector &m_sbc(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
-    // End 11.4.
+    /* End 11.4. */
 
-    // 11.13. Vector Single-Width Integer Multiply-Add Instructions
+    /* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief MACC for right-hand-side SVector
-    SVector &m_macc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /// \brief Signed-signed MACC for right-hand-side SVector
+    SVector &m_ssmacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief MACC for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_macc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /// \brief Signed-signed MACC for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_ssmacc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// \brief NMSAC for right-hand-side SVector
     SVector &m_nmsac(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
@@ -1047,7 +1047,27 @@ class SVector
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// \brief NMSUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
     SVector &m_nmsub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-    // End 11.13.
+    /* End 11.13. */
+
+    /* 11.14. Vector Widening Integer Multiply-Add Instructions */
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Unsigned-unsigned MACC for right-hand-side SVector
+    SVector &m_uumacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Unsigned-unsigned MACC for right-hand-side unsigned 64 bit value. rhs is sign extended to element size
+    SVector &m_uumacc(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Signed(vs1)-unsigned(vs2) MACC for right-hand-side SVector
+    SVector &m_sumacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Signed(rs1)-unsigned(vs2) MACC for right-hand-side signed 64 bit value. rhs is sign extended to element
+    /// size
+    SVector &m_sumacc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Unsigned(rs1)-Signed(vs2) MACC for right-hand-side unsigned 64 bit value. rhs is sign extended to element
+    /// size
+    SVector &m_usmacc(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /* End 11.14. */
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Constructor for referenced elements, i.e. externally allocated elements

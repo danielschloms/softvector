@@ -149,7 +149,7 @@ extern "C"
 
     /* Vector Arithmetic Helpers*/
 
-    // 11.1. Vector Single-Width Integer Add and Subtract
+    /* 11.1. Vector Single-Width Integer Add and Subtract */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief ADD vector-vector
     /// \return 0 if no exception triggered, else 1
@@ -201,9 +201,9 @@ extern "C"
     uint8_t vrsub_vi(void *pV, //!<[inout] Vector register field as local memory
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
                      uint16_t pVLEN, uint16_t pVL);
-    // End 11.1.
+    /* End 11.1. */
 
-    // 11.2. Vector Widening Integer Add/Subtract
+    /* 11.2. Vector Widening Integer Add/Subtract */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Widening vector-vector unsigned ADD vector-vector. SEW*2: SEW op SEW
     /// \return 0 if no exception triggered, else 1
@@ -323,16 +323,16 @@ extern "C"
                        void *pR, //!<[in] Integer/General Purpose register field
                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                        uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.2.
+    /* End 11.2. */
 
-    // 11.3. Vector Integer Extension
+    /* 11.3. Vector Integer Extension */
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief Sign/zero-extend vector
     /// \return 0 if no exception triggered
     uint8_t vext_vf(void *pV, //!<[inout] Vector register field as local memory
                     uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t extension_encoding,
                     uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
-    // End 11.3.
+    /* End 11.3. */
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief AND vector-vector
@@ -741,7 +741,7 @@ extern "C"
                          uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                          uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
-    // 11.10. Vector Single-Width Integer Multiply Instructions
+    /* 11.10. Vector Single-Width Integer Multiply Instructions */
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief MUL vector-vector low bit of product
     /// \return 0 if no exception triggered, else 1
@@ -800,9 +800,9 @@ extern "C"
                        void *pR, //!<[in] Integer/General Purpose register field
                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                        uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.10.
+    /* End 11.10. */
 
-    // 11.11. Vector Integer Divide Instructions
+    /* 11.11. Vector Integer Divide Instructions */
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief Signed DIV vector-vector
     /// \return 0 if no exception triggered
@@ -862,9 +862,9 @@ extern "C"
                      void *pR, //!<[in] Integer/General Purpose register field
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.11.
+    /* End 11.11. */
 
-    // 11.12. Vector Widening Integer Multiply Instructions
+    /* 11.12. Vector Widening Integer Multiply Instructions */
     /// \brief Widening MUL signed-signed vector-vector
     /// \return 0 if no exception triggered, else 1
     uint8_t vwmul_vv(void *pV, //!<[inout] Vector register field as local memory
@@ -906,7 +906,7 @@ extern "C"
                        void *pR, //!<[in] Integer/General Purpose register field
                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                        uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.12.
+    /* End 11.12. */
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Signed MAX vector-vector
@@ -1030,7 +1030,7 @@ extern "C"
                      uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
     /* End 11.4. */
 
-    // 11.7. Vector Narrowing Integer Right Shift Instructions
+    /* 11.7. Vector Narrowing Integer Right Shift Instructions */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Narrowing SRL vector-vector
     /// \return 0 if no exception triggered, else 1
@@ -1074,9 +1074,9 @@ extern "C"
                      void *pR, //!<[in] Integer/General Purpose register field
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.7.
+    /* End 11.7. */
 
-    // 11.13. Vector Single-Width Integer Multiply-Add Instructions
+    /* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief MACC vector-vector
     /// \return 0 if no exception triggered
@@ -1136,7 +1136,63 @@ extern "C"
                       void *pR, //!<[in] Integer/General Purpose register field
                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-    // End 11.13.
+    /* End 11.13. */
+
+    /* 11.14. Vector Widening Integer Multiply-Add Instructions */
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening unsigned MACC vector-vector
+    /// \return 0 if no exception triggered
+    uint8_t vwmaccu_vv(void *pV, //!<[inout] Vector register field as local memory
+                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                       uint16_t pVLEN, uint16_t pVL);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening unsigned MACC vector-scalar
+    /// \return 0 if no exception triggered
+    uint8_t vwmaccu_vx(void *pV, //!<[inout] Vector register field as local memory
+                       void *pR, //!<[in] Integer/General Purpose register field
+                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening MACC vector-vector
+    /// \return 0 if no exception triggered
+    uint8_t vwmacc_vv(void *pV, //!<[inout] Vector register field as local memory
+                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening MACC vector-scalar
+    /// \return 0 if no exception triggered
+    uint8_t vwmacc_vx(void *pV, //!<[inout] Vector register field as local memory
+                      void *pR, //!<[in] Integer/General Purpose register field
+                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening MACC vector-vector signed(vs1)-unsigned(vs2)
+    /// \return 0 if no exception triggered
+    uint8_t vwmaccsu_vv(void *pV, //!<[inout] Vector register field as local memory
+                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                       uint16_t pVLEN, uint16_t pVL);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening MACC vector-scalar signed(rs1)-unsigned(vs2)
+    /// \return 0 if no exception triggered
+    uint8_t vwmaccsu_vx(void *pV, //!<[inout] Vector register field as local memory
+                       void *pR, //!<[in] Integer/General Purpose register field
+                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+    /////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Widening MACC vector-scalar unsigned(rs1)-signed(vs2)
+    /// \return 0 if no exception triggered
+    uint8_t vwmaccus_vx(void *pV, //!<[inout] Vector register field as local memory
+                       void *pR, //!<[in] Integer/General Purpose register field
+                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+
+    /* End 11.14. */
 
 #ifdef __cplusplus
 } // extern "C"

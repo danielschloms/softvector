@@ -1195,10 +1195,10 @@ SVector &SVector::m_sbc(const SVector &opL, const int64_t rhs, const SVRegister 
     }
     return (*this);
 }
-// End 11.4.
+/* End 11.4. */
 
-// 11.13. Vector Single-Width Integer Multiply-Add Instructions
-SVector &SVector::m_macc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
+/* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
+SVector &SVector::m_ssmacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1211,7 +1211,7 @@ SVector &SVector::m_macc(const SVector &opL, const SVector &rhs, const SVRegiste
     return (*this);
 }
 
-SVector &SVector::m_macc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+SVector &SVector::m_ssmacc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1301,4 +1301,71 @@ SVector &SVector::m_nmsub(const SVector &opL, const int64_t rhs, const SVRegiste
     }
     return (*this);
 }
-// End 11.13.
+/* End 11.13. */
+
+/* 11.14. Vector Widening Integer Multiply-Add Instructions */
+SVector &SVector::m_uumacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto current_value = (*this)[i_element].to_i64();
+            (*this)[i_element] = (opL[i_element].to_u64() * rhs[i_element].to_u64()) + current_value;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_uumacc(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto current_value = (*this)[i_element].to_i64();
+            (*this)[i_element] = (opL[i_element].to_u64() * rhs) + current_value;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_sumacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto current_value = (*this)[i_element].to_i64();
+            (*this)[i_element] = (opL[i_element].to_u64() * rhs[i_element].to_i64()) + current_value;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_sumacc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto current_value = (*this)[i_element].to_i64();
+            (*this)[i_element] = (opL[i_element].to_u64() * rhs) + current_value;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_usmacc(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto current_value = (*this)[i_element].to_i64();
+            (*this)[i_element] = (opL[i_element].to_i64() * rhs) + current_value;
+        }
+    }
+    return (*this);
+}
+/* End 11.14.*/

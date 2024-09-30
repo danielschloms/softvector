@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 /// \file integer.hpp
 /// \brief Defines helpers implementing integer arithmetics after
-/// https://github.com/riscv/riscv-v-spec/blob/0.9/v-spec.adoc#vector-arithmetic-instruction-formats 
+/// https://github.com/riscv/riscv-v-spec/blob/0.9/v-spec.adoc#vector-arithmetic-instruction-formats
 /// \date 06/23/2020
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -1280,72 +1280,6 @@ VILL::vpu_return_t vwmul_vx(uint8_t *vec_reg_mem,         //!< Vector register f
                             uint8_t scalar_reg_len_bytes, //!< Length of scalar [bytes]
                             VWMUL_TYPE vwmul_type         //!< Type of multiplication
 );
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening unsigned multiplication vector-vector
-/// \details For all i: D[i] = L[i] * R[i]
-VILL::vpu_return_t vwmulu_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                             uint64_t emul_num,          //!< Register multiplicity numerator
-                             uint64_t emul_denom,        //!< Register multiplicity denominator
-                             uint16_t sew_bytes,         //!< Element width [bytes]
-                             uint16_t vec_len,           //!< Vector length [elements]
-                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
-                             uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
-                             uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
-                             uint16_t vec_elem_start,    //!< Starting element [index]
-                             bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
-                             VWMUL_TYPE vwmul_type       //!< Type of multiplication
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening unsigned multiplication vector-scalar
-/// \details For all i: D[i] = L[i] * sign_extend(*X)
-VILL::vpu_return_t vwmulu_vx(uint8_t *vec_reg_mem,         //!< Vector register file memory space. One dimensional
-                             uint64_t emul_num,            //!< Register multiplicity numerator
-                             uint64_t emul_denom,          //!< Register multiplicity denominator
-                             uint16_t sew_bytes,           //!< Element width [bytes]
-                             uint16_t vec_len,             //!< Vector length [elements]
-                             uint16_t vec_reg_len_bytes,   //!< Vector register length [bytes]
-                             uint16_t dst_vec_reg,         //!< Destination vector D [index]
-                             uint16_t src_vec_reg_lhs,     //!< Source vector L [index]
-                             uint8_t *scalar_reg_mem,      //!< Memory space holding scalar data (min. _xlenb bytes)
-                             uint16_t vec_elem_start,      //!< Starting element [index]
-                             bool mask_f,                  //!< Vector mask flag. 1: masking 0: no masking
-                             uint8_t scalar_reg_len_bytes, //!< Length of scalar [bytes]
-                             VWMUL_TYPE vwmul_type         //!< Type of multiplication
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening signed-unsigned multiplication vector-vector
-/// \details For all i: D[i] = L[i] * R[i]
-VILL::vpu_return_t vwmulsu_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                              uint64_t emul_num,          //!< Register multiplicity numerator
-                              uint64_t emul_denom,        //!< Register multiplicity denominator
-                              uint16_t sew_bytes,         //!< Element width [bytes]
-                              uint16_t vec_len,           //!< Vector length [elements]
-                              uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                              uint16_t dst_vec_reg,       //!< Destination vector D [index]
-                              uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
-                              uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
-                              uint16_t vec_elem_start,    //!< Starting element [index]
-                              bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
-                              VWMUL_TYPE vwmul_type       //!< Type of multiplication
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening signed-unsigned multiplication vector-scalar
-/// \details For all i: D[i] = L[i] * sign_extend(*X)
-VILL::vpu_return_t vwmulsu_vx(uint8_t *vec_reg_mem,         //!< Vector register file memory space. One dimensional
-                              uint64_t emul_num,            //!< Register multiplicity numerator
-                              uint64_t emul_denom,          //!< Register multiplicity denominator
-                              uint16_t sew_bytes,           //!< Element width [bytes]
-                              uint16_t vec_len,             //!< Vector length [elements]
-                              uint16_t vec_reg_len_bytes,   //!< Vector register length [bytes]
-                              uint16_t dst_vec_reg,         //!< Destination vector D [index]
-                              uint16_t src_vec_reg_lhs,     //!< Source vector L [index]
-                              uint8_t *scalar_reg_mem,      //!< Memory space holding scalar data (min. _xlenb bytes)
-                              uint16_t vec_elem_start,      //!< Starting element [index]
-                              bool mask_f,                  //!< Vector mask flag. 1: masking 0: no masking
-                              uint8_t scalar_reg_len_bytes, //!< Length of scalar [bytes]
-                              VWMUL_TYPE vwmul_type         //!< Type of multiplication
-);
 /* End 11.12. */
 
 /* 11.9. Vector Integer Min/Max Instructions */
@@ -1617,7 +1551,28 @@ VILL::vpu_return_t vnmsub_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t e
                              uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
                              uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
                              uint8_t scalar_reg_len_bytes);
-/*  End 11.13. */
+/* End 11.13. */
+
+/* 11.14. Vector Widening Integer Multiply-Add Instructions */
+enum class VWMACC_TYPE
+{
+    S_S, // signed-signed
+    U_U, // unsigned-unsigned
+    S_U, // signed(rs1/vs1)-unsigned(vs2)
+    U_S  // unsigned(rs1/vs1)-signed(vs2)
+};
+
+VILL::vpu_return_t vwmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                             uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                             uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f,
+                             VWMACC_TYPE vwmacc_type);
+
+VILL::vpu_return_t vwmacc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                             uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                             uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
+                             uint8_t scalar_reg_len_bytes, VWMACC_TYPE vwmacc_type);
+/* End 11.14. */
+
 }; // namespace VARITH_INT
 
 #endif /* __RVVHL_ARITH_INTEGER_H__ */

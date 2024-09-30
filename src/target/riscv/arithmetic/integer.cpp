@@ -448,9 +448,9 @@ VILL::vpu_return_t VARITH_INT::wop_wx(uint8_t *vec_reg_mem, uint64_t emul_num, u
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.2.
+/* End 11.2. */
 
-// 11.3. Vector Integer Extension
+/* 11.3. Vector Integer Extension */
 VILL::vpu_return_t VARITH_INT::vext_vf(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                                        uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
                                        uint16_t src_vec_reg_lhs, uint16_t extension_encoding, uint16_t vec_elem_start,
@@ -508,7 +508,7 @@ VILL::vpu_return_t VARITH_INT::vext_vf(uint8_t *vec_reg_mem, uint64_t emul_num, 
 
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.3.
+/* End 11.3. */
 
 VILL::vpu_return_t VARITH_INT::and_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                                       uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
@@ -775,7 +775,7 @@ VILL::vpu_return_t VARITH_INT::xor_vx(uint8_t *vec_reg_mem, uint64_t emul_num, u
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-// 11.6. Vector Single-Width Shift Instructions
+/* 11.6. Vector Single-Width Shift Instructions */
 VILL::vpu_return_t VARITH_INT::sll_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                                       uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
                                       uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start,
@@ -1039,9 +1039,9 @@ VILL::vpu_return_t VARITH_INT::sra_vx(uint8_t *vec_reg_mem, uint64_t emul_num, u
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.6.
+/* End 11.6. */
 
-// 11.7. Vector Narrowing Integer Right Shift Instructions
+/* 11.7. Vector Narrowing Integer Right Shift Instructions */
 VILL::vpu_return_t VARITH_INT::vnsrl_wv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
                                         uint16_t sew_bytes, uint16_t vec_len, uint16_t vec_reg_len_bytes,
                                         uint16_t dst_vec_reg, uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
@@ -1275,7 +1275,7 @@ VILL::vpu_return_t VARITH_INT::vnsra_wx(uint8_t *vec_reg_mem, uint64_t emul_num,
 
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.7.
+/* End 11.7. */
 
 VILL::vpu_return_t VARITH_INT::mseq_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                                        uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
@@ -2834,7 +2834,7 @@ VILL::vpu_return_t VARITH_INT::mv_vi(uint8_t *vec_reg_mem, uint64_t emul_num, ui
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-// 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
+/* 11.4 Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
 VILL::vpu_return_t VARITH_INT::vadc_vvm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
                                         uint16_t sew_bytes, uint16_t vec_len, uint16_t vec_reg_len_bytes,
                                         uint16_t dst_vec_reg, uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
@@ -3134,9 +3134,9 @@ VILL::vpu_return_t VARITH_INT::vmsbc_vx(uint8_t *vec_reg_mem, uint64_t emul_num,
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.4
+/* End 11.4 */
 
-// 11.13. Vector Single-Width Integer Multiply-Add Instructions
+/* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
 VILL::vpu_return_t VARITH_INT::vmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
                                         uint16_t sew_bytes, uint16_t vec_len, uint16_t vec_reg_len_bytes,
                                         uint16_t dst_vec_reg, uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
@@ -3164,7 +3164,7 @@ VILL::vpu_return_t VARITH_INT::vmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num,
         RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
         RVVector &vd = V.get_vec(dst_vec_reg);
 
-        vd.m_macc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_ssmacc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
@@ -3193,7 +3193,7 @@ VILL::vpu_return_t VARITH_INT::vmacc_vx(uint8_t *vec_reg_mem, uint64_t emul_num,
         RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
         RVVector &vd = V.get_vec(dst_vec_reg);
 
-        vd.m_macc(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_ssmacc(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
@@ -3380,4 +3380,138 @@ VILL::vpu_return_t VARITH_INT::vnmsub_vx(uint8_t *vec_reg_mem, uint64_t emul_num
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
-// End 11.13.
+/* End 11.13. */
+
+/* 11.14. Vector Widening Integer Multiply-Add Instructions */
+VILL::vpu_return_t VARITH_INT::vwmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len, uint16_t vec_reg_len_bytes,
+                                         uint16_t dst_vec_reg, uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, VWMACC_TYPE vwmacc_type)
+{
+    RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+    if (!V.vec_reg_is_aligned(src_vec_reg_rhs))
+    {
+        return (VILL::VPU_RETURN::SRC1_VEC_ILL);
+    }
+    if (!V.vec_reg_is_aligned(src_vec_reg_lhs))
+    {
+        return (VILL::VPU_RETURN::SRC2_VEC_ILL);
+    }
+
+    RVVRegField VD(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+    if (!VD.vec_reg_is_aligned(dst_vec_reg))
+    {
+        return (VILL::VPU_RETURN::DST_VEC_ILL);
+    }
+
+    V.init();
+    VD.init();
+
+    RVVector &vs1 = V.get_vec(src_vec_reg_rhs);
+    RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
+    RVVector &vd = VD.get_vec(dst_vec_reg);
+
+    // RVV1.0: Overlap allowed when destination EEW > source EEW if:
+    // - source EMUL >= 1
+    // - the overlap is in the highest-numbered part of the destination register group (e.g., when LMUL=8, vzext.vf4 v0,
+    // v6 is legal, but a source of v0, v2, or v4 is not).
+    int lmul = emul_num / emul_denom;
+    // Source EMUL = LMUL, destination EMUL = 2*LMUL
+    int lowest_allowed_register = dst_vec_reg + lmul;
+    if (emul_num < emul_denom || src_vec_reg_lhs < lowest_allowed_register)
+    {
+        if (vd.check_mem_overlap(vs1) != 0)
+        {
+            return (VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS1_ILL);
+        }
+        if (vd.check_mem_overlap(vs2) != 0)
+        {
+            return (VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+        }
+    }
+
+    switch (vwmacc_type)
+    {
+    case VWMACC_TYPE::S_S:
+        vd.m_ssmacc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::U_U:
+        vd.m_uumacc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::S_U:
+        vd.m_sumacc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::U_S:
+        vd.m_sumacc(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    default:
+        // TODO: Does this need error handling?
+        break;
+    }
+    return (VILL::VPU_RETURN::NO_EXCEPT);
+}
+
+VILL::vpu_return_t VARITH_INT::vwmacc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len, uint16_t vec_reg_len_bytes,
+                                         uint16_t dst_vec_reg, uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                         VWMACC_TYPE vwmacc_type)
+{
+    RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+
+    if (!V.vec_reg_is_aligned(src_vec_reg_lhs))
+    {
+        return (VILL::VPU_RETURN::SRC2_VEC_ILL);
+    }
+
+    RVVRegField VD(vec_reg_len_bytes * 8, vec_len, 2 * sew_bytes * 8, SVMul(2 * emul_num, emul_denom), vec_reg_mem);
+    if (!VD.vec_reg_is_aligned(dst_vec_reg))
+    {
+        return (VILL::VPU_RETURN::DST_VEC_ILL);
+    }
+
+    V.init();
+    VD.init();
+
+    uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
+                                               : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
+    RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
+    RVVector &vd = VD.get_vec(dst_vec_reg);
+
+    // RVV1.0: Overlap allowed when destination EEW > source EEW if:
+    // - source EMUL >= 1
+    // - the overlap is in the highest-numbered part of the destination register group (e.g., when LMUL=8, vzext.vf4 v0,
+    // v6 is legal, but a source of v0, v2, or v4 is not).
+    int lmul = emul_num / emul_denom;
+    // Source EMUL = LMUL, destination EMUL = 2*LMUL
+    int lowest_allowed_register = dst_vec_reg + lmul;
+    if (emul_num < emul_denom || src_vec_reg_lhs < lowest_allowed_register)
+    {
+        if (vd.check_mem_overlap(vs2) != 0)
+        {
+            return (VILL::VPU_RETURN::WIDENING_OVERLAP_VD_VS2_ILL);
+        }
+    }
+
+    switch (vwmacc_type)
+    {
+    case VWMACC_TYPE::S_S:
+        vd.m_ssmacc(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::U_U:
+        vd.m_uumacc(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::S_U:
+        vd.m_sumacc(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    case VWMACC_TYPE::U_S:
+        vd.m_usmacc(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        break;
+    default:
+        // TODO: Does this need error handling?
+        break;
+    }
+
+    return (VILL::VPU_RETURN::NO_EXCEPT);
+}
+/* End 11.14. */
