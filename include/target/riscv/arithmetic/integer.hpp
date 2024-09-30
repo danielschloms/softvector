@@ -239,10 +239,54 @@ VILL::vpu_return_t vext_vf(uint8_t *vec_reg_mem,        //!< Vector register fil
                            bool mask_f                  //!< Vector mask flag. 1: masking 0: no masking
 );
 /* End 11.3. */
-/* rvv spec. 12.4 - Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
-/// TODO: ...
 
-/* rvv spec. 12.5 - Vector Bitwise Logical Instructions */
+/* 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
+VILL::vpu_return_t vadc_vvm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start);
+
+VILL::vpu_return_t vadc_vim(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t s_imm, uint16_t vec_elem_start);
+
+VILL::vpu_return_t vadc_vxm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start,
+                            uint8_t scalar_reg_len_bytes);
+
+VILL::vpu_return_t vmadc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f);
+
+VILL::vpu_return_t vmadc_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t s_imm, uint16_t vec_elem_start, bool mask_f);
+
+VILL::vpu_return_t vmadc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
+                            uint8_t scalar_reg_len_bytes);
+
+VILL::vpu_return_t vsbc_vvm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start);
+
+VILL::vpu_return_t vsbc_vxm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start,
+                            uint8_t scalar_reg_len_bytes);
+
+VILL::vpu_return_t vmsbc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f);
+
+VILL::vpu_return_t vmsbc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
+                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
+                            uint8_t scalar_reg_len_bytes);
+/* End 11.4 */
+
+/* 11.5 - Vector Bitwise Logical Instructions */
 /* AND */
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief AND vector-vector
@@ -386,8 +430,9 @@ VILL::vpu_return_t xor_vx(uint8_t *vec_reg_mem,        //!< Vector register file
                           bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
                           uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 );
+/* End 11.5. */
 
-/* rvv spec. 12.6 - Vector Single-Width Bit Shift Instructions */
+/* 11.6. Vector Single-Width Bit Shift Instructions */
 /* SLL */
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief SLL vector-vector
@@ -1427,94 +1472,6 @@ VILL::vpu_return_t vminu_vx(uint8_t *vec_reg_mem,        //!< Vector register fi
 /*12.16. Vector Integer Merge Instructions */
 // TODO: ...
 
-/* 11.16. Vector Integer Move Instruction */
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Move vector vd[i] = vs1[i]
-VILL::vpu_return_t mv_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                         uint64_t emul_num,          //!< Register multiplicity numerator
-                         uint64_t emul_denom,        //!< Register multiplicity denominator
-                         uint16_t sew_bytes,         //!< Element width [bytes]
-                         uint16_t vec_len,           //!< Vector length [elements]
-                         uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                         uint16_t dst_vec_reg,       //!< Destination vector A [index]
-                         uint16_t src_vec_reg,       //!< Source vector A [index]
-                         uint16_t vec_elem_start     //!< Starting element [index]
-);
-
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Move vector vd[i] = X[rs1]
-VILL::vpu_return_t mv_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                         uint64_t emul_num,           //!< Register multiplicity numerator
-                         uint64_t emul_denom,         //!< Register multiplicity denominator
-                         uint16_t sew_bytes,          //!< Element width [bytes]
-                         uint16_t vec_len,            //!< Vector length [elements]
-                         uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                         uint16_t dst_vec_reg,        //!< Destination vector A [index]
-                         uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                         uint16_t vec_elem_start,     //!< Starting element [index]
-                         uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
-);
-
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Move signed immediate to vector vd[i] = simm
-VILL::vpu_return_t mv_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                         uint64_t emul_num,          //!< Register multiplicity numerator
-                         uint64_t emul_denom,        //!< Register multiplicity denominator
-                         uint16_t sew_bytes,         //!< Element width [bytes]
-                         uint16_t vec_len,           //!< Vector length [elements]
-                         uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                         uint16_t dst_vec_reg,       //!< Destination vector D [index]
-                         uint8_t s_imm,              //!< Sign extending 5-bit immediate
-                         uint16_t vec_elem_start     //!< Starting element [index]
-);
-/* End 11.16. */
-
-/* 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
-VILL::vpu_return_t vadc_vvm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start);
-
-VILL::vpu_return_t vadc_vim(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t s_imm, uint16_t vec_elem_start);
-
-VILL::vpu_return_t vadc_vxm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start,
-                            uint8_t scalar_reg_len_bytes);
-
-VILL::vpu_return_t vmadc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f);
-
-VILL::vpu_return_t vmadc_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t s_imm, uint16_t vec_elem_start, bool mask_f);
-
-VILL::vpu_return_t vmadc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
-                            uint8_t scalar_reg_len_bytes);
-
-VILL::vpu_return_t vsbc_vvm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start);
-
-VILL::vpu_return_t vsbc_vxm(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start,
-                            uint8_t scalar_reg_len_bytes);
-
-VILL::vpu_return_t vmsbc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f);
-
-VILL::vpu_return_t vmsbc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
-                            uint8_t scalar_reg_len_bytes);
-/* End 11.4 */
-
 /* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
 VILL::vpu_return_t vmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                             uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
@@ -1562,16 +1519,109 @@ enum class VWMACC_TYPE
     U_S  // unsigned(rs1/vs1)-signed(vs2)
 };
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Widening multiply-accumulate vector-vector
+/// Type of MACC (signed, unsigned, etc.) depends on vwmacc_type
 VILL::vpu_return_t vwmacc_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                              uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
                              uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f,
                              VWMACC_TYPE vwmacc_type);
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Widening multiply-accumulate vector-scalar
+/// Type of MACC (signed, unsigned, etc.) depends on vwmacc_type
 VILL::vpu_return_t vwmacc_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                              uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
                              uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem, uint16_t vec_elem_start, bool mask_f,
                              uint8_t scalar_reg_len_bytes, VWMACC_TYPE vwmacc_type);
 /* End 11.14. */
+
+/* 11.15. Vector Integer Merge Instructions */
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Merge vector-vector: vd[i] = v0.mask[i] ? vs1[i] : vs2[i]
+VILL::vpu_return_t vmerge_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,          //!< Register multiplicity numerator
+                             uint64_t emul_denom,        //!< Register multiplicity denominator
+                             uint16_t sew_bytes,         //!< Element width [bytes]
+                             uint16_t vec_len,           //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,       //!< Destination vector A [index]
+                             uint16_t src_vec_reg_rhs,   //!< Source vector vs1 [index]
+                             uint16_t src_vec_reg_lhs,   //!< Source vector vs2 [index]
+                             uint16_t vec_elem_start     //!< Starting element [index]
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Merge vector-scalar: vd[i] = v0.mask[i] ? x[rs1] : vs2[i]
+VILL::vpu_return_t vmerge_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,           //!< Register multiplicity numerator
+                             uint64_t emul_denom,         //!< Register multiplicity denominator
+                             uint16_t sew_bytes,          //!< Element width [bytes]
+                             uint16_t vec_len,            //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,        //!< Destination vector A [index]
+                             uint16_t src_vec_reg_lhs,    //!< Source vector vs2 [index]
+                             uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
+                             uint16_t vec_elem_start,     //!< Starting element [index]
+                             uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Merge vector-scalar: vd[i] = v0.mask[i] ? imm : vs2[i]
+VILL::vpu_return_t vmerge_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,          //!< Register multiplicity numerator
+                             uint64_t emul_denom,        //!< Register multiplicity denominator
+                             uint16_t sew_bytes,         //!< Element width [bytes]
+                             uint16_t vec_len,           //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                             uint16_t src_vec_reg_lhs,   //!< Source vector vs2 [index]
+                             uint8_t s_imm,              //!< Sign extending 5-bit immediate
+                             uint16_t vec_elem_start     //!< Starting element [index]
+);
+/* End 11.15. */
+
+/* 11.16. Vector Integer Move Instructions */
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Move vector vd[i] = vs1[i]
+VILL::vpu_return_t mv_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                         uint64_t emul_num,          //!< Register multiplicity numerator
+                         uint64_t emul_denom,        //!< Register multiplicity denominator
+                         uint16_t sew_bytes,         //!< Element width [bytes]
+                         uint16_t vec_len,           //!< Vector length [elements]
+                         uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                         uint16_t dst_vec_reg,       //!< Destination vector A [index]
+                         uint16_t src_vec_reg,       //!< Source vector A [index]
+                         uint16_t vec_elem_start     //!< Starting element [index]
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Move vector vd[i] = X[rs1]
+VILL::vpu_return_t mv_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
+                         uint64_t emul_num,           //!< Register multiplicity numerator
+                         uint64_t emul_denom,         //!< Register multiplicity denominator
+                         uint16_t sew_bytes,          //!< Element width [bytes]
+                         uint16_t vec_len,            //!< Vector length [elements]
+                         uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
+                         uint16_t dst_vec_reg,        //!< Destination vector A [index]
+                         uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
+                         uint16_t vec_elem_start,     //!< Starting element [index]
+                         uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Move signed immediate to vector vd[i] = simm
+VILL::vpu_return_t mv_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                         uint64_t emul_num,          //!< Register multiplicity numerator
+                         uint64_t emul_denom,        //!< Register multiplicity denominator
+                         uint16_t sew_bytes,         //!< Element width [bytes]
+                         uint16_t vec_len,           //!< Vector length [elements]
+                         uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                         uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                         uint8_t s_imm,              //!< Sign extending 5-bit immediate
+                         uint16_t vec_elem_start     //!< Starting element [index]
+);
+/* End 11.16. */
 
 }; // namespace VARITH_INT
 

@@ -1369,3 +1369,23 @@ SVector &SVector::m_usmacc(const SVector &opL, const uint64_t rhs, const SVRegis
     return (*this);
 }
 /* End 11.14.*/
+
+/* 11.15. Vector Integer Merge Instructions */
+SVector &SVector::m_merge(const SVector &opL, const SVector &rhs, const SVRegister &vm, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        (*this)[i_element] = vm.get_bit(i_element) ? rhs[i_element] : opL[i_element];
+    }
+    return (*this);
+}
+
+SVector &SVector::m_merge(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        (*this)[i_element] = vm.get_bit(i_element) ? rhs : opL[i_element].to_i64();
+    }
+    return (*this);
+}
+/* End 11.15. */

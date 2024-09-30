@@ -628,26 +628,6 @@ extern "C"
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
                      uint16_t pVLEN, uint16_t pVL);
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Move/Copy vector to vector
-    /// \return 0 if no exception triggered, else 1
-    uint8_t vmv_vv(void *pV, //!<[in] Vector register field as local memory
-                   uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Move scalar (signed immediate) to vector
-    /// \return 0 if no exception triggered, else 1
-    uint8_t vmv_vi(void *pV, //!<[inout] Vector register field as local memory
-                   uint16_t pVTYPE, uint8_t pVd, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
-
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Move (signed) scalar register to vector
-    /// \return 0 if no exception triggered, else 1
-    uint8_t vmv_vx(void *pV, //!<[inout] Vector register field as local memory
-                   void *pR, //!<[in] Integer/General Purpose register field
-                   uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
-                   uint8_t pXLEN);
-
     /* PERMUTATION */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Move first element (0) of a vector register A to scalar register X := SEW>XLEN ? A[0] : sext(A[0])
@@ -1173,26 +1153,67 @@ extern "C"
     /// \brief Widening MACC vector-vector signed(vs1)-unsigned(vs2)
     /// \return 0 if no exception triggered
     uint8_t vwmaccsu_vv(void *pV, //!<[inout] Vector register field as local memory
-                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
-                       uint16_t pVLEN, uint16_t pVL);
+                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                        uint16_t pVLEN, uint16_t pVL);
 
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief Widening MACC vector-scalar signed(rs1)-unsigned(vs2)
     /// \return 0 if no exception triggered
     uint8_t vwmaccsu_vx(void *pV, //!<[inout] Vector register field as local memory
-                       void *pR, //!<[in] Integer/General Purpose register field
-                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
-                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+                        void *pR, //!<[in] Integer/General Purpose register field
+                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                        uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
     /////////////////////////////////////////////////////////////////////////////////////
     /// \brief Widening MACC vector-scalar unsigned(rs1)-signed(vs2)
     /// \return 0 if no exception triggered
     uint8_t vwmaccus_vx(void *pV, //!<[inout] Vector register field as local memory
-                       void *pR, //!<[in] Integer/General Purpose register field
-                       uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
-                       uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
-
+                        void *pR, //!<[in] Integer/General Purpose register field
+                        uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                        uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
     /* End 11.14. */
+
+    /* 11.15. Vector Integer Merge Instructions */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Merge vector-vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmerge_vv(void *pV, uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Merge vector-scalar (immediate)
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmerge_vi(void *pV, uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Merge vector-scalar (register)
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmerge_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+    /* End 11.15. */
+
+    /* 11.16. Vector Integer Move Instructions */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Move/Copy vector to vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmv_vv(void *pV, //!<[in] Vector register field as local memory
+                   uint16_t pVTYPE, uint8_t pVd, uint8_t pVs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Move scalar (signed immediate) to vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmv_vi(void *pV, //!<[inout] Vector register field as local memory
+                   uint16_t pVTYPE, uint8_t pVd, uint8_t pVimm, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Move (signed) scalar register to vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vmv_vx(void *pV, //!<[inout] Vector register field as local memory
+                   void *pR, //!<[in] Integer/General Purpose register field
+                   uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
+                   uint8_t pXLEN);
+    /* End 11.16. */
 
 #ifdef __cplusplus
 } // extern "C"

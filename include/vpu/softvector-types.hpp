@@ -1060,14 +1060,23 @@ class SVector
     /// \brief Signed(vs1)-unsigned(vs2) MACC for right-hand-side SVector
     SVector &m_sumacc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Signed(rs1)-unsigned(vs2) MACC for right-hand-side signed 64 bit value. rhs is sign extended to element
-    /// size
+    /// \brief Signed(rs1)-unsigned(vs2) MACC for right-hand-side signed 64 bit value.
+    /// \brief rhs is sign extended to element size
     SVector &m_sumacc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Unsigned(rs1)-Signed(vs2) MACC for right-hand-side unsigned 64 bit value. rhs is sign extended to element
-    /// size
+    /// \brief Unsigned(rs1)-Signed(vs2) MACC for right-hand-side unsigned 64 bit value.
+    /// \brief rhs is sign extended to element size
     SVector &m_usmacc(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /* End 11.14. */
+
+    /* */
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Vector merge for right-hand-side vector.
+    SVector &m_merge(const SVector &opL, const SVector &rhs, const SVRegister &vm, size_t start_index = 0);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Vector merge for right-hand-side 64 bit value.
+    SVector &m_merge(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
+    /* End 11.15. */
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Constructor for referenced elements, i.e. externally allocated elements
