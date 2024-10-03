@@ -291,6 +291,7 @@ class SVElement
 
     auto to_i64() const -> int64_t;
     auto to_u64() const -> uint64_t;
+    auto is_msb_set() const -> bool;
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Overloaded array subscript to return the indexed byte of memory as reference
@@ -1077,6 +1078,15 @@ class SVector
     /// \brief Vector merge for right-hand-side 64 bit value.
     SVector &m_merge(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
     /* End 11.15. */
+
+    /* 12. */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating unsigned ADD for right-hand-side SVector
+    SVector &m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating unsigned ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /* End 12. */
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Constructor for referenced elements, i.e. externally allocated elements

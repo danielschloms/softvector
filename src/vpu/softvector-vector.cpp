@@ -1389,3 +1389,55 @@ SVector &SVector::m_merge(const SVector &opL, const int64_t rhs, const SVRegiste
     return (*this);
 }
 /* End 11.15. */
+
+/* 12. Vector Fixed-Point Arithmetic Instructions */
+/* 12.1. Vector Single-Width Saturating Add and Subtract */
+SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                             size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            auto rhs_u64 = rhs[i_element].to_u64();
+            auto result = opL_u64 + rhs_u64;
+            uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
+            auto msb_result = result & msb;
+            if ((opL[i_element].is_msb_set() || rhs[i_element].is_msb_set()) && !msb_result)
+            {
+                // Saturation, use max. uint
+                (*this)[i_element] = -1;
+                continue;
+            }
+            (*this)[i_element] = result;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                             size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            auto result = opL_u64 + rhs;
+            uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
+            auto msb_rhs = rhs & msb;
+            auto msb_result = result & msb;
+            if ((opL[i_element].is_msb_set() || msb_rhs) && !msb_result)
+            {
+                // Saturation, use max. uint
+                (*this)[i_element] = -1;
+                continue;
+            }
+            (*this)[i_element] = result;
+        }
+    }
+    return (*this);
+}
+/* End 12.1. */
+/* End 12. */

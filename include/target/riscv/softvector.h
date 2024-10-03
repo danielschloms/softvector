@@ -1214,6 +1214,33 @@ extern "C"
                    uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
                    uint8_t pXLEN);
     /* End 11.16. */
+    /* End 11. */
+
+    /* 12. Vector Fixed-Point Arithmetic Instructions */
+    /* 12.1. Vector Single-Width Saturating Add and Subtract */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Saturating unsigned ADD vector-vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vsaddu_vv(void *pV, //!<[inout] Vector register field as local memory
+                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Saturating unsigned ADD vector-immediate
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vsaddu_vi(void *pV, //!<[inout] Vector register field as local memory
+                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Saturating unsigned ADD vector-scalar
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vsaddu_vx(void *pV, //!<[inout] Vector register field as local memory
+                      void *pR, //!<[in] Integer/General Purpose register field
+                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+    /* End 12.1. */
+    /* End 12. */
 
 #ifdef __cplusplus
 } // extern "C"

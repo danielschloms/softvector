@@ -16,7 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 /// \file fixedpoint.hpp
 /// \brief Defines helpers implementing fixed-point arithmetics after
-/// https://github.com/riscv/riscv-v-spec/blob/0.9/v-spec.adoc#vector-arithmetic-instruction-formats 
+/// https://github.com/riscv/riscv-v-spec/blob/0.9/v-spec.adoc#vector-arithmetic-instruction-formats
 /// \date 09/09/2020
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -30,9 +30,55 @@
 /// \brief This space concludes fixed-point arithmetic helpers
 namespace VARITH_FIXP
 {
+/* 12.1. Vector Single-Width Saturating Add and Subtract */
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Saturating unsigned addition vector-vector
+/// \details For all i: D[i] = L[i] + R[i]
+VILL::vpu_return_t vsaddu_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,          //!< Register multiplicity numerator
+                             uint64_t emul_denom,        //!< Register multiplicity denominator
+                             uint16_t sew_bytes,         //!< Element width [bytes]
+                             uint16_t vec_len,           //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                             uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+                             uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                             uint16_t vec_elem_start,    //!< Starting element [index]
+                             bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
+);
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Saturating unsigned addition vector-immediate
+/// \details For all i: D[i] = L[i] + sign_extend(imm)
+VILL::vpu_return_t vsaddu_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,          //!< Register multiplicity numerator
+                             uint64_t emul_denom,        //!< Register multiplicity denominator
+                             uint16_t sew_bytes,         //!< Element width [bytes]
+                             uint16_t vec_len,           //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                             uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                             uint8_t s_imm,              //!< Sign or zero extending 5-bit immediate
+                             uint16_t vec_elem_start,    //!< Starting element [index]
+                             bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
+);
 
-/* rvv spec. 13.1 - Vector Single-Width Saturating Add and Substract */
-// TODO: ...
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Saturating unsigned addition vector-scalar
+/// \details For all i: D[i] = L[i] + sign_extend(*X)
+VILL::vpu_return_t vsaddu_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
+                             uint64_t emul_num,           //!< Register multiplicity numerator
+                             uint64_t emul_denom,         //!< Register multiplicity denominator
+                             uint16_t sew_bytes,          //!< Element width [bytes]
+                             uint16_t vec_len,            //!< Vector length [elements]
+                             uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
+                             uint16_t dst_vec_reg,        //!< Destination vector D [index]
+                             uint16_t src_vec_reg_lhs,    //!< Source vector L [index]
+                             uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
+                             uint16_t vec_elem_start,     //!< Starting element [index]
+                             bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
+                             uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+);
+/* End 12.1. */
 /* rvv spec. 13.2 - Vector Single-Width Averaging Add and Substract */
 // TODO: ...
 /* rvv spec. 13.3 - Vector Single-Width Fractional Multiply with Rounding and Saturation */

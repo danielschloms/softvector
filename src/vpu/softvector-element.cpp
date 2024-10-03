@@ -39,6 +39,11 @@ auto SVElement::to_u64() const -> uint64_t
     return value;
 }
 
+auto SVElement::is_msb_set() const -> bool {
+    auto width_in_bytes = width_in_bits_ >> 3;
+    return mem_[width_in_bytes - 1] >> 7;
+}
+
 inline SVElement u_mul_u(const SVElement &target, const SVElement &op1, const SVElement &op2)
 {
     size_t size = target.width_in_bits_ >> 3;
