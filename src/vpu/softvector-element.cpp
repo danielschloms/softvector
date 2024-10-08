@@ -39,9 +39,27 @@ auto SVElement::to_u64() const -> uint64_t
     return value;
 }
 
-auto SVElement::is_msb_set() const -> bool {
+auto SVElement::msb_is_set() const -> bool {
     auto width_in_bytes = width_in_bits_ >> 3;
     return mem_[width_in_bytes - 1] >> 7;
+}
+
+auto SVElement::set_max_signed() const -> void {
+    auto width_in_bytes = width_in_bits_ >> 3;
+    for (size_t i = 0; i < width_in_bytes - 1; i++)
+    {
+        mem_[i] = -1;
+    }
+    mem_[width_in_bytes - 1] = 0x7F;
+}
+
+auto SVElement::set_min_signed() const -> void {
+    auto width_in_bytes = width_in_bits_ >> 3;
+    for (size_t i = 0; i < width_in_bytes - 1; i++)
+    {
+        mem_[i] = 0;
+    }
+    mem_[width_in_bytes - 1] = 0x80;
 }
 
 inline SVElement u_mul_u(const SVElement &target, const SVElement &op1, const SVElement &op2)

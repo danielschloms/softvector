@@ -32,51 +32,89 @@ namespace VARITH_FIXP
 {
 /* 12.1. Vector Single-Width Saturating Add and Subtract */
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Saturating unsigned addition vector-vector
+/// \brief Saturating addition vector-vector
 /// \details For all i: D[i] = L[i] + R[i]
-VILL::vpu_return_t vsaddu_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                             uint64_t emul_num,          //!< Register multiplicity numerator
-                             uint64_t emul_denom,        //!< Register multiplicity denominator
-                             uint16_t sew_bytes,         //!< Element width [bytes]
-                             uint16_t vec_len,           //!< Vector length [elements]
-                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
-                             uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
-                             uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
-                             uint16_t vec_elem_start,    //!< Starting element [index]
-                             bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
+VILL::vpu_return_t vsadd_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            bool is_signed              //!< Signed or unsigned operation
 );
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Saturating unsigned addition vector-immediate
+/// \brief Saturating addition vector-immediate
 /// \details For all i: D[i] = L[i] + sign_extend(imm)
-VILL::vpu_return_t vsaddu_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                             uint64_t emul_num,          //!< Register multiplicity numerator
-                             uint64_t emul_denom,        //!< Register multiplicity denominator
-                             uint16_t sew_bytes,         //!< Element width [bytes]
-                             uint16_t vec_len,           //!< Vector length [elements]
-                             uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                             uint16_t dst_vec_reg,       //!< Destination vector D [index]
-                             uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
-                             uint8_t s_imm,              //!< Sign or zero extending 5-bit immediate
-                             uint16_t vec_elem_start,    //!< Starting element [index]
-                             bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
+VILL::vpu_return_t vsadd_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint8_t imm,                //!< Sign or zero extending 5-bit immediate
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            bool is_signed              //!< Signed or unsigned operation
 );
 
 //////////////////////////////////////////////////////////////////////////////////////
-/// \brief Saturating unsigned addition vector-scalar
+/// \brief Saturating addition vector-scalar
 /// \details For all i: D[i] = L[i] + sign_extend(*X)
-VILL::vpu_return_t vsaddu_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                             uint64_t emul_num,           //!< Register multiplicity numerator
-                             uint64_t emul_denom,         //!< Register multiplicity denominator
-                             uint16_t sew_bytes,          //!< Element width [bytes]
-                             uint16_t vec_len,            //!< Vector length [elements]
-                             uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                             uint16_t dst_vec_reg,        //!< Destination vector D [index]
-                             uint16_t src_vec_reg_lhs,    //!< Source vector L [index]
-                             uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                             uint16_t vec_elem_start,     //!< Starting element [index]
-                             bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                             uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+VILL::vpu_return_t vsadd_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,           //!< Register multiplicity numerator
+                            uint64_t emul_denom,         //!< Register multiplicity denominator
+                            uint16_t sew_bytes,          //!< Element width [bytes]
+                            uint16_t vec_len,            //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,        //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,    //!< Source vector L [index]
+                            uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
+                            uint16_t vec_elem_start,     //!< Starting element [index]
+                            bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
+                            bool is_signed,              //!< Signed or unsigned operation
+                            uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Saturating subtraction vector-vector
+/// \details For all i: D[i] = L[i] + R[i]
+VILL::vpu_return_t vssub_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            bool is_signed              //!< Signed or unsigned operation
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Saturating subtraction vector-scalar
+/// \details For all i: D[i] = L[i] + sign_extend(*X)
+VILL::vpu_return_t vssub_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,           //!< Register multiplicity numerator
+                            uint64_t emul_denom,         //!< Register multiplicity denominator
+                            uint16_t sew_bytes,          //!< Element width [bytes]
+                            uint16_t vec_len,            //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,        //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,    //!< Source vector L [index]
+                            uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
+                            uint16_t vec_elem_start,     //!< Starting element [index]
+                            bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
+                            bool is_signed,              //!< Signed or unsigned operation
+                            uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 );
 /* End 12.1. */
 /* rvv spec. 13.2 - Vector Single-Width Averaging Add and Substract */

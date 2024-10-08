@@ -291,7 +291,9 @@ class SVElement
 
     auto to_i64() const -> int64_t;
     auto to_u64() const -> uint64_t;
-    auto is_msb_set() const -> bool;
+    auto msb_is_set() const -> bool;
+    auto set_max_signed() const -> void;
+    auto set_min_signed() const -> void;
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Overloaded array subscript to return the indexed byte of memory as reference
@@ -1082,10 +1084,32 @@ class SVector
     /* 12. */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Masked saturating unsigned ADD for right-hand-side SVector
-    SVector &m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    SVector &m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                        size_t start_index = 0);
     //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating unsigned ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /// \brief Masked saturating unsigned ADD for right-hand-side signed 64 bit value.
+    SVector &m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating ADD for right-hand-side SVector
+    SVector &m_sat_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_sat_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating unsigned SUB for right-hand-side SVector
+    SVector &m_sat_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating unsigned SUB for right-hand-side signed 64 bit value.
+    SVector &m_sat_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating SUB for right-hand-side SVector
+    SVector &m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked saturating SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
     /* End 12. */
 
     //////////////////////////////////////////////////////////////////////////////////////
