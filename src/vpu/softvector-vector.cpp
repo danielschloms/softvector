@@ -20,6 +20,105 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #include "vpu/softvector-types.hpp"
+#include <cassert>
+
+auto roundoff_unsigned(uint64_t value, uint8_t rounding_bits, uint8_t rounding_mode) -> uint64_t;
+
+auto roundoff_signed(int64_t value, uint8_t rounding_bits, uint8_t rounding_mode) -> int64_t;
+
+auto roundoff_unsigned(uint64_t value, uint8_t rounding_bits, uint8_t rounding_mode) -> uint64_t
+{
+    // Only lower 2 bits are used
+    rounding_mode &= 0b11;
+
+    if (rounding_bits == 0)
+    {
+        return value;
+    }
+    uint8_t rounding_increment = 0;
+    auto range_zero_check = false;
+    auto bitmask = 0U;
+
+    switch (rounding_mode)
+    {
+    case 0:
+        rounding_increment = value & (1U << (rounding_bits - 1));
+        break;
+    case 1:
+        // Needs check v[d-2:0] != 0
+        if (rounding_bits >= 2)
+        {
+            // Bitmask for v[d-2 : 0]
+            bitmask = (1 << (rounding_bits - 1)) - 1;
+            range_zero_check = value & bitmask;
+        }
+        rounding_increment =
+            (value & (1U << (rounding_bits - 1))) & (range_zero_check | (value & (1 << rounding_bits)));
+        break;
+    case 2:
+        rounding_increment = 0;
+        break;
+    case 3:
+        // Bitmask for v[d-1 : 0]
+        bitmask = (1 << (rounding_bits)) - 1;
+        // Needs check v[d-1:0] != 0
+        range_zero_check = value & bitmask;
+        rounding_increment = ~(value & (1 << rounding_bits)) & range_zero_check;
+        break;
+    default:
+        // Illegal!
+        break;
+    }
+
+    return (value >> rounding_bits) + rounding_increment;
+}
+
+auto roundoff_signed(int64_t value, uint8_t rounding_bits, uint8_t rounding_mode) -> int64_t
+{
+    if (rounding_bits == 0)
+    {
+        return value;
+    }
+
+    // Only lower 2 bits are used
+    rounding_mode &= 0b11;
+    auto range_zero_check = false;
+    auto bitmask = 0U;
+
+    uint8_t rounding_increment = 0;
+    switch (rounding_mode)
+    {
+    case 0:
+        rounding_increment = value & (1U << (rounding_bits - 1));
+        break;
+    case 1:
+        // Needs check v[d-2:0] != 0
+        if (rounding_bits >= 2)
+        {
+            // Bitmask for v[d-2 : 0]
+            bitmask = (1 << (rounding_bits - 1)) - 1;
+            range_zero_check = value & bitmask;
+        }
+        rounding_increment =
+            (value & (1U << (rounding_bits - 1))) & (range_zero_check | (value & (1 << rounding_bits)));
+        break;
+    case 2:
+        rounding_increment = 0;
+        break;
+    case 3:
+        // Bitmask for v[d-1 : 0]
+        bitmask = (1 << (rounding_bits)) - 1;
+        // Needs check v[d-1:0] != 0
+        range_zero_check = value & bitmask;
+        rounding_increment = ~(value & (1 << rounding_bits)) & range_zero_check;
+        break;
+    default:
+        // Illegal!
+        break;
+    }
+
+    return (value >> rounding_bits) + rounding_increment;
+}
 
 void SVector::assign(const SVector &vin, size_t start_index)
 {
@@ -1512,7 +1611,6 @@ SVector &SVector::m_sat_subu(const SVector &opL, const SVector &rhs, const SVReg
             auto rhs_u64 = rhs[i_element].to_u64();
             auto result = opL_u64 - rhs_u64;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_result = result & msb;
             if (opL_u64 < rhs_u64)
             {
                 // Saturation, use min. uint
@@ -1536,7 +1634,6 @@ SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVReg
             auto result = opL_u64 - rhs;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
             auto msb_rhs = rhs & msb;
-            auto msb_result = result & msb;
             if (opL_u64 < rhs)
             {
                 // Saturation, use max. uint
@@ -1614,4 +1711,143 @@ SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegis
     return (*this);
 }
 /* End 12.1. */
+
+/* 12.2. Vector Single-Width Averaging Add and Subtract */
+SVector &SVector::m_avg_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            auto rhs_u64 = rhs[i_element].to_u64();
+            (*this)[i_element] = roundoff_unsigned(opL_u64 + rhs_u64, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            (*this)[i_element] = roundoff_unsigned(opL_u64 + rhs, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                            uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_i64 = opL[i_element].to_i64();
+            auto rhs_i64 = rhs[i_element].to_i64();
+            (*this)[i_element] = roundoff_signed(opL_i64 + rhs_i64, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask,
+                            uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_i64 = opL[i_element].to_i64();
+            (*this)[i_element] = roundoff_signed(opL_i64 + rhs, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            auto rhs_u64 = rhs[i_element].to_u64();
+            (*this)[i_element] = roundoff_unsigned(opL_u64 + rhs_u64, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_u64 = opL[i_element].to_u64();
+            (*this)[i_element] = roundoff_unsigned(opL_u64 + rhs, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                            uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_i64 = opL[i_element].to_i64();
+            auto rhs_i64 = rhs[i_element].to_i64();
+            (*this)[i_element] = roundoff_signed(opL_i64 - rhs_i64, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_avg_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask,
+                            uint8_t rounding_mode, size_t start_index)
+{
+    constexpr auto rounding_bits = 1;
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            auto opL_i64 = opL[i_element].to_i64();
+            (*this)[i_element] = roundoff_signed(opL_i64 - rhs, rounding_bits, rounding_mode);
+        }
+    }
+    return (*this);
+}
+/* End 12.2. */
+
+/* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
+
+/* End 12.3. */
+
+/* 12.4. Vector Single-Width Scaling Shift Instructions */
+
+/* End 12.4. */
+
+/* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
+
+/* End 12.5. */
+
 /* End 12. */

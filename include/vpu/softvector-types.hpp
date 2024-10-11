@@ -1081,7 +1081,8 @@ class SVector
     SVector &m_merge(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
     /* End 11.15. */
 
-    /* 12. */
+    /* 12. Vector Fixed-Point Arithmetic Instructions */
+    /* 12.1. Vector Single-Width Saturating Add and Subtract */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Masked saturating unsigned ADD for right-hand-side SVector
     SVector &m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
@@ -1110,6 +1111,55 @@ class SVector
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Masked saturating SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
     SVector &m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
+    /* End 12.1. */
+
+    /* 12.2. Vector Single-Width Averaging Add and Subtract */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging unsigned ADD for right-hand-side SVector
+    SVector &m_avg_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging unsigned ADD for right-hand-side signed 64 bit value.
+    SVector &m_avg_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging ADD for right-hand-side SVector
+    SVector &m_avg_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_avg_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging unsigned SUB for right-hand-side SVector
+    SVector &m_avg_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging unsigned SUB for right-hand-side signed 64 bit value.
+    SVector &m_avg_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                        size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging SUB for right-hand-side SVector
+    SVector &m_avg_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked averaging SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
+    SVector &m_avg_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    /* End 12.2. */
+
+    /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
+
+    /* End 12.3. */
+
+    /* 12.4. Vector Single-Width Scaling Shift Instructions */
+
+    /* End 12.4. */
+
+    /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
+
+    /* End 12.5. */
+
     /* End 12. */
 
     //////////////////////////////////////////////////////////////////////////////////////

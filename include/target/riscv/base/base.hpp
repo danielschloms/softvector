@@ -184,4 +184,15 @@ class VTYPE
 };
 } // namespace VTYPE
 
+enum class FP_ROUNDING_MODE : uint8_t
+{
+    // RVV Spec 1.0: The fixed-point rounding algorithm is specified as follows.
+    // Suppose the pre-rounding result is v, and d bits of that result are to be rounded off.
+    // Then the rounded result is (v >> d) + r, where r depends on the rounding mode as specified below.
+    rnu = 0, // round-to-nearest-up (add +0.5 LSB), r = v[d-1]
+    rne = 1, // round-to-nearest-even, r = v[d-1] & (v[d-2:0] != 0 | v[d])
+    rdn = 2, // round-down (truncate), r = 0
+    rod = 3  // round-to-odd (OR bits into LSB, aka "jam"), r = !v[d] & v[d-1:0] != 0
+};
+
 #endif /* __RVVHL_BASE_H__ */
