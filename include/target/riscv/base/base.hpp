@@ -32,6 +32,7 @@ namespace VILL
 typedef enum VPU_RETURN
 {
     NO_EXCEPT = 0,
+    NO_EXCEPT_FP_SAT, // Saturating FP operation did saturate
     DST_VEC_ILL,
     SRC1_VEC_ILL,
     SRC2_VEC_ILL,

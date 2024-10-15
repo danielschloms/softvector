@@ -1491,7 +1491,7 @@ SVector &SVector::m_merge(const SVector &opL, const int64_t rhs, const SVRegiste
 
 /* 12. Vector Fixed-Point Arithmetic Instructions */
 /* 12.1. Vector Single-Width Saturating Add and Subtract */
-SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
                              size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
@@ -1507,6 +1507,7 @@ SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVReg
             {
                 // Saturation, use max. uint
                 (*this)[i_element] = -1;
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1515,7 +1516,7 @@ SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVReg
     return (*this);
 }
 
-SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, bool *sat,
                              size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
@@ -1531,6 +1532,7 @@ SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVReg
             {
                 // Saturation, use max. uint
                 (*this)[i_element] = -1;
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1539,7 +1541,8 @@ SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVReg
     return (*this);
 }
 
-SVector &SVector::m_sat_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
+SVector &SVector::m_sat_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
+                            size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1556,12 +1559,14 @@ SVector &SVector::m_sat_add(const SVector &opL, const SVector &rhs, const SVRegi
             {
                 // Saturation to min. signed value
                 (*this)[i_element].set_min_signed();
+                (*sat) = true;
                 continue;
             }
             if (!msb_opL && !msb_rhs && msb_result)
             {
                 // Saturation to max. signed value
                 (*this)[i_element].set_max_signed();
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1570,7 +1575,8 @@ SVector &SVector::m_sat_add(const SVector &opL, const SVector &rhs, const SVRegi
     return (*this);
 }
 
-SVector &SVector::m_sat_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+SVector &SVector::m_sat_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, bool *sat,
+                            size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1586,12 +1592,14 @@ SVector &SVector::m_sat_add(const SVector &opL, const int64_t rhs, const SVRegis
             {
                 // Saturation to min. signed value
                 (*this)[i_element].set_min_signed();
+                (*sat) = true;
                 continue;
             }
             if (!msb_opL && !msb_rhs && msb_result)
             {
                 // Saturation to max. signed value
                 (*this)[i_element].set_max_signed();
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1600,7 +1608,7 @@ SVector &SVector::m_sat_add(const SVector &opL, const int64_t rhs, const SVRegis
     return (*this);
 }
 
-SVector &SVector::m_sat_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+SVector &SVector::m_sat_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
                              size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
@@ -1615,6 +1623,7 @@ SVector &SVector::m_sat_subu(const SVector &opL, const SVector &rhs, const SVReg
             {
                 // Saturation, use min. uint
                 (*this)[i_element] = 0;
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1623,7 +1632,7 @@ SVector &SVector::m_sat_subu(const SVector &opL, const SVector &rhs, const SVReg
     return (*this);
 }
 
-SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, bool *sat,
                              size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
@@ -1638,6 +1647,7 @@ SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVReg
             {
                 // Saturation, use max. uint
                 (*this)[i_element] = 0;
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1646,7 +1656,8 @@ SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVReg
     return (*this);
 }
 
-SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index)
+SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
+                            size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1664,6 +1675,7 @@ SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegi
                 // Neg - Pos = Pos -> Negative Overflow
                 // Saturation to min. signed value
                 (*this)[i_element].set_min_signed();
+                (*sat) = true;
                 continue;
             }
             if (!msb_opL && msb_rhs && msb_result)
@@ -1671,6 +1683,7 @@ SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegi
                 // Pos - Neg = Neg -> Positive Overflow
                 // Saturation to max. signed value
                 (*this)[i_element].set_max_signed();
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;
@@ -1679,7 +1692,8 @@ SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegi
     return (*this);
 }
 
-SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index)
+SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, bool *sat,
+                            size_t start_index)
 {
     for (size_t i_element = start_index; i_element < length_; ++i_element)
     {
@@ -1696,6 +1710,7 @@ SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegis
                 // Neg - Pos = Pos -> Negative Overflow
                 // Saturation to min. signed value
                 (*this)[i_element].set_min_signed();
+                (*sat) = true;
                 continue;
             }
             if (!msb_opL && msb_rhs && msb_result)
@@ -1703,6 +1718,7 @@ SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegis
                 // Pos - Neg = Neg -> Positive Overflow
                 // Saturation to max. signed value
                 (*this)[i_element].set_max_signed();
+                (*sat) = true;
                 continue;
             }
             (*this)[i_element] = result;

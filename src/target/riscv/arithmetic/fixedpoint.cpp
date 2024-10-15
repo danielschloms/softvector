@@ -29,17 +29,18 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vv(uint8_t *vec_reg_mem, uint64_t emul_num
     RVVector &vs1 = V.get_vec(src_vec_reg_rhs);
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
+    auto sat = false;
 
     if (is_signed)
     {
-        vd.m_sat_add(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_add(vs2, vs1, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
-        vd.m_sat_addu(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_addu(vs2, vs1, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
 
-    return (VILL::VPU_RETURN::NO_EXCEPT);
+    return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
 VILL::vpu_return_t VARITH_FIXP::vsadd_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
@@ -62,18 +63,19 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vi(uint8_t *vec_reg_mem, uint64_t emul_num
 
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
+    auto sat = false;
 
     if (is_signed)
     {
         int64_t s_imm = static_cast<uint64_t>(imm & 0x10 ? imm | ~0x1F : imm);
-        vd.m_sat_add(vs2, s_imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_add(vs2, s_imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
         uint64_t u_imm = imm & 0x1F;
-        vd.m_sat_addu(vs2, u_imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_addu(vs2, u_imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
-    return (VILL::VPU_RETURN::NO_EXCEPT);
+    return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
 VILL::vpu_return_t VARITH_FIXP::vsadd_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
@@ -97,20 +99,21 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vx(uint8_t *vec_reg_mem, uint64_t emul_num
 
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
+    auto sat = false;
 
     if (is_signed)
     {
         int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                   : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_sat_add(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_add(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
         uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                    : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
-        vd.m_sat_addu(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_addu(vs2, imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
-    return (VILL::VPU_RETURN::NO_EXCEPT);
+    return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
 VILL::vpu_return_t VARITH_FIXP::vssub_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
@@ -138,17 +141,18 @@ VILL::vpu_return_t VARITH_FIXP::vssub_vv(uint8_t *vec_reg_mem, uint64_t emul_num
     RVVector &vs1 = V.get_vec(src_vec_reg_rhs);
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
+    auto sat = false;
 
     if (is_signed)
     {
-        vd.m_sat_sub(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_sub(vs2, vs1, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
-        vd.m_sat_subu(vs2, vs1, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_subu(vs2, vs1, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
 
-    return (VILL::VPU_RETURN::NO_EXCEPT);
+    return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
 VILL::vpu_return_t VARITH_FIXP::vssub_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
@@ -172,20 +176,21 @@ VILL::vpu_return_t VARITH_FIXP::vssub_vx(uint8_t *vec_reg_mem, uint64_t emul_num
 
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
+    auto sat = false;
 
     if (is_signed)
     {
         int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                   : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_sat_sub(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_sub(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
         uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                    : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
-        vd.m_sat_subu(vs2, imm, V.get_mask_reg(), !mask_f, vec_elem_start);
+        vd.m_sat_subu(vs2, imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
-    return (VILL::VPU_RETURN::NO_EXCEPT);
+    return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 /* End 12.1. */
 

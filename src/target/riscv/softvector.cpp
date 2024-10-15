@@ -2670,10 +2670,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vsadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                              pVSTART, pVm, false);
+        auto ret = VARITH_FIXP::vsadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs1, pVs2, pVSTART, pVm, false);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vsaddu_vi(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm,
@@ -2684,10 +2684,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vsadd_vi(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, pVimm,
-                              pVSTART, pVm, false);
+        auto ret = VARITH_FIXP::vsadd_vi(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, pVimm, pVSTART, pVm, false);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vsaddu_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
@@ -2703,10 +2703,10 @@ extern "C"
         else
             ScalarReg = &(static_cast<uint8_t *>(pR)[pRs1 * 8]);
 
-        VARITH_FIXP::vsadd_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2,
-                              ScalarReg, pVSTART, pVm, false, pXLEN / 8);
+        auto ret = VARITH_FIXP::vsadd_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, ScalarReg, pVSTART, pVm, false, pXLEN / 8);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vsadd_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
@@ -2717,10 +2717,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vsadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                              pVSTART, pVm, true);
+        auto ret = VARITH_FIXP::vsadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs1, pVs2, pVSTART, pVm, true);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vsadd_vi(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
@@ -2731,10 +2731,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vsadd_vi(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, pVimm,
-                              pVSTART, pVm, true);
+        auto ret = VARITH_FIXP::vsadd_vi(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, pVimm, pVSTART, pVm, true);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vsadd_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
@@ -2750,10 +2750,10 @@ extern "C"
         else
             ScalarReg = &(static_cast<uint8_t *>(pR)[pRs1 * 8]);
 
-        VARITH_FIXP::vsadd_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2,
-                              ScalarReg, pVSTART, pVm, true, pXLEN / 8);
+        auto ret = VARITH_FIXP::vsadd_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, ScalarReg, pVSTART, pVm, true, pXLEN / 8);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vssubu_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
@@ -2764,10 +2764,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vssub_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                              pVSTART, pVm, false);
+        auto ret = VARITH_FIXP::vssub_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs1, pVs2, pVSTART, pVm, false);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vssubu_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
@@ -2783,10 +2783,10 @@ extern "C"
         else
             ScalarReg = &(static_cast<uint8_t *>(pR)[pRs1 * 8]);
 
-        VARITH_FIXP::vssub_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2,
-                              ScalarReg, pVSTART, pVm, false, pXLEN / 8);
+        auto ret = VARITH_FIXP::vssub_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, ScalarReg, pVSTART, pVm, false, pXLEN / 8);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vssub_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
@@ -2797,10 +2797,10 @@ extern "C"
 
         VectorRegField = static_cast<uint8_t *>(pV);
 
-        VARITH_FIXP::vssub_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                              pVSTART, pVm, true);
+        auto ret = VARITH_FIXP::vssub_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs1, pVs2, pVSTART, pVm, true);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
 
     uint8_t vssub_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
@@ -2816,17 +2816,17 @@ extern "C"
         else
             ScalarReg = &(static_cast<uint8_t *>(pR)[pRs1 * 8]);
 
-        VARITH_FIXP::vssub_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2,
-                              ScalarReg, pVSTART, pVm, true, pXLEN / 8);
+        auto ret = VARITH_FIXP::vssub_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd,
+                                         pVs2, ScalarReg, pVSTART, pVm, true, pXLEN / 8);
 
-        return (0);
+        return ret == VILL::VPU_RETURN::NO_EXCEPT_FP_SAT ? 1 : 0;
     }
     /* End 12.1. */
 
     /* 12.2. Vector Single-Width Averaging Add and Subtract */
     /* TODO: Check for illegal rounding mode values */
     uint8_t vaaddu_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
-                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm)
+                      uint16_t pVLEN, uint16_t pVL, uint8_t pRm)
     {
         VTYPE::VTYPE _vt(pVTYPE);
         uint8_t *VectorRegField;
@@ -2840,7 +2840,7 @@ extern "C"
     }
 
     uint8_t vaaddu_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
-                     uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm)
+                      uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm)
     {
         VTYPE::VTYPE _vt(pVTYPE);
         uint8_t *ScalarReg;
@@ -2892,7 +2892,7 @@ extern "C"
     }
 
     uint8_t vasubu_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
-                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm)
+                      uint16_t pVLEN, uint16_t pVL, uint8_t pRm)
     {
         VTYPE::VTYPE _vt(pVTYPE);
         uint8_t *VectorRegField;
@@ -2906,7 +2906,7 @@ extern "C"
     }
 
     uint8_t vasubu_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
-                     uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm)
+                      uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm)
     {
         VTYPE::VTYPE _vt(pVTYPE);
         uint8_t *ScalarReg;
