@@ -1153,7 +1153,15 @@ class SVector
     /* End 12.2. */
 
     /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
-
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked fractional MUL with rounding and saturation for right-hand-side SVector
+    SVector &m_round_sat_mul(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, bool *sat, size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked fractional MUL with rounding and saturation for right-hand-side signed 64 bit value. rhs is sign
+    /// extended to element size
+    SVector &m_round_sat_mul(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask,
+                             uint8_t rounding_mode, bool *sat, size_t start_index = 0);
     /* End 12.3. */
 
     /* 12.4. Vector Single-Width Scaling Shift Instructions */

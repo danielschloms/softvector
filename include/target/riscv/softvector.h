@@ -1264,7 +1264,19 @@ extern "C"
     /* End 12.2. */
 
     /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
+    /// \brief Signed fractional MUL with rounding and saturation vector-vector
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vsmul_vv(void *pV, //!<[inout] Vector register field as local memory
+                     uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
 
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Signed fractional MUL with rounding and saturation vector-scalar
+    /// \return 0 if no exception triggered, else 1
+    uint8_t vsmul_vx(void *pV, //!<[inout] Vector register field as local memory
+                     void *pR, //!<[in] Integer/General Purpose register field
+                     uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm);
     /* End 12.3. */
 
     /* 12.4. Vector Single-Width Scaling Shift Instructions */

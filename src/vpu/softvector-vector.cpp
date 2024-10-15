@@ -1502,7 +1502,7 @@ SVector &SVector::m_sat_addu(const SVector &opL, const SVector &rhs, const SVReg
             auto rhs_u64 = rhs[i_element].to_u64();
             auto result = opL_u64 + rhs_u64;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_result = result & msb;
+            bool msb_result = result & msb;
             if ((opL[i_element].msb_is_set() || rhs[i_element].msb_is_set()) && !msb_result)
             {
                 // Saturation, use max. uint
@@ -1526,8 +1526,8 @@ SVector &SVector::m_sat_addu(const SVector &opL, const uint64_t rhs, const SVReg
             auto opL_u64 = opL[i_element].to_u64();
             auto result = opL_u64 + rhs;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_rhs = rhs & msb;
-            auto msb_result = result & msb;
+            bool msb_rhs = rhs & msb;
+            bool msb_result = result & msb;
             if ((opL[i_element].msb_is_set() || msb_rhs) && !msb_result)
             {
                 // Saturation, use max. uint
@@ -1552,9 +1552,9 @@ SVector &SVector::m_sat_add(const SVector &opL, const SVector &rhs, const SVRegi
             auto rhs_i64 = rhs[i_element].to_i64();
             auto result = opL_i64 + rhs_i64;
             int64_t msb = static_cast<int64_t>(1) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_result = result & msb;
-            auto msb_opL = opL[i_element].msb_is_set();
-            auto msb_rhs = rhs[i_element].msb_is_set();
+            bool msb_result = result & msb;
+            bool msb_opL = opL[i_element].msb_is_set();
+            bool msb_rhs = rhs[i_element].msb_is_set();
             if ((msb_opL && msb_rhs && !msb_result))
             {
                 // Saturation to min. signed value
@@ -1585,9 +1585,9 @@ SVector &SVector::m_sat_add(const SVector &opL, const int64_t rhs, const SVRegis
             auto opL_u64 = opL[i_element].to_i64();
             auto result = opL_u64 + rhs;
             int64_t msb = static_cast<int64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_opL = opL[i_element].msb_is_set();
-            auto msb_rhs = rhs & msb;
-            auto msb_result = result & msb;
+            bool msb_opL = opL[i_element].msb_is_set();
+            bool msb_rhs = rhs & msb;
+            bool msb_result = result & msb;
             if ((msb_opL && msb_rhs && !msb_result))
             {
                 // Saturation to min. signed value
@@ -1642,7 +1642,7 @@ SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVReg
             auto opL_u64 = opL[i_element].to_u64();
             auto result = opL_u64 - rhs;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_rhs = rhs & msb;
+            bool msb_rhs = rhs & msb;
             if (opL_u64 < rhs)
             {
                 // Saturation, use max. uint
@@ -1667,9 +1667,9 @@ SVector &SVector::m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegi
             auto rhs_i64 = rhs[i_element].to_i64();
             auto result = opL_i64 - rhs_i64;
             int64_t msb = static_cast<int64_t>(1) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_result = result & msb;
-            auto msb_opL = opL[i_element].msb_is_set();
-            auto msb_rhs = rhs[i_element].msb_is_set();
+            bool msb_result = result & msb;
+            bool msb_opL = opL[i_element].msb_is_set();
+            bool msb_rhs = rhs[i_element].msb_is_set();
             if ((msb_opL && !msb_rhs && !msb_result))
             {
                 // Neg - Pos = Pos -> Negative Overflow
@@ -1702,9 +1702,9 @@ SVector &SVector::m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegis
             auto opL_u64 = opL[i_element].to_i64();
             auto result = opL_u64 - rhs;
             int64_t msb = static_cast<int64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            auto msb_opL = opL[i_element].msb_is_set();
-            auto msb_rhs = rhs & msb;
-            auto msb_result = result & msb;
+            bool msb_opL = opL[i_element].msb_is_set();
+            bool msb_rhs = rhs & msb;
+            bool msb_result = result & msb;
             if ((msb_opL && !msb_rhs && !msb_result))
             {
                 // Neg - Pos = Pos -> Negative Overflow
@@ -1855,7 +1855,86 @@ SVector &SVector::m_avg_sub(const SVector &opL, const int64_t rhs, const SVRegis
 /* End 12.2. */
 
 /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
+SVector &SVector::m_round_sat_mul(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                                  uint8_t rounding_mode, bool *sat, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            // vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*vs1[i], SEW-1))
+            // vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*x[rs1], SEW-1))
+            auto rounding_bits = opL[i_element].width_in_bits_ - 1;
+            auto opL_i64 = opL[i_element].to_i64();
+            auto rhs_i64 = rhs[i_element].to_i64();
+            auto result = roundoff_signed(opL_i64 * rhs_i64, rounding_bits, rounding_mode);
 
+            int64_t msb = static_cast<int64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
+            bool msb_opL = opL_i64 & msb;
+            bool msb_rhs = rhs_i64 & msb;
+            bool msb_result = result & msb;
+            if ((msb_opL != msb_rhs) && !msb_result)
+            {
+                // Different sign multiplication = Pos -> overflow
+                // Saturation to min. signed value
+                (*this)[i_element].set_min_signed();
+                (*sat) = true;
+                continue;
+            }
+            if ((msb_opL == msb_rhs) && msb_result)
+            {
+                // Same sign multiplication = Neg -> overflow
+                // Saturation to max. signed value
+                (*this)[i_element].set_max_signed();
+                (*sat) = true;
+                continue;
+            }
+
+            (*this)[i_element] = result;
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_round_sat_mul(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask,
+                                  uint8_t rounding_mode, bool *sat, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            // vsmul.vv vd, vs2, vs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*vs1[i], SEW-1))
+            // vsmul.vx vd, vs2, rs1, vm  # vd[i] = clip(roundoff_signed(vs2[i]*x[rs1], SEW-1))
+            auto rounding_bits = opL[i_element].width_in_bits_ - 1;
+            auto opL_i64 = opL[i_element].to_i64();
+            auto result = roundoff_signed(opL_i64 * rhs, rounding_bits, rounding_mode);
+
+            int64_t msb = static_cast<int64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
+            bool msb_opL = opL_i64 & msb;
+            bool msb_rhs = rhs & msb;
+            bool msb_result = result & msb;
+            if ((msb_opL != msb_rhs) && !msb_result)
+            {
+                // Different sign multiplication = Pos -> overflow
+                // Saturation to min. signed value
+                (*this)[i_element].set_min_signed();
+                (*sat) = true;
+                continue;
+            }
+            if ((msb_opL == msb_rhs) && msb_result)
+            {
+                // Same sign multiplication = Neg -> overflow
+                // Saturation to max. signed value
+                (*this)[i_element].set_max_signed();
+                (*sat) = true;
+                continue;
+            }
+
+            (*this)[i_element] = result;
+        }
+    }
+    return (*this);
+}
 /* End 12.3. */
 
 /* 12.4. Vector Single-Width Scaling Shift Instructions */
