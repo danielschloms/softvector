@@ -35,14 +35,14 @@ auto roundoff_unsigned(uint64_t value, uint8_t rounding_bits, uint8_t rounding_m
     {
         return value;
     }
-    uint8_t rounding_increment = 0;
+    auto rounding_increment = false;
     auto range_zero_check = false;
     auto bitmask = 0U;
 
     switch (rounding_mode)
     {
     case 0:
-        rounding_increment = value & (1U << (rounding_bits - 1));
+        rounding_increment = static_cast<bool>(value & (1U << (rounding_bits - 1)));
         break;
     case 1:
         // Needs check v[d-2:0] != 0
@@ -56,7 +56,7 @@ auto roundoff_unsigned(uint64_t value, uint8_t rounding_bits, uint8_t rounding_m
                              static_cast<bool>(range_zero_check || (value & (1 << rounding_bits)));
         break;
     case 2:
-        rounding_increment = 0;
+        // rounding_increment = 0;
         break;
     case 3:
         // Bitmask for v[d-1 : 0]
@@ -85,11 +85,11 @@ auto roundoff_signed(int64_t value, uint8_t rounding_bits, uint8_t rounding_mode
     auto range_zero_check = false;
     auto bitmask = 0U;
 
-    uint8_t rounding_increment = 0;
+    auto rounding_increment = false;
     switch (rounding_mode)
     {
     case 0:
-        rounding_increment = value & (1U << (rounding_bits - 1));
+        rounding_increment = static_cast<bool>(value & (1U << (rounding_bits - 1)));
         break;
     case 1:
         // Needs check v[d-2:0] != 0
@@ -103,7 +103,7 @@ auto roundoff_signed(int64_t value, uint8_t rounding_bits, uint8_t rounding_mode
                              static_cast<bool>(range_zero_check || (value & (1 << rounding_bits)));
         break;
     case 2:
-        rounding_increment = 0;
+        // rounding_increment = 0;
         break;
     case 3:
         // Bitmask for v[d-1 : 0]
