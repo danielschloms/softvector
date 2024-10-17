@@ -25,11 +25,31 @@
 
 #include "stdint.h"
 #include "base/base.hpp"
+#include "vpu/softvector-types.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief This space concludes fixed-point arithmetic helpers
 namespace VARITH_FIXP
 {
+
+// TODO
+// using Kernel = std::function<SVector &(SVector & /* opL */, SVector & /* rhs */, SVRegister & /* vm */, bool /* mask
+// */,
+//                                        bool * /* sat */, size_t /* start_index */)>;
+
+// VILL::vpu_return_t op_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+//                          uint64_t emul_num,          //!< Register multiplicity numerator
+//                          uint64_t emul_denom,        //!< Register multiplicity denominator
+//                          uint16_t sew_bytes,         //!< Element width [bytes]
+//                          uint16_t vec_len,           //!< Vector length [elements]
+//                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+//                          uint16_t dst_vec_reg,       //!< Destination vector D [index]
+//                          uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+//                          uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+//                          uint16_t vec_elem_start,    //!< Starting element [index]
+//                          bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+//                          Kernel kernel
+// );
 
 /* 12.1. Vector Single-Width Saturating Add and Subtract */
 //////////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +253,109 @@ VILL::vpu_return_t vsmul_vx(uint8_t *vec_reg_mem,         //!< Vector register f
 /* End 12.3. */
 
 /* 12.4. Vector Single-Width Scaling Shift Instructions */
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right logical shift vector-vector
+/// \details For all i: D[i] = roundoff_unsigned(L[i], R[i])
+VILL::vpu_return_t vssrl_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t rounding_mode       //!< Rounding mode
+);
 
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right logical shift vector-immediate
+/// \details For all i: D[i] = roundoff_unsigned(L[i], uimm)
+VILL::vpu_return_t vssrl_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint8_t imm,                //!< Sign or zero extending 5-bit immediate
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t rounding_mode       //!< Rounding mode
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right logical shift vector-scalar
+/// \details For all i: D[i] = roundoff_unsigned(L[i], x[Rs1])
+VILL::vpu_return_t vssrl_vx(uint8_t *vec_reg_mem,         //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,            //!< Register multiplicity numerator
+                            uint64_t emul_denom,          //!< Register multiplicity denominator
+                            uint16_t sew_bytes,           //!< Element width [bytes]
+                            uint16_t vec_len,             //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes,   //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,         //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,     //!< Source vector L [index]
+                            uint8_t *scalar_reg_mem,      //!< Memory space holding scalar data (min. _xlenb bytes)
+                            uint16_t vec_elem_start,      //!< Starting element [index]
+                            bool mask_f,                  //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t scalar_reg_len_bytes, //!< Length of scalar [bytes]
+                            uint8_t rounding_mode         //!< Rounding mode
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right arithmetic shift vector-vector
+/// \details For all i: D[i] = roundoff_signed(L[i], R[i])
+VILL::vpu_return_t vssra_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_rhs,   //!< Source vector R [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t rounding_mode       //!< Rounding mode
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right arithmetic shift vector-immediate
+/// \details For all i: D[i] = roundoff_signed(L[i], uimm)
+VILL::vpu_return_t vssra_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,          //!< Register multiplicity numerator
+                            uint64_t emul_denom,        //!< Register multiplicity denominator
+                            uint16_t sew_bytes,         //!< Element width [bytes]
+                            uint16_t vec_len,           //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,       //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,   //!< Source vector L [index]
+                            uint8_t imm,                //!< Sign or zero extending 5-bit immediate
+                            uint16_t vec_elem_start,    //!< Starting element [index]
+                            bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t rounding_mode       //!< Rounding mode
+);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Scaling right arithmetic shift vector-scalar
+/// \details For all i: D[i] = roundoff_signed(L[i], x[Rs1])
+VILL::vpu_return_t vssra_vx(uint8_t *vec_reg_mem,         //!< Vector register file memory space. One dimensional
+                            uint64_t emul_num,            //!< Register multiplicity numerator
+                            uint64_t emul_denom,          //!< Register multiplicity denominator
+                            uint16_t sew_bytes,           //!< Element width [bytes]
+                            uint16_t vec_len,             //!< Vector length [elements]
+                            uint16_t vec_reg_len_bytes,   //!< Vector register length [bytes]
+                            uint16_t dst_vec_reg,         //!< Destination vector D [index]
+                            uint16_t src_vec_reg_lhs,     //!< Source vector L [index]
+                            uint8_t *scalar_reg_mem,      //!< Memory space holding scalar data (min. _xlenb bytes)
+                            uint16_t vec_elem_start,      //!< Starting element [index]
+                            bool mask_f,                  //!< Vector mask flag. 1: masking 0: no masking
+                            uint8_t scalar_reg_len_bytes, //!< Length of scalar [bytes]
+                            uint8_t rounding_mode         //!< Rounding mode
+);
 /* End 12.4. */
 
 /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */

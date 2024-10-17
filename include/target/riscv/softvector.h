@@ -1265,14 +1265,14 @@ extern "C"
 
     /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
     /// \brief Signed fractional MUL with rounding and saturation vector-vector
-    /// \return 0 if no exception triggered, else 1
+    /// \return 0 if not saturated, else 1
     uint8_t vsmul_vv(void *pV, //!<[inout] Vector register field as local memory
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
                      uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Signed fractional MUL with rounding and saturation vector-scalar
-    /// \return 0 if no exception triggered, else 1
+    /// \return 0 if not saturated, else 1
     uint8_t vsmul_vx(void *pV, //!<[inout] Vector register field as local memory
                      void *pR, //!<[in] Integer/General Purpose register field
                      uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1, uint16_t pVSTART,
@@ -1280,6 +1280,35 @@ extern "C"
     /* End 12.3. */
 
     /* 12.4. Vector Single-Width Scaling Shift Instructions */
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling logical right shift vector-vector
+    uint8_t vssrl_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling logical right shift vector-immediate
+    uint8_t vssrl_vi(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling logical right shift vector-scalar
+    uint8_t vssrl_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
+                     uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling arithmetic right shift vector-vector
+    uint8_t vssra_vv(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs1, uint8_t pVs2, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling arithmetic right shift vector-immediate
+    uint8_t vssra_vi(void *pV, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pVimm, uint16_t pVSTART,
+                     uint16_t pVLEN, uint16_t pVL, uint8_t pRm);
+
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Scaling arithmetic right shift vector-scalar
+    uint8_t vssra_vx(void *pV, void *pR, uint16_t pVTYPE, uint8_t pVm, uint8_t pVd, uint8_t pVs2, uint8_t pRs1,
+                     uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN, uint8_t pRm);
 
     /* End 12.4. */
 

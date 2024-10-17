@@ -793,6 +793,9 @@ class SVector
     /// for element index 0
     SVRegister op_u_gte(const uint64_t rhs) const;
 
+    // TODO: refactor such that a generic loop/iteration function uses a kernel parameter to do operations
+    // auto iterate_kernel(SVector &dest, const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask) -> void;
+
     // masked (self assign) operations
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Masked assignment. Updates elements only where mask register's respective bit is true. All elements
@@ -1165,7 +1168,22 @@ class SVector
     /* End 12.3. */
 
     /* 12.4. Vector Single-Width Scaling Shift Instructions */
-
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked scaling SRL for right-hand-side SVector
+    SVector &m_scaling_srl(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked scaling SRL for right-hand-side signed 64 bit value.
+    SVector &m_scaling_srl(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked scaling SRA for right-hand-side SVector
+    SVector &m_scaling_sra(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
+    //////////////////////////////////////////////////////////////////////////////////////
+    /// \brief Masked scaling SRA for right-hand-side signed 64 bit value.
+    SVector &m_scaling_sra(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
+                       size_t start_index = 0);
     /* End 12.4. */
 
     /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */

@@ -1642,7 +1642,6 @@ SVector &SVector::m_sat_subu(const SVector &opL, const uint64_t rhs, const SVReg
             auto opL_u64 = opL[i_element].to_u64();
             auto result = opL_u64 - rhs;
             uint64_t msb = static_cast<uint64_t>(1U) << (opL[i_element].width_in_bits_ - 1);
-            bool msb_rhs = rhs & msb;
             if (opL_u64 < rhs)
             {
                 // Saturation, use max. uint
@@ -1938,7 +1937,57 @@ SVector &SVector::m_round_sat_mul(const SVector &opL, const int64_t rhs, const S
 /* End 12.3. */
 
 /* 12.4. Vector Single-Width Scaling Shift Instructions */
+SVector &SVector::m_scaling_srl(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                                uint8_t rounding_mode, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            (*this)[i_element] = roundoff_unsigned(opL[i_element].to_u64(), rhs[i_element].to_u64(), rounding_mode);
+        }
+    }
+    return (*this);
+}
 
+SVector &SVector::m_scaling_srl(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                                uint8_t rounding_mode, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            (*this)[i_element] = roundoff_unsigned(opL[i_element].to_u64(), rhs, rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_scaling_sra(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
+                                uint8_t rounding_mode, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            (*this)[i_element] = roundoff_signed(opL[i_element].to_i64(), rhs[i_element].to_u64(), rounding_mode);
+        }
+    }
+    return (*this);
+}
+
+SVector &SVector::m_scaling_sra(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
+                                uint8_t rounding_mode, size_t start_index)
+{
+    for (size_t i_element = start_index; i_element < length_; ++i_element)
+    {
+        if (!mask || vm.get_bit(i_element))
+        {
+            (*this)[i_element] = roundoff_signed(opL[i_element].to_i64(), rhs, rounding_mode);
+        }
+    }
+    return (*this);
+}
 /* End 12.4. */
 
 /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
