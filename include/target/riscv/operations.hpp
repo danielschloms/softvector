@@ -9,6 +9,10 @@ concept ValidVectorElementType =
     std::is_same_v<T, uint64_t> or std::is_same_v<T, int8_t> or std::is_same_v<T, int16_t> or
     std::is_same_v<T, int32_t> or std::is_same_v<T, int64_t>;
 
+template <typename T>
+concept ValidScalarType = std::is_same_v<T, uint32_t> or std::is_same_v<T, uint64_t> or std::is_same_v<T, int32_t> or
+                          std::is_same_v<T, int64_t>;
+
 using Bit = bool;
 
 using ValueResultOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */);
