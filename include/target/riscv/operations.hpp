@@ -28,3 +28,13 @@ inline uint64_t add_int(uint64_t lhs, uint64_t rhs)
 {
     return lhs + rhs;
 }
+
+inline uint64_t sub_int(uint64_t lhs, uint64_t rhs)
+{
+    return lhs - rhs;
+}
+
+inline uint64_t rsub_int(uint64_t lhs, uint64_t rhs)
+{
+    return rhs - lhs;
+}

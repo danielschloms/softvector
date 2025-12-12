@@ -56,6 +56,11 @@ template <typename OpType, bool Signed = false>
 void dispatch_iterate_vv(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs1, uint8_t vs2,
                          uint16_t vstart, uint16_t vlen, uint16_t vl, OpType op);
 
+template <typename OpType, bool Signed = false>
+void dispatch_iterate_vx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                         uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                         OpType op);
+
 template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 void iterate_vv(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_base, unsigned vs1_base,
@@ -76,14 +81,15 @@ uint8_t vadd_vv(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd
     return 0;
 }
 
-// std::uint8_t vadd_vi(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-//                      std::uint8_t pVimm, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
-// {
-// }
+uint8_t vadd_vi(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs2,
+                     uint8_t imm, uint16_t vstart, uint16_t vlen, uint16_t vl)
+{
+}
 
-std::uint8_t vadd_vx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs2,
+uint8_t vadd_vx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs2,
                      uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t vl, uint8_t xlen)
 {
+    dispatch_iterate_vx(vector_field, scalar_field, vtype, mask_bit, vd, vs2, rs1, vstart, vlen, xlen, vl, add_int);
     return 0;
     // dispatch_iterate_vx
 }
@@ -357,16 +363,48 @@ void dispatch_iterate_vv(void *vector_field, uint16_t vtype, uint8_t mask_bit, u
     }
 }
 
-template <typename OpType, bool Signed, typename ScalarType>
-void dispatch_iterate_vxi(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs2,
-                          ScalarType scalar, uint16_t vstart, uint16_t vlen, uint16_t vl, OpType op)
+template <typename OpType, bool Signed>
+void dispatch_iterate_vx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                         uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                         OpType op)
 {
     auto const sew = decode_sew(vtype);
     auto const sew_bytes = sew >> 3;
     auto const elements_per_register = vlen / sew;
     auto const vd_base = vd * elements_per_register;
-    auto const vs1_base = vs1 * elements_per_register;
     auto const vs2_base = vs2 * elements_per_register;
+
+    uint64_t scalar = 0;
+    if constexpr (Signed)
+    {
+        switch (xlen)
+        {
+        case 32:
+            scalar = (static_cast<int32_t *>(scalar_field))[rs1];
+            break;
+        case 64:
+            scalar = (static_cast<int64_t *>(scalar_field))[rs1];
+            break;
+        default:
+            // Invalid XLEN!
+            break;
+        }
+    }
+    else
+    {
+        switch (xlen)
+        {
+        case 32:
+            scalar = (static_cast<uint32_t *>(scalar_field))[rs1];
+            break;
+        case 64:
+            scalar = (static_cast<uint64_t *>(scalar_field))[rs1];
+            break;
+        default:
+            // Invalid XLEN!
+            break;
+        }
+    }
 
     if (static_cast<bool>(mask_bit) == masked_instruction_value)
     {
@@ -467,6 +505,123 @@ void dispatch_iterate_vxi(void *vector_field, uint16_t vtype, uint8_t mask_bit, 
         }
     }
 }
+
+template <typename OpType, bool Signed, bool SignExtendImm>
+void dispatch_iterate_vi(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                         uint8_t vs2, uint8_t immediate, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                         OpType op)
+{
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const elements_per_register = vlen / sew;
+    auto const vd_base = vd * elements_per_register;
+    auto const vs2_base = vs2 * elements_per_register;
+
+    uint64_t scalar = immediate;
+    if constexpr (SignExtendImm){
+        scalar = sign_extend_immediate(immediate)
+    }
+
+    if (static_cast<bool>(mask_bit) == masked_instruction_value)
+    {
+        switch (sew_bytes)
+        {
+        case sew_8_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi_masked<int8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi_masked<uint8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_16_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi_masked<int16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi_masked<uint16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_32_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi_masked<int32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi_masked<uint32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_64_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi_masked<int64_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi_masked<uint64_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        default:
+            // Invalid SEW
+            break;
+        }
+    }
+    else
+    {
+        switch (sew_bytes)
+        {
+        case sew_8_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi<int8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi<uint8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_16_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi<int16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi<uint16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_32_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi<int32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi<uint32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        case sew_64_bytes:
+            if constexpr (Signed)
+            {
+                iterate_vxi<int64_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            else
+            {
+                iterate_vxi<uint64_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            }
+            break;
+        default:
+            // Invalid SEW
+            break;
+        }
+    }
+}
+
 std::int8_t vtype_decode(std::uint16_t vtype, std::uint8_t *ta, std::uint8_t *ma, std::uint32_t *sew,
                          std::uint8_t *z_lmul, std::uint8_t *n_lmul)
 {
