@@ -11,17 +11,17 @@
 
 inline auto iterate_vector(const SVector &vs2, const SVector &vs1, SVector &vd, const SVRegister &vm, bool mask,
                            VARITH_FIXP::FixpointFunction func, std::size_t start_index, bool signed_op, std::size_t sew,
-                           std::uint8_t rounding_mode) -> bool;
+                           uint8_t rounding_mode) -> bool;
 
-inline auto iterate_vector(const SVector &vs2, std::uint64_t scalar, SVector &vd, const SVRegister &vm, bool mask,
+inline auto iterate_vector(const SVector &vs2, uint64_t scalar, SVector &vd, const SVRegister &vm, bool mask,
                            VARITH_FIXP::FixpointFunction func, std::size_t start_index, bool signed_op, std::size_t sew,
-                           std::uint8_t rounding_mode) -> bool;
+                           uint8_t rounding_mode) -> bool;
 
 // Private function definitions
 
 inline auto iterate_vector(const SVector &vs2, const SVector &vs1, SVector &vd, const SVRegister &vm, bool mask,
                            VARITH_FIXP::FixpointFunction func, std::size_t start_index, bool signed_op, std::size_t sew,
-                           std::uint8_t rounding_mode) -> bool
+                           uint8_t rounding_mode) -> bool
 {
     auto sat = false;
     // TODO: If OMP is used, local sat results can be OR reduced to final sat
@@ -29,24 +29,24 @@ inline auto iterate_vector(const SVector &vs2, const SVector &vs1, SVector &vd, 
     {
         if (!mask || vm.get_bit(i_element))
         {
-            std::uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
-            std::uint64_t rhs = signed_op ? vs1[i_element].to_i64() : vs1[i_element].to_u64();
+            uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
+            uint64_t rhs = signed_op ? vs1[i_element].to_i64() : vs1[i_element].to_u64();
             sat |= func(lhs, rhs, vd[i_element], sew, rounding_mode);
         }
     }
     return sat;
 }
 
-inline auto iterate_vector(const SVector &vs2, std::uint64_t scalar, SVector &vd, const SVRegister &vm, bool mask,
+inline auto iterate_vector(const SVector &vs2, uint64_t scalar, SVector &vd, const SVRegister &vm, bool mask,
                            VARITH_FIXP::FixpointFunction func, std::size_t start_index, bool signed_op, std::size_t sew,
-                           std::uint8_t rounding_mode) -> bool
+                           uint8_t rounding_mode) -> bool
 {
     auto sat = false;
     for (std::size_t i_element = start_index; i_element < vd.length_; ++i_element)
     {
         if (!mask || vm.get_bit(i_element))
         {
-            std::uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
+            uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
             sat |= func(lhs, scalar, vd[i_element], sew, rounding_mode);
         }
     }
@@ -55,8 +55,8 @@ inline auto iterate_vector(const SVector &vs2, std::uint64_t scalar, SVector &vd
 
 // Public function definitions
 
-auto VARITH_FIXP::roundoff_unsigned(std::uint64_t value, std::uint8_t rounding_bits, std::uint8_t rounding_mode)
-    -> std::uint64_t
+auto VARITH_FIXP::roundoff_unsigned(uint64_t value, uint8_t rounding_bits, uint8_t rounding_mode)
+    -> uint64_t
 {
     // Only lower 2 bits are used
     rounding_mode &= 0b11;
@@ -116,8 +116,8 @@ auto VARITH_FIXP::roundoff_unsigned(std::uint64_t value, std::uint8_t rounding_b
 }
 
 // TODO: Template
-auto VARITH_FIXP::roundoff_signed(std::int64_t value, std::uint8_t rounding_bits, std::uint8_t rounding_mode)
-    -> std::int64_t
+auto VARITH_FIXP::roundoff_signed(int64_t value, uint8_t rounding_bits, uint8_t rounding_mode)
+    -> int64_t
 {
     if (rounding_bits == 0)
     {
@@ -176,9 +176,9 @@ auto VARITH_FIXP::roundoff_signed(std::int64_t value, std::uint8_t rounding_bits
     return (value >> rounding_bits) + rounding_increment;
 }
 
-VILL::vpu_return_t VARITH_FIXP::fixp_op_vv(std::uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
-                                           const FpInstrInfo &fixedpoint_info, std::uint16_t reg_vd,
-                                           std::uint16_t reg_vs1, std::uint16_t reg_vs2, FixpointFunction func)
+VILL::vpu_return_t VARITH_FIXP::fixp_op_vv(uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
+                                           const FpInstrInfo &fixedpoint_info, uint16_t reg_vd,
+                                           uint16_t reg_vs1, uint16_t reg_vs2, FixpointFunction func)
 {
     RVVRegField V(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
                   SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
@@ -216,10 +216,10 @@ VILL::vpu_return_t VARITH_FIXP::fixp_op_vv(std::uint8_t *vec_reg_mem, const VIns
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::fixp_op_vx(std::uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
-                                           const FpInstrInfo &fixedpoint_info, std::uint16_t reg_vd,
-                                           std::uint16_t reg_vs2, std::uint8_t *scalar_reg_mem,
-                                           std::uint8_t scalar_register_length, FixpointFunction func)
+VILL::vpu_return_t VARITH_FIXP::fixp_op_vx(uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
+                                           const FpInstrInfo &fixedpoint_info, uint16_t reg_vd,
+                                           uint16_t reg_vs2, uint8_t *scalar_reg_mem,
+                                           uint8_t scalar_register_length, FixpointFunction func)
 {
     RVVRegField V(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
                   SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
@@ -246,7 +246,7 @@ VILL::vpu_return_t VARITH_FIXP::fixp_op_vx(std::uint8_t *vec_reg_mem, const VIns
     RVVector &vs2 = fixedpoint_info.narrowing_op ? V_wide.get_vec(reg_vs2) : V.get_vec(reg_vs2);
     RVVector &vd = V.get_vec(reg_vd);
 
-    std::uint64_t imm = (scalar_register_length > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+    uint64_t imm = (scalar_register_length > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                       : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
 
     imm = mask_and_sign_extend_scalar(imm, v_instr_info.sew, v_instr_info.signed_op);
@@ -257,9 +257,9 @@ VILL::vpu_return_t VARITH_FIXP::fixp_op_vx(std::uint8_t *vec_reg_mem, const VIns
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::fixp_op_vi(std::uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
-                                           const FpInstrInfo &fixedpoint_info, std::uint16_t reg_vd,
-                                           std::uint16_t reg_vs2, std::uint8_t imm5, FixpointFunction func)
+VILL::vpu_return_t VARITH_FIXP::fixp_op_vi(uint8_t *vec_reg_mem, const VInstrInfo &v_instr_info,
+                                           const FpInstrInfo &fixedpoint_info, uint16_t reg_vd,
+                                           uint16_t reg_vs2, uint8_t imm5, FixpointFunction func)
 {
     RVVRegField V(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
                   SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
@@ -288,7 +288,7 @@ VILL::vpu_return_t VARITH_FIXP::fixp_op_vi(std::uint8_t *vec_reg_mem, const VIns
     RVVector &vd = V.get_vec(reg_vd);
 
     // For instructions with specific uimm, just zero extend, otherwise sign extend
-    std::uint64_t imm = v_instr_info.zero_extend_immediate ? zero_extend_immediate(imm5) : sign_extend_immediate(imm5);
+    uint64_t imm = v_instr_info.zero_extend_immediate ? zero_extend_immediate(imm5) : sign_extend_immediate(imm5);
 
     // However, if the instruction is unsigned, we must zero out the upper 64 - SEW bits!
     imm = v_instr_info.signed_op ? imm : imm & get_n_bit_mask(v_instr_info.sew);
@@ -300,11 +300,11 @@ VILL::vpu_return_t VARITH_FIXP::fixp_op_vi(std::uint8_t *vec_reg_mem, const VIns
 }
 
 /* 12.1. Vector Single-Width Saturating Add and Subtract */
-VILL::vpu_return_t VARITH_FIXP::vsadd_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed)
+VILL::vpu_return_t VARITH_FIXP::vsadd_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -340,10 +340,10 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vsadd_vi(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t imm, std::uint16_t vec_elem_start,
+VILL::vpu_return_t VARITH_FIXP::vsadd_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t imm, uint16_t vec_elem_start,
                                          bool mask_f, bool is_signed)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
@@ -365,23 +365,23 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vi(std::uint8_t *vec_reg_mem, std::uint64_
 
     if (is_signed)
     {
-        std::int64_t s_imm = static_cast<std::uint64_t>(imm & 0x10 ? imm | ~0x1F : imm);
+        int64_t s_imm = static_cast<uint64_t>(imm & 0x10 ? imm | ~0x1F : imm);
         vd.m_sat_add(vs2, s_imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
-        std::uint64_t u_imm = imm & 0x1F;
+        uint64_t u_imm = imm & 0x1F;
         vd.m_sat_addu(vs2, u_imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vsadd_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t scalar_reg_len_bytes)
+VILL::vpu_return_t VARITH_FIXP::vsadd_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t scalar_reg_len_bytes)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -402,24 +402,24 @@ VILL::vpu_return_t VARITH_FIXP::vsadd_vx(std::uint8_t *vec_reg_mem, std::uint64_
 
     if (is_signed)
     {
-        std::int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::int64_t *>(scalar_reg_mem))
+        int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                        : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_sat_add(vs2, static_cast<std::int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
+        vd.m_sat_add(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
-        std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+        uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                         : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
         vd.m_sat_addu(vs2, imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssub_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed)
+VILL::vpu_return_t VARITH_FIXP::vssub_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -455,12 +455,12 @@ VILL::vpu_return_t VARITH_FIXP::vssub_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssub_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t scalar_reg_len_bytes)
+VILL::vpu_return_t VARITH_FIXP::vssub_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t scalar_reg_len_bytes)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -481,13 +481,13 @@ VILL::vpu_return_t VARITH_FIXP::vssub_vx(std::uint8_t *vec_reg_mem, std::uint64_
 
     if (is_signed)
     {
-        std::int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::int64_t *>(scalar_reg_mem))
+        int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                        : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_sat_sub(vs2, static_cast<std::int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
+        vd.m_sat_sub(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
     else
     {
-        std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+        uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                         : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
         vd.m_sat_subu(vs2, imm, V.get_mask_reg(), !mask_f, &sat, vec_elem_start);
     }
@@ -496,12 +496,12 @@ VILL::vpu_return_t VARITH_FIXP::vssub_vx(std::uint8_t *vec_reg_mem, std::uint64_
 /* End 12.1. */
 
 /* 12.2. Vector Single-Width Averaging Add and Subtract */
-VILL::vpu_return_t VARITH_FIXP::vaadd_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vaadd_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -536,12 +536,12 @@ VILL::vpu_return_t VARITH_FIXP::vaadd_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-VILL::vpu_return_t VARITH_FIXP::vaadd_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t scalar_reg_len_bytes, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vaadd_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t scalar_reg_len_bytes, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -561,25 +561,25 @@ VILL::vpu_return_t VARITH_FIXP::vaadd_vx(std::uint8_t *vec_reg_mem, std::uint64_
 
     if (is_signed)
     {
-        std::int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::int64_t *>(scalar_reg_mem))
+        int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                        : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_avg_add(vs2, static_cast<std::int64_t>(imm), V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
+        vd.m_avg_add(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
     }
     else
     {
-        std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+        uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                         : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
         vd.m_avg_addu(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
     }
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-VILL::vpu_return_t VARITH_FIXP::vasub_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vasub_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -614,12 +614,12 @@ VILL::vpu_return_t VARITH_FIXP::vasub_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-VILL::vpu_return_t VARITH_FIXP::vasub_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, bool is_signed,
-                                         std::uint8_t scalar_reg_len_bytes, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vasub_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, bool is_signed,
+                                         uint8_t scalar_reg_len_bytes, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -639,13 +639,13 @@ VILL::vpu_return_t VARITH_FIXP::vasub_vx(std::uint8_t *vec_reg_mem, std::uint64_
 
     if (is_signed)
     {
-        std::int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::int64_t *>(scalar_reg_mem))
+        int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                        : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
-        vd.m_avg_sub(vs2, static_cast<std::int64_t>(imm), V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
+        vd.m_avg_sub(vs2, static_cast<int64_t>(imm), V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
     }
     else
     {
-        std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+        uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                         : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
         vd.m_avg_subu(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
     }
@@ -654,11 +654,11 @@ VILL::vpu_return_t VARITH_FIXP::vasub_vx(std::uint8_t *vec_reg_mem, std::uint64_
 /* End 12.2. */
 
 /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
-VILL::vpu_return_t VARITH_FIXP::vsmul_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vsmul_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -687,12 +687,12 @@ VILL::vpu_return_t VARITH_FIXP::vsmul_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return sat ? VILL::VPU_RETURN::NO_EXCEPT_FP_SAT : VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vsmul_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t scalar_reg_len_bytes,
-                                         std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vsmul_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                         uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -711,7 +711,7 @@ VILL::vpu_return_t VARITH_FIXP::vsmul_vx(std::uint8_t *vec_reg_mem, std::uint64_
     RVVector &vd = V.get_vec(dst_vec_reg);
     auto sat = false;
 
-    std::int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::int64_t *>(scalar_reg_mem))
+    int64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<int64_t *>(scalar_reg_mem))
                                                    : *(reinterpret_cast<int32_t *>(scalar_reg_mem));
 
     vd.m_round_sat_mul(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, &sat, vec_elem_start);
@@ -721,11 +721,11 @@ VILL::vpu_return_t VARITH_FIXP::vsmul_vx(std::uint8_t *vec_reg_mem, std::uint64_
 /* End 12.3. */
 
 /* 12.4. Vector Single-Width Scaling Shift Instructions */
-VILL::vpu_return_t VARITH_FIXP::vssrl_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssrl_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -753,11 +753,11 @@ VILL::vpu_return_t VARITH_FIXP::vssrl_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssrl_vi(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t imm, std::uint16_t vec_elem_start,
-                                         bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssrl_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t imm, uint16_t vec_elem_start,
+                                         bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -775,18 +775,18 @@ VILL::vpu_return_t VARITH_FIXP::vssrl_vi(std::uint8_t *vec_reg_mem, std::uint64_
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t u_imm = imm & 0x1F;
+    uint64_t u_imm = imm & 0x1F;
     vd.m_scaling_srl(vs2, u_imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
 
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssrl_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t scalar_reg_len_bytes,
-                                         std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssrl_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                         uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -804,18 +804,18 @@ VILL::vpu_return_t VARITH_FIXP::vssrl_vx(std::uint8_t *vec_reg_mem, std::uint64_
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+    uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                     : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
     vd.m_scaling_srl(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
 
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssra_vv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssra_vv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -843,11 +843,11 @@ VILL::vpu_return_t VARITH_FIXP::vssra_vv(std::uint8_t *vec_reg_mem, std::uint64_
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssra_vi(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t imm, std::uint16_t vec_elem_start,
-                                         bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssra_vi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t imm, uint16_t vec_elem_start,
+                                         bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -865,18 +865,18 @@ VILL::vpu_return_t VARITH_FIXP::vssra_vi(std::uint8_t *vec_reg_mem, std::uint64_
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t u_imm = imm & 0x1F;
+    uint64_t u_imm = imm & 0x1F;
     vd.m_scaling_sra(vs2, u_imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
 
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vssra_vx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                         std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                         std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                         std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                         std::uint16_t vec_elem_start, bool mask_f, std::uint8_t scalar_reg_len_bytes,
-                                         std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vssra_vx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                         uint16_t sew_bytes, uint16_t vec_len,
+                                         uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                         uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                         uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                         uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -894,7 +894,7 @@ VILL::vpu_return_t VARITH_FIXP::vssra_vx(std::uint8_t *vec_reg_mem, std::uint64_
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+    uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                     : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
     vd.m_scaling_sra(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, vec_elem_start);
 
@@ -903,11 +903,11 @@ VILL::vpu_return_t VARITH_FIXP::vssra_vx(std::uint8_t *vec_reg_mem, std::uint64_
 /* End 12.4. */
 
 /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
-VILL::vpu_return_t VARITH_FIXP::vnclipu_wv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                           std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                           std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                           std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                           std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclipu_wv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                           uint16_t sew_bytes, uint16_t vec_len,
+                                           uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                           uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                           uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -935,11 +935,11 @@ VILL::vpu_return_t VARITH_FIXP::vnclipu_wv(std::uint8_t *vec_reg_mem, std::uint6
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vnclipu_wi(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                           std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                           std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                           std::uint16_t src_vec_reg_lhs, std::uint8_t imm,
-                                           std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclipu_wi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                           uint16_t sew_bytes, uint16_t vec_len,
+                                           uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                           uint16_t src_vec_reg_lhs, uint8_t imm,
+                                           uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -957,19 +957,19 @@ VILL::vpu_return_t VARITH_FIXP::vnclipu_wi(std::uint8_t *vec_reg_mem, std::uint6
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t u_imm = imm & 0x1F;
+    uint64_t u_imm = imm & 0x1F;
     bool sat = false;
     vd.m_narrowing_clipu(vs2, u_imm, V.get_mask_reg(), !mask_f, rounding_mode, &sat, vec_elem_start);
 
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vnclipu_wx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                           std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                           std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                           std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                           std::uint16_t vec_elem_start, bool mask_f, std::uint8_t scalar_reg_len_bytes,
-                                           std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclipu_wx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                           uint16_t sew_bytes, uint16_t vec_len,
+                                           uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                           uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                           uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                           uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -987,7 +987,7 @@ VILL::vpu_return_t VARITH_FIXP::vnclipu_wx(std::uint8_t *vec_reg_mem, std::uint6
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+    uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                     : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
 
     bool sat = false;
@@ -996,11 +996,11 @@ VILL::vpu_return_t VARITH_FIXP::vnclipu_wx(std::uint8_t *vec_reg_mem, std::uint6
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vnclip_wv(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                          std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                          std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                          std::uint16_t src_vec_reg_rhs, std::uint16_t src_vec_reg_lhs,
-                                          std::uint16_t vec_elem_start, bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclip_wv(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                          uint16_t sew_bytes, uint16_t vec_len,
+                                          uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                          uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs,
+                                          uint16_t vec_elem_start, bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -1029,11 +1029,11 @@ VILL::vpu_return_t VARITH_FIXP::vnclip_wv(std::uint8_t *vec_reg_mem, std::uint64
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vnclip_wi(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                          std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                          std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                          std::uint16_t src_vec_reg_lhs, std::uint8_t imm, std::uint16_t vec_elem_start,
-                                          bool mask_f, std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclip_wi(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                          uint16_t sew_bytes, uint16_t vec_len,
+                                          uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                          uint16_t src_vec_reg_lhs, uint8_t imm, uint16_t vec_elem_start,
+                                          bool mask_f, uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -1051,19 +1051,19 @@ VILL::vpu_return_t VARITH_FIXP::vnclip_wi(std::uint8_t *vec_reg_mem, std::uint64
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t u_imm = imm & 0x1F;
+    uint64_t u_imm = imm & 0x1F;
     bool sat = false;
     vd.m_narrowing_clip(vs2, u_imm, V.get_mask_reg(), !mask_f, rounding_mode, &sat, vec_elem_start);
 
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-VILL::vpu_return_t VARITH_FIXP::vnclip_wx(std::uint8_t *vec_reg_mem, std::uint64_t emul_num, std::uint64_t emul_denom,
-                                          std::uint16_t sew_bytes, std::uint16_t vec_len,
-                                          std::uint16_t vec_reg_len_bytes, std::uint16_t dst_vec_reg,
-                                          std::uint16_t src_vec_reg_lhs, std::uint8_t *scalar_reg_mem,
-                                          std::uint16_t vec_elem_start, bool mask_f, std::uint8_t scalar_reg_len_bytes,
-                                          std::uint8_t rounding_mode)
+VILL::vpu_return_t VARITH_FIXP::vnclip_wx(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom,
+                                          uint16_t sew_bytes, uint16_t vec_len,
+                                          uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
+                                          uint16_t src_vec_reg_lhs, uint8_t *scalar_reg_mem,
+                                          uint16_t vec_elem_start, bool mask_f, uint8_t scalar_reg_len_bytes,
+                                          uint8_t rounding_mode)
 {
     RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
 
@@ -1081,7 +1081,7 @@ VILL::vpu_return_t VARITH_FIXP::vnclip_wx(std::uint8_t *vec_reg_mem, std::uint64
     RVVector &vs2 = V.get_vec(src_vec_reg_lhs);
     RVVector &vd = V.get_vec(dst_vec_reg);
 
-    std::uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<std::uint64_t *>(scalar_reg_mem))
+    uint64_t imm = (scalar_reg_len_bytes > 32) ? *(reinterpret_cast<uint64_t *>(scalar_reg_mem))
                                                     : *(reinterpret_cast<uint32_t *>(scalar_reg_mem));
     bool sat = false;
     vd.m_narrowing_clip(vs2, imm, V.get_mask_reg(), !mask_f, rounding_mode, &sat, vec_elem_start);

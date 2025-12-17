@@ -189,21 +189,21 @@ inline ReductionFunction red_widening_float_sum = [](SVElement &vsx_element, SVE
     }
 };
 
-auto red_op_int(std::uint8_t *vec_reg_mem,      //!< Vector register file memory space. One dimensional
+auto red_op_int(uint8_t *vec_reg_mem,      //!< Vector register file memory space. One dimensional
                 VInstrInfo const &v_instr_info, //!< Struct containing vector instruction information
-                std::uint16_t const reg_vd,     //!< Destination vector D [index]
-                std::uint16_t const reg_vs1,    //!< Source vector R [index]
-                std::uint16_t const reg_vs2,    //!< Source vector L [index]
+                uint16_t const reg_vd,     //!< Destination vector D [index]
+                uint16_t const reg_vs1,    //!< Source vector R [index]
+                uint16_t const reg_vs2,    //!< Source vector L [index]
                 VARITH_INT::IntFunction func    //!< Reduction function
                 ) -> VILL::vpu_return_t;
 
 auto red_op_float(
-    std::uint8_t *vec_reg_mem,                            //!< Vector register file memory space. One dimensional
+    uint8_t *vec_reg_mem,                            //!< Vector register file memory space. One dimensional
     VInstrInfo const &v_instr_info,                       //!< Struct containing vector instruction information
     VARITH_FLOAT::FloatInstrInfo const &float_instr_info, //!< Struct containing float instruction information
-    std::uint16_t const reg_vd,                           //!< Destination vector D [index]
-    std::uint16_t const reg_vs1,                          //!< Source vector R [index]
-    std::uint16_t const reg_vs2,                          //!< Source vector L [index]
+    uint16_t const reg_vd,                           //!< Destination vector D [index]
+    uint16_t const reg_vs1,                          //!< Source vector R [index]
+    uint16_t const reg_vs2,                          //!< Source vector L [index]
     VARITH_FLOAT::FloatFunction func                      //!< Reduction function
     ) -> VILL::vpu_return_t;
 

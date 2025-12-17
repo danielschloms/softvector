@@ -191,8 +191,8 @@ class RVVRegField
 };
 
 // Check Register Alignment
-inline auto check_alignment(const RVVRegField &V, const RVVRegField &V_wide, std::uint16_t reg_vd,
-                            std::uint16_t reg_vs2, std::uint16_t reg_vs1, bool wide_vd, bool wide_vs2)
+inline auto check_alignment(const RVVRegField &V, const RVVRegField &V_wide, uint16_t reg_vd,
+                            uint16_t reg_vs2, uint16_t reg_vs1, bool wide_vd, bool wide_vs2)
     -> VILL::vpu_return_t
 {
 
@@ -212,8 +212,8 @@ inline auto check_alignment(const RVVRegField &V, const RVVRegField &V_wide, std
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-inline auto check_alignment(const RVVRegField &V, const RVVRegField &V_wide, std::uint16_t reg_vd,
-                            std::uint16_t reg_vs2, bool wide_vd, bool wide_vs2) -> VILL::vpu_return_t
+inline auto check_alignment(const RVVRegField &V, const RVVRegField &V_wide, uint16_t reg_vd,
+                            uint16_t reg_vs2, bool wide_vd, bool wide_vs2) -> VILL::vpu_return_t
 {
     if ((!wide_vs2 && !V.vec_reg_is_aligned(reg_vs2)) || (wide_vs2 && !V_wide.vec_reg_is_aligned(reg_vs2)))
     {

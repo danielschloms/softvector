@@ -10,15 +10,15 @@
 #include "base/softvector-platform-types.hpp"
 
 // Private function declarations
-void iterate_vector_int(SVector const &vs2, std::uint64_t const vs1_first, SVector &vd, SVRegister const &vm,
+void iterate_vector_int(SVector const &vs2, uint64_t const vs1_first, SVector &vd, SVRegister const &vm,
                         bool const mask, VARITH_INT::IntFunction func, bool const signed_op,
                         std::size_t const start_index);
 
-void iterate_vector_float(SVector const &vs2, std::uint64_t vs1_first, SVector &vd, SVRegister const &vm, bool mask,
+void iterate_vector_float(SVector const &vs2, uint64_t vs1_first, SVector &vd, SVRegister const &vm, bool mask,
                           VARITH_FLOAT::FloatFunction func, std::size_t sew, std::size_t start_index, bool widening);
 
 // Private function definitions
-void iterate_vector_int(SVector const &vs2, std::uint64_t const vs1_first, SVector &vd, SVRegister const &vm,
+void iterate_vector_int(SVector const &vs2, uint64_t const vs1_first, SVector &vd, SVRegister const &vm,
                         bool const mask, VARITH_INT::IntFunction func, bool const signed_op,
                         std::size_t const start_index)
 {
@@ -27,12 +27,12 @@ void iterate_vector_int(SVector const &vs2, std::uint64_t const vs1_first, SVect
         return;
     }
 
-    std::uint64_t accumulator = vs1_first;
+    uint64_t accumulator = vs1_first;
     for (size_t i_element = start_index; i_element < vs2.length_; ++i_element)
     {
         if (!mask || vm.get_bit(i_element))
         {
-            std::uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
+            uint64_t lhs = signed_op ? vs2[i_element].to_i64() : vs2[i_element].to_u64();
             // Mask bit is never data in reduction instructions
             accumulator = func(lhs, accumulator, /* mask_bit */ false);
         }
@@ -40,7 +40,7 @@ void iterate_vector_int(SVector const &vs2, std::uint64_t const vs1_first, SVect
     vd[0] = accumulator;
 }
 
-void iterate_vector_float(SVector const &vs2, std::uint64_t vs1_first, SVector &vd, SVRegister const &vm, bool mask,
+void iterate_vector_float(SVector const &vs2, uint64_t vs1_first, SVector &vd, SVRegister const &vm, bool mask,
                           VARITH_FLOAT::FloatFunction func, std::size_t sew, std::size_t start_index, bool widening)
 {
     auto first = true;
@@ -49,8 +49,8 @@ void iterate_vector_float(SVector const &vs2, std::uint64_t vs1_first, SVector &
         if (!mask || vm.get_bit(i_element))
         {
 
-            std::uint64_t lhs = vs2[i_element].to_u64();
-            std::uint64_t rhs = 0;
+            uint64_t lhs = vs2[i_element].to_u64();
+            uint64_t rhs = 0;
             if (first)
             {
                 rhs = vs1_first;
@@ -71,8 +71,8 @@ void iterate_vector_float(SVector const &vs2, std::uint64_t vs1_first, SVector &
 }
 
 // Public function definitions
-auto VREDUC::red_op_int(std::uint8_t *vec_reg_mem, VInstrInfo const &v_instr_info, std::uint16_t const reg_vd,
-                        std::uint16_t const reg_vs1, std::uint16_t const reg_vs2,
+auto VREDUC::red_op_int(uint8_t *vec_reg_mem, VInstrInfo const &v_instr_info, uint16_t const reg_vd,
+                        uint16_t const reg_vs1, uint16_t const reg_vs2,
                         VARITH_INT::IntFunction func) -> VILL::vpu_return_t
 {
     if (v_instr_info.vector_length == 0)
@@ -101,7 +101,7 @@ auto VREDUC::red_op_int(std::uint8_t *vec_reg_mem, VInstrInfo const &v_instr_inf
         V_wide.init();
     }
 
-    std::uint64_t vs1_first = 0;
+    uint64_t vs1_first = 0;
     if (v_instr_info.wide_vs1)
     {
         vs1_first = v_instr_info.signed_op ? V_wide.get_vec(reg_vs1)[0].to_i64() : V_wide.get_vec(reg_vs1)[0].to_u64();
@@ -121,8 +121,8 @@ auto VREDUC::red_op_int(std::uint8_t *vec_reg_mem, VInstrInfo const &v_instr_inf
 }
 
 auto VREDUC::red_op_float(uint8_t *vec_reg_mem, VInstrInfo const &v_instr_info,
-                          VARITH_FLOAT::FloatInstrInfo const &float_instr_info, std::uint16_t const reg_vd,
-                          std::uint16_t const reg_vs1, std::uint16_t const reg_vs2,
+                          VARITH_FLOAT::FloatInstrInfo const &float_instr_info, uint16_t const reg_vd,
+                          uint16_t const reg_vs1, uint16_t const reg_vs2,
                           VARITH_FLOAT::FloatFunction func) -> VILL::vpu_return_t
 {
     if (v_instr_info.vector_length == 0)
@@ -148,7 +148,7 @@ auto VREDUC::red_op_float(uint8_t *vec_reg_mem, VInstrInfo const &v_instr_info,
         V_wide.init();
     }
 
-    std::uint64_t vs1_first =
+    uint64_t vs1_first =
         v_instr_info.wide_vs1 ? V_wide.get_vec(reg_vs1)[0].to_u64() : V.get_vec(reg_vs1)[0].to_u64();
 
     RVVector &vs2 = V.get_vec(reg_vs2);
