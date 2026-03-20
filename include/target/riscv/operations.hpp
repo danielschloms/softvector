@@ -3,6 +3,14 @@
 #include <cstdint>
 #include <type_traits>
 
+enum class SewType : uint8_t
+{
+    sew_8 = 8,
+    sew_16 = 16,
+    sew_32 = 32,
+    sew_64 = 64
+};
+
 template <unsigned Sew>
 concept ValidSew = (Sew == 8) or (Sew == 16) or (Sew == 32) or (Sew == 64);
 
@@ -18,16 +26,17 @@ concept ValidScalarType = std::is_same_v<T, uint32_t> or std::is_same_v<T, uint6
 
 using Bit = bool;
 
-using ValueResultOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */);
-using ShiftOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, uint64_t /* shift amount mask */);
-using ValueResultOpMaskData = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, Bit /* mask data bit*/);
-using BitResultOp = Bit (*)(uint64_t /* lhs */, uint64_t /* rhs */);
-using BitResultOpMaskData = Bit (*)(uint64_t /* lhs */, uint64_t /* rhs */, Bit /* mask data bit*/);
+using BinaryValueResultOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */);
+using ShiftOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, SewType);
+using AccumulatorOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, uint64_t /* shift amount mask */);
+using BinaryValueResultOpMaskData = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, Bit /* mask data bit */);
+using BinaryBitResultOp = Bit (*)(uint64_t /* lhs */, uint64_t /* rhs */);
+using BinaryBitResultOpMaskData = Bit (*)(uint64_t /* lhs */, uint64_t /* rhs */, Bit /* mask data bit */);
 
 template <typename F>
-concept ValidOperation =
-    std::is_same_v<F, ValueResultOp> or std::is_same_v<F, BitResultOp> or std::is_same_v<F, ShiftOp> or
-    std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOpMaskData>;
+concept ValidOperation = std::is_same_v<F, BinaryValueResultOp> or std::is_same_v<F, BinaryBitResultOp> or
+                         std::is_same_v<F, ShiftOp> or std::is_same_v<F, BinaryValueResultOpMaskData> or
+                         std::is_same_v<F, BinaryBitResultOpMaskData> or std::is_same_v<F, AccumulatorOp>;
 
 inline constexpr uint64_t add_int(uint64_t lhs, uint64_t rhs)
 {
@@ -59,19 +68,19 @@ inline constexpr uint64_t xor_int(uint64_t lhs, uint64_t rhs)
     return lhs ^ rhs;
 }
 
-inline constexpr uint64_t sll_int(uint64_t lhs, uint64_t rhs, uint64_t sew)
+inline constexpr uint64_t sll_int(uint64_t lhs, uint64_t rhs, SewType sew)
 {
-    return lhs << (rhs & (sew - 1));
+    return lhs << (rhs & (static_cast<std::underlying_type_t<SewType>>(sew) - 1));
 }
 
 inline constexpr uint64_t srl_int(uint64_t lhs, uint64_t rhs, uint64_t sew)
 {
-    return lhs >> (rhs & (sew - 1));
+    return lhs >> (rhs & (static_cast<std::underlying_type_t<SewType>>(sew) - 1));
 }
 
 inline constexpr uint64_t sra_int(uint64_t lhs, uint64_t rhs, uint64_t sew)
 {
-    return static_cast<int64_t>(lhs) >> (rhs & (sew - 1));
+    return static_cast<int64_t>(lhs) >> (rhs & (static_cast<std::underlying_type_t<SewType>>(sew) - 1));
 }
 
 inline constexpr Bit eq_int(uint64_t lhs, uint64_t rhs)
@@ -113,3 +122,23 @@ inline constexpr Bit gt_int(uint64_t lhs, uint64_t rhs)
 {
     return static_cast<int64_t>(lhs) > static_cast<int64_t>(rhs);
 };
+
+inline constexpr uint64_t macc(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
+{
+    return accumulator + (lhs * rhs);
+}
+
+inline constexpr uint64_t nmsac(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
+{
+    return accumulator - (lhs * rhs);
+}
+
+inline constexpr uint64_t madd(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
+{
+    return rhs + (lhs * accumulator);
+}
+
+inline constexpr uint64_t nmsub(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
+{
+    return rhs - (lhs * accumulator);
+}
