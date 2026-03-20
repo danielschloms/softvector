@@ -154,14 +154,10 @@ template <SignType Sign, typename OpType>
 void dispatch_iterate_vv(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs1, uint8_t vs2,
                          uint16_t vstart, uint16_t vlen, uint16_t vl, OpType op);
 
-// vd        vs2    vs1
-// 2 * SEW = SEW op SEW
 template <SignType Sign, typename OpType>
 void dispatch_iterate_widening_vv(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs1,
                                   uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl, OpType op);
 
-// vd        vs2        vs1
-// 2 * SEW = 2 * SEW op SEW
 template <SignType Sign, typename OpType>
 void dispatch_iterate_widening_wv(void *vector_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd, uint8_t vs1,
                                   uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl, OpType op);
@@ -175,15 +171,56 @@ void dispatch_iterate_vx(void *vector_field, void *scalar_field, uint16_t vtype,
                          uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
                          OpType op);
 
+template <SignType Sign, typename OpType>
+void dispatch_iterate_widening_vx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                                  uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                                  OpType op);
+
+template <SignType Sign, typename OpType>
+void dispatch_iterate_widening_wx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                                  uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                                  OpType op);
+
 template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline void iterate_vv(void *const vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
-                       unsigned const vs1_base, unsigned const vs2_base, OpType op);
+inline constexpr void iterate_vv(void *const vector_field, uint16_t const vstart, uint16_t const vl,
+                                 unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
+                                 OpType const op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
+void iterate_vv_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
+                       unsigned const vs1_base, unsigned const vs2_base, OpType const op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
+void iterate_widening_vv(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_base, unsigned vs1_base,
+                         unsigned vs2_base, OpType op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
+void iterate_widening_vv_masked(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_base, unsigned vs1_base,
+                                unsigned vs2_base, OpType op);
 
 template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 void iterate_vxi(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_base, unsigned vs2_base, uint64_t scalar,
                  OpType op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
+void iterate_vxi_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
+                        unsigned const vs2_base, uint64_t const scalar, OpType const op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
+void iterate_widening_vx(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
+                         unsigned const vs2_base, uint64_t const scalar, OpType const op);
+
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
+void iterate_widening_vx_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
+                                unsigned const vs2_base, uint64_t const scalar, OpType const op);
 
 /* --- Public function definitions --- */
 #define VV_OP(name, inner_op, sign)                                                                            \
@@ -193,6 +230,24 @@ void iterate_vxi(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_b
         dispatch_iterate_vv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, vl, \
                                   inner_op);                                                                   \
         return 0;                                                                                              \
+    }
+
+#define W_VV_OP(name, inner_op, sign)                                                                               \
+    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs1,       \
+                 uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl)                                          \
+    {                                                                                                               \
+        dispatch_iterate_widening_vv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, \
+                                           vl, inner_op);                                                           \
+        return 0;                                                                                                   \
+    }
+
+#define W_WV_OP(name, inner_op, sign)                                                                               \
+    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs1,       \
+                 uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl)                                          \
+    {                                                                                                               \
+        dispatch_iterate_widening_wv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, \
+                                           vl, inner_op);                                                           \
+        return 0;                                                                                                   \
     }
 
 #define VI_OP(name, inner_op, sign, imm_extension)                                                                  \
@@ -213,6 +268,24 @@ void iterate_vxi(void *vector_field, uint16_t vstart, uint16_t vl, unsigned vd_b
         return 0;                                                                                                    \
     }
 
+#define W_VX_OP(name, inner_op, sign)                                                                                \
+    uint8_t name(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, \
+                 uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t vl, uint8_t xlen)                \
+    {                                                                                                                \
+        dispatch_iterate_widening_vx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1,  \
+                                           vstart, vlen, xlen, vl, inner_op);                                        \
+        return 0;                                                                                                    \
+    }
+
+#define W_WX_OP(name, inner_op, sign)                                                                                \
+    uint8_t name(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, \
+                 uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t vl, uint8_t xlen)                \
+    {                                                                                                                \
+        dispatch_iterate_widening_wx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1,  \
+                                           vstart, vlen, xlen, vl, inner_op);                                        \
+        return 0;                                                                                                    \
+    }
+
 // 11. Vector Integer Arithmetic Instructions
 // 11.1. Vector Single-Width Integer Add and Subtrac
 VV_OP(vadd_vv, add_int, SignType::Signed)
@@ -224,6 +297,10 @@ VX_OP(vrsub_vx, rsub_int, SignType::Signed)
 VI_OP(vrsub_vi, rsub_int, SignType::Signed, ImmExtensionType::SignExtend)
 
 // 11.2. Vector Widening Integer Add/Subtract
+W_VV_OP(vwaddu_vv, add_int, SignType::Unsigned)
+W_VX_OP(vwaddu_vx, add_int, SignType::Unsigned)
+W_VV_OP(vwsubu_vv, sub_int, SignType::Unsigned)
+W_VX_OP(vwsubu_vx, sub_int, SignType::Unsigned)
 
 // 11.3. Vector Integer Extension
 
@@ -320,8 +397,9 @@ inline constexpr auto is_masked_instruction(bool const instruction_mask_bit) -> 
 
 template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline void iterate_vv(void *const vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
-                       unsigned const vs1_base, unsigned const vs2_base, OpType op)
+inline constexpr void iterate_vv(void *const vector_field, uint16_t const vstart, uint16_t const vl,
+                                 unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
+                                 OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
@@ -532,10 +610,10 @@ void iterate_vxi(void *vector_field, uint16_t const vstart, uint16_t const vl, u
     }
 }
 
-template <typename VectorElementType, typename OpType, typename ScalarType>
-    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType> and ValidScalarType<ScalarType>
+template <typename VectorElementType, typename OpType>
+    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 void iterate_vxi_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
-                        unsigned const vs2_base, ScalarType const scalar, OpType const op)
+                        unsigned const vs2_base, uint64_t const scalar, OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
     auto vector_elements = static_cast<VectorElementType *>(vector_field);
@@ -577,7 +655,7 @@ void iterate_widening_vx(void *vector_field, uint16_t const vstart, uint16_t con
     }
 }
 
-template <typename VectorElementType, typename OpType, typename ScalarType>
+template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
 void iterate_widening_vx_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
                                 unsigned const vs2_base, uint64_t const scalar, OpType const op)
@@ -612,7 +690,7 @@ void iterate_widening_wx(void *vector_field, uint16_t const vstart, uint16_t con
     }
 }
 
-template <typename VectorElementType, typename OpType, typename ScalarType>
+template <typename VectorElementType, typename OpType>
     requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, BinaryValueResultOp>
 void iterate_widening_wx_masked(void *vector_field, uint16_t const vstart, uint16_t const vl, unsigned const vd_base,
                                 unsigned const vs2_base, uint64_t const scalar, OpType const op)
@@ -989,31 +1067,101 @@ void dispatch_iterate_widening_vx(void *vector_field, void *scalar_field, uint16
     case sew_8_bytes:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            iterate_vxi_masked<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx_masked<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         else
         {
-            iterate_vxi<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         break;
     case sew_16_bytes:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            iterate_vxi_masked<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx_masked<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         else
         {
-            iterate_vxi<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         break;
     case sew_32_bytes:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            iterate_vxi_masked<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx_masked<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         else
         {
-            iterate_vxi<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+            iterate_widening_vx<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        break;
+    default:
+        // Invalid SEW
+        break;
+    }
+}
+
+template <SignType Sign, typename OpType>
+void dispatch_iterate_widening_wx(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t mask_bit, uint8_t vd,
+                                  uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t xlen, uint16_t vl,
+                                  OpType op)
+{
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const elements_per_register = vlen / sew;
+    auto const vd_base = vd * elements_per_register;
+    auto const vs2_base = vs2 * elements_per_register;
+
+    using elm_8_t = ElementTypeMap<8, Sign>::element_type;
+    using elm_16_t = ElementTypeMap<16, Sign>::element_type;
+    using elm_32_t = ElementTypeMap<32, Sign>::element_type;
+
+    using scalar_32_t = ElementTypeMap<32, Sign>::element_type;
+    using scalar_64_t = ElementTypeMap<64, Sign>::element_type;
+
+    uint64_t scalar = 0;
+    switch (xlen)
+    {
+    case 32:
+        scalar = static_cast<uint64_t>((static_cast<scalar_32_t *>(scalar_field))[rs1]);
+        break;
+    case 64:
+        scalar = static_cast<uint64_t>((static_cast<scalar_64_t *>(scalar_field))[rs1]);
+        break;
+    default:
+        // Invalid XLEN!
+        break;
+    }
+
+    switch (sew_bytes)
+    {
+    case sew_8_bytes:
+        if (is_masked_instruction(static_cast<bool>(mask_bit)))
+        {
+            iterate_widening_wx_masked<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        else
+        {
+            iterate_widening_wx<elm_8_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        break;
+    case sew_16_bytes:
+        if (is_masked_instruction(static_cast<bool>(mask_bit)))
+        {
+            iterate_widening_wx_masked<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        else
+        {
+            iterate_widening_wx<elm_16_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        break;
+    case sew_32_bytes:
+        if (is_masked_instruction(static_cast<bool>(mask_bit)))
+        {
+            iterate_widening_wx_masked<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
+        }
+        else
+        {
+            iterate_widening_wx<elm_32_t>(vector_field, vstart, vl, vd_base, vs2_base, scalar, op);
         }
         break;
     default:
@@ -1335,19 +1483,20 @@ std::uint8_t vstore_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVT
 /* 11. Vector Integer Arithmetic Instructions */
 
 /* 11.2. Vector Widening Integer Add/Subtract */
-std::uint8_t vwaddu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_INT::wop_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART,
-                       pVm, true, false);
-
-    return (0);
-}
+// std::uint8_t vwaddu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
+//                        std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
+// {
+//     VTYPE::VTYPE _vt(pVTYPE);
+//     std::uint8_t *VectorRegField;
+//
+//     VectorRegField = static_cast<std::uint8_t *>(pV);
+//
+//     VARITH_INT::wop_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
+//     pVSTART,
+//                        pVm, true, false);
+//
+//     return (0);
+// }
 
 std::uint8_t vwadd_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
@@ -1363,19 +1512,20 @@ std::uint8_t vwadd_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uin
     return (0);
 }
 
-std::uint8_t vwsubu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_INT::wop_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2, pVSTART,
-                       pVm, false, false);
-
-    return (0);
-}
+// std::uint8_t vwsubu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
+//                        std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
+// {
+//     VTYPE::VTYPE _vt(pVTYPE);
+//     std::uint8_t *VectorRegField;
+//
+//     VectorRegField = static_cast<std::uint8_t *>(pV);
+//
+//     VARITH_INT::wop_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
+//     pVSTART,
+//                        pVm, false, false);
+//
+//     return (0);
+// }
 
 std::uint8_t vwsub_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
@@ -1391,25 +1541,26 @@ std::uint8_t vwsub_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uin
     return (0);
 }
 
-std::uint8_t vwaddu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pXLEN)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VARITH_INT::wop_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg,
-                       pVSTART, pVm, true, false, pXLEN / 8);
-
-    return (0);
-}
+// std::uint8_t vwaddu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t
+// pVs2,
+//                        std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
+//                        std::uint8_t pXLEN)
+// {
+//     VTYPE::VTYPE _vt(pVTYPE);
+//     std::uint8_t *ScalarReg;
+//     std::uint8_t *VectorRegField;
+//
+//     VectorRegField = static_cast<std::uint8_t *>(pV);
+//     if (pXLEN <= 32)
+//         ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
+//     else
+//         ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
+//
+//     VARITH_INT::wop_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg,
+//                        pVSTART, pVm, true, false, pXLEN / 8);
+//
+//     return (0);
+// }
 
 std::uint8_t vwadd_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
@@ -1446,25 +1597,26 @@ std::uint8_t vwadd_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm
     return (0);
 }
 
-std::uint8_t vwsubu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pXLEN)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VARITH_INT::wop_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg,
-                       pVSTART, pVm, false, false, pXLEN / 8);
-
-    return (0);
-}
+// std::uint8_t vwsubu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t
+// pVs2,
+//                        std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
+//                        std::uint8_t pXLEN)
+// {
+//     VTYPE::VTYPE _vt(pVTYPE);
+//     std::uint8_t *ScalarReg;
+//     std::uint8_t *VectorRegField;
+//
+//     VectorRegField = static_cast<std::uint8_t *>(pV);
+//     if (pXLEN <= 32)
+//         ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
+//     else
+//         ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
+//
+//     VARITH_INT::wop_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, ScalarReg,
+//                        pVSTART, pVm, false, false, pXLEN / 8);
+//
+//     return (0);
+// }
 
 std::uint8_t vwsub_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
