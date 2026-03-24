@@ -230,32 +230,32 @@ constexpr uint64_t imm_msb_mask = 0x10_u64;
 constexpr uint64_t imm_width_mask = 0x1F_u64;
 constexpr uint64_t imm_ext_mask = ~imm_width_mask;
 
-inline auto sign_extend_immediate(uint8_t imm5) -> uint64_t
+inline constexpr auto sign_extend_immediate(uint8_t imm5) -> uint64_t
 {
     return (imm5 & imm_msb_mask) ? (imm5 | imm_ext_mask) : (imm5 & imm_width_mask);
 }
 
-inline auto zero_extend_immediate(uint8_t imm5) -> uint64_t
+inline constexpr auto zero_extend_immediate(uint8_t imm5) -> uint64_t
 {
     return imm5 & imm_width_mask;
 }
 
-inline auto get_n_bit_mask(std::size_t n_bits) -> uint64_t
+inline constexpr auto get_n_bit_mask(size_t n_bits) -> uint64_t
 {
     return (1_u64 << (n_bits)) - 1;
 }
 
-inline auto get_min_signed(std::size_t sew) -> int64_t
+inline constexpr auto get_min_signed(size_t sew) -> int64_t
 {
     return -1_i64 & (~get_n_bit_mask(sew - 1));
 }
 
-inline auto msb_is_set(uint64_t value, std::size_t sew) -> bool
+inline auto msb_is_set(uint64_t value, size_t sew) -> bool
 {
     return value & (1_u64 << (sew - 1));
 }
 
-inline auto sign_extend(uint64_t value, std::size_t sew) -> uint64_t
+inline auto sign_extend(uint64_t value, size_t sew) -> uint64_t
 {
     uint64_t sew_mask = (1_u64 << sew) - 1;
     uint64_t ext_mask = msb_is_set(value, sew) * (~sew_mask);

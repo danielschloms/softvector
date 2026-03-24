@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -35,16 +36,20 @@ using BinaryValueResultOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */)
 using BinaryValueResultOpMaskData = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, Bit /* mask data bit */);
 using BitResultOp = Bit (*)(uint64_t /* lhs */, uint64_t /* rhs */);
 using ShiftOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, SewType);
-using AccumulatorOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, uint64_t /* shift amount mask */);
+using AccumulatorOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, uint64_t /* accumulator */);
+using MixedSignAccumulatorOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, uint64_t /* accumulator */,
+                                            SewType /* sew */);
+using SaturatingFpOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, SewType /* sew */, bool & /* overflow */);
+using AveragingFpOp = uint64_t (*)(uint64_t /* lhs */, uint64_t /* rhs */, SewType /* sew */, uint8_t /* rounding_mode */);
+
 using CarryBorrowOp = Bit (*)(SewType /* sew */, uint64_t /* lhs */, uint64_t /* rhs */);
 using CarryBorrowOpMaskData = Bit (*)(SewType /* sew */, uint64_t /* lhs */, uint64_t /* rhs */,
                                       Bit /* mask data bit */);
 
 template <typename F>
-concept ValidOperation =
-    std::is_same_v<F, BinaryValueResultOp> or std::is_same_v<F, CarryBorrowOp> or std::is_same_v<F, BitResultOp> or
-    std::is_same_v<F, ShiftOp> or std::is_same_v<F, BinaryValueResultOpMaskData> or
-    std::is_same_v<F, CarryBorrowOpMaskData> or std::is_same_v<F, AccumulatorOp>;
+concept ValidOperation = std::is_same_v<F, BinaryValueResultOp> or std::is_same_v<F, BitResultOp> or
+                         std::is_same_v<F, ShiftOp> or std::is_same_v<F, BinaryValueResultOpMaskData> or
+                         std::is_same_v<F, AccumulatorOp> or std::is_same_v<F, MixedSignAccumulatorOp>;
 
 inline constexpr uint64_t add_int(uint64_t lhs, uint64_t rhs)
 {
@@ -231,9 +236,11 @@ inline constexpr uint64_t mulu_int(uint64_t lhs, uint64_t rhs)
     return lhs * rhs;
 };
 
-inline constexpr uint64_t mulsu_int(uint64_t lhs, uint64_t rhs)
+inline constexpr uint64_t mulsu_int(uint64_t lhs, uint64_t rhs, SewType sew)
 {
-    return static_cast<int64_t>(lhs) * rhs;
+    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    // rhs is sign extended when read from the vector register, so mask it off again
+    return (static_cast<int64_t>(lhs) * (rhs & sew_mask));
 };
 
 inline constexpr uint64_t mulh_int(uint64_t lhs, uint64_t rhs, SewType sew)
@@ -248,7 +255,9 @@ inline constexpr uint64_t mulhu_int(uint64_t lhs, uint64_t rhs, SewType sew)
 
 inline constexpr uint64_t mulhsu_int(uint64_t lhs, uint64_t rhs, SewType sew)
 {
-    return (static_cast<int64_t>(lhs) * rhs) >> std::to_underlying(sew);
+    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    // rhs is sign extended when read from the vector register, so mask it off again
+    return (static_cast<int64_t>(lhs) * (rhs & sew_mask)) >> std::to_underlying(sew);
 };
 
 /* 11.11. Vector Integer Divide Instructions */
@@ -308,6 +317,20 @@ inline constexpr uint64_t macc(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
     return accumulator + (lhs * rhs);
 }
 
+inline constexpr uint64_t maccsu(uint64_t lhs, uint64_t rhs, uint64_t accumulator, SewType sew)
+{
+    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    // rhs is sign extended when read from the vector register, so mask it off again
+    return accumulator + (lhs * (rhs & sew_mask));
+}
+
+inline constexpr uint64_t maccus(uint64_t lhs, uint64_t rhs, uint64_t accumulator, SewType sew)
+{
+    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    // rhs is sign extended when read from the vector register, so mask it off again
+    return accumulator + ((lhs & sew_mask) * rhs);
+}
+
 inline constexpr uint64_t nmsac(uint64_t lhs, uint64_t rhs, uint64_t accumulator)
 {
     return accumulator - (lhs * rhs);
@@ -322,3 +345,189 @@ inline constexpr uint64_t nmsub(uint64_t lhs, uint64_t rhs, uint64_t accumulator
 {
     return rhs - (lhs * accumulator);
 }
+
+// 12. Vector Fixed-Point Arithmetic Instructions
+
+// Helpers
+
+/**
+ * @brief Saturates a value to the nearest sew bit boundary
+ */
+inline constexpr int64_t saturate_boundary_signed(int64_t value, size_t sew)
+{
+    // E.g. 8 bit:
+    // Upper bound = 0111 1111
+    // Lower bound = 1000 0000
+    // Lower bound is extended to 64 bit, so just AND -1 with the inverted upper bound
+    int64_t upper_bound = get_n_bit_mask(sew - 1);
+    int64_t lower_bound = -1 & (~upper_bound);
+    return std::clamp(value, lower_bound, upper_bound);
+}
+
+/**
+ * @brief Saturates a value to the unsigned sew bit boundary
+ */
+inline constexpr uint64_t saturate_boundary_unsigned(uint64_t value, size_t sew)
+{
+    auto upper_bound = get_n_bit_mask(sew);
+    return (value <= upper_bound) ? value : upper_bound;
+}
+
+inline constexpr uint64_t sadd(uint64_t lhs, uint64_t rhs, SewType sew, bool &overflow)
+{
+
+    auto const res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
+    auto msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
+    auto msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
+    auto msb_res = msb_is_set(res, std::to_underlying(sew));
+
+    if (msb_lhs && msb_rhs && !msb_res)
+    {
+        // Negative overflow
+        overflow = true;
+        return get_min_signed(std::to_underlying(sew));
+        return true;
+    }
+
+    if (!msb_lhs && !msb_rhs && msb_res)
+    {
+        // Positive overflow
+        overflow = true;
+        return get_n_bit_mask(std::to_underlying(sew) - 1);
+    }
+
+    overflow = false;
+    return res;
+};
+
+// inline FixpointFunction saddu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                    uint8_t rounding_mode) -> bool {
+//     auto sew_mask = get_n_bit_mask(sew);
+//     auto res = (lhs + rhs) & sew_mask;
+//     auto sat = false;
+//     if (res < lhs)
+//     {
+//         // Overflow
+//         res = sew_mask;
+//         sat = true;
+//     }
+//     vd = res;
+//     return sat;
+// };
+
+// inline FixpointFunction ssub = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     auto res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
+//     auto msb_lhs = msb_is_set(lhs, sew);
+//     auto msb_rhs = msb_is_set(rhs, sew);
+//     auto msb_res = msb_is_set(res, sew);
+
+//     if (msb_lhs && !msb_rhs && !msb_res)
+//     {
+//         // Negative overflow
+//         vd = get_min_signed(sew);
+//         return true;
+//     }
+
+//     if (!msb_lhs && msb_rhs && msb_res)
+//     {
+//         // Positive overflow
+//         vd = get_n_bit_mask(sew - 1);
+//         return true;
+//     }
+
+//     vd = res;
+//     return false;
+// };
+
+// inline FixpointFunction ssubu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                    uint8_t rounding_mode) -> bool {
+//     auto sew_mask = get_n_bit_mask(sew);
+//     auto res = (lhs - rhs) & sew_mask;
+//     auto sat = false;
+//     if (res > lhs)
+//     {
+//         // Overflow
+//         res = 1_i64 << (sew - 1);
+//         sat = true;
+//     }
+//     vd = res;
+//     return sat;
+// };
+
+// /* 12.2. Vector Single-Width Averaging Add and Subtract */
+
+// inline FixpointFunction aadd = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     static constexpr auto rounding_bits = 1;
+//     auto res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
+//     vd = roundoff_signed(res, rounding_bits, rounding_mode);
+//     return false;
+// };
+
+// inline FixpointFunction aaddu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                    uint8_t rounding_mode) -> bool {
+//     static constexpr auto rounding_bits = 1;
+//     auto res = lhs + rhs;
+//     vd = roundoff_unsigned(res, rounding_bits, rounding_mode);
+//     return false;
+// };
+
+// inline FixpointFunction asub = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     static constexpr auto rounding_bits = 1;
+//     auto res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
+//     vd = roundoff_signed(res, rounding_bits, rounding_mode);
+//     return false;
+// };
+
+// inline FixpointFunction asubu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                    uint8_t rounding_mode) -> bool {
+//     static constexpr auto rounding_bits = 1;
+//     auto res = lhs - rhs;
+//     vd = roundoff_unsigned(res, rounding_bits, rounding_mode);
+//     return false;
+// };
+
+// /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
+
+// inline FixpointFunction smul = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     auto res = (static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs));
+//     res = roundoff_signed(res, sew - 1, rounding_mode);
+//     auto clamped_res = saturate_boundary_signed(res, sew);
+//     vd = clamped_res;
+//     return clamped_res != res;
+// };
+
+// /* 12.4. Vector Single-Width Scaling Shift Instructions */
+
+// inline FixpointFunction ssrl = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     // Masking with sew - 1 will provide a bitmask that only uses the lower lg2(SEW) bits.
+//     auto shiftamount = rhs & (sew - 1);
+//     auto res = roundoff_signed(lhs, shiftamount, rounding_mode);
+//     vd = res;
+//     return false;
+// };
+
+// /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
+
+// inline FixpointFunction clip = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                   uint8_t rounding_mode) -> bool {
+//     // Masking with (sew << 1) - 1 will provide a bitmask that only uses the lower lg2(2*SEW) bits.
+//     auto shiftamount = rhs & ((sew << 1) - 1);
+//     auto res = roundoff_signed(sign_extend(lhs, 2 * sew), shiftamount, rounding_mode);
+//     auto clamped_res = saturate_boundary_signed(res, sew);
+//     vd = clamped_res;
+//     return clamped_res != res;
+// };
+
+// inline FixpointFunction clipu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
+//                                    uint8_t rounding_mode) -> bool {
+//     auto shiftamount = rhs & ((sew << 1) - 1);
+//     auto res = roundoff_unsigned(lhs, shiftamount, rounding_mode);
+//     auto clamped_res = saturate_boundary_unsigned(res, sew);
+//     vd = clamped_res;
+//     return clamped_res != res;
+// };

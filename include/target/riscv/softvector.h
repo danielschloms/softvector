@@ -149,6 +149,18 @@ extern "C"
 
     /* Vector Arithmetic Helpers*/
 
+#define VV_OP_DECL(name)                                                                                      \
+    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs1, \
+                 uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl);
+
+#define VI_OP_DECL(name)                                                                                      \
+    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs2, \
+                 uint8_t imm, uint16_t vstart, uint16_t vlen, uint16_t vl);
+
+#define VX_OP_DECL(name)                                                                                             \
+    uint8_t name(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, \
+                 uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t vl, uint8_t xlen);
+
     /* 11.1. Vector Single-Width Integer Add and Subtract */
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief ADD vector-vector
