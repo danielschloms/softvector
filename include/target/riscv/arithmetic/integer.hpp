@@ -46,29 +46,7 @@ struct IntInstrInfo
 using IntFunction = std::function<uint64_t(uint64_t const /* lhs */, uint64_t const /* rhs */,
                                                 bool const /* mask_bit */)>;
 
-inline IntFunction add = [](uint64_t const lhs, uint64_t const rhs, bool const carry_in) -> uint64_t
-{ return lhs + rhs + carry_in; };
 
-inline IntFunction logical_and = [](uint64_t const lhs, uint64_t const rhs,
-                                    bool const mask_bit) -> uint64_t { return lhs & rhs; };
-
-inline IntFunction logical_or = [](uint64_t const lhs, uint64_t const rhs,
-                                   bool const mask_bit) -> uint64_t { return lhs | rhs; };
-
-inline IntFunction logical_xor = [](uint64_t const lhs, uint64_t const rhs,
-                                    bool const mask_bit) -> uint64_t { return lhs ^ rhs; };
-
-inline IntFunction minu = [](uint64_t lhs, uint64_t rhs, bool mask_bit) -> uint64_t
-{ return std::min(lhs, rhs); };
-
-inline IntFunction min = [](uint64_t lhs, uint64_t rhs, bool mask_bit) -> uint64_t
-{ return std::min(static_cast<int64_t>(lhs), static_cast<int64_t>(rhs)); };
-
-inline IntFunction maxu = [](uint64_t lhs, uint64_t rhs, bool mask_bit) -> uint64_t
-{ return std::max(lhs, rhs); };
-
-inline IntFunction max = [](uint64_t lhs, uint64_t rhs, bool mask_bit) -> uint64_t
-{ return std::max(static_cast<int64_t>(lhs), static_cast<int64_t>(rhs)); };
 
 namespace deprecated
 {
@@ -83,9 +61,6 @@ inline IntFunctionDeprecated add = [](uint64_t lhs, uint64_t rhs, SVElement &vd,
 
 inline IntFunctionDeprecated sub = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool borrow_in) -> void
 { vd = lhs - rhs - borrow_in; };
-
-inline IntFunctionDeprecated rsub = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = rhs - lhs; };
 
 /* 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions */
 inline IntRegisterFunction produce_carry_out = [](uint64_t lhs, uint64_t rhs, std::size_t sew,
@@ -126,171 +101,19 @@ inline IntRegisterFunction produce_borrow_out = [](uint64_t lhs, uint64_t rhs, s
 };
 
 /* 11.5. Vector Bitwise Logical Instructions */
-inline IntFunctionDeprecated logical_and = [](uint64_t lhs, uint64_t rhs, SVElement &vd,
-                                              bool mask_bit) -> void { vd = lhs & rhs; };
-
-inline IntFunctionDeprecated logical_or = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = lhs | rhs; };
-
-inline IntFunctionDeprecated logical_xor = [](uint64_t lhs, uint64_t rhs, SVElement &vd,
-                                              bool mask_bit) -> void { vd = lhs ^ rhs; };
 
 /* 11.6. Vector Single-Width Shift Instructions */
-inline IntFunctionDeprecated sll = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto shiftamount_mask = vd.width_in_bits_ - 1;
-    vd = lhs << (rhs & shiftamount_mask);
-};
-
-inline IntFunctionDeprecated srl = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto shiftamount_mask = vd.width_in_bits_ - 1;
-    vd = lhs >> (rhs & shiftamount_mask);
-};
-
-inline IntFunctionDeprecated sra = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto shiftamount_mask = vd.width_in_bits_ - 1;
-    vd = static_cast<int64_t>(lhs) >> (rhs & shiftamount_mask);
-};
-
-/* 11.7. Vector Narrowing Integer Right Shift Instructions */
-inline IntFunctionDeprecated nsrl = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto shiftamount_mask = (2 * vd.width_in_bits_) - 1;
-    vd = lhs >> (rhs & shiftamount_mask);
-};
-
-inline IntFunctionDeprecated nsra = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto shiftamount_mask = (2 * vd.width_in_bits_) - 1;
-    vd = static_cast<int64_t>(lhs) >> (rhs & shiftamount_mask);
-};
 
 /* 11.8. Vector Integer Compare Instructions */
-inline IntRegisterFunction eq = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return lhs == rhs; };
-
-inline IntRegisterFunction ne = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return lhs != rhs; };
-
-inline IntRegisterFunction ltu = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return lhs < rhs; };
-
-inline IntRegisterFunction lt = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return static_cast<int64_t>(lhs) < static_cast<int64_t>(rhs); };
-
-inline IntRegisterFunction leu = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return lhs <= rhs; };
-
-inline IntRegisterFunction le = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return static_cast<int64_t>(lhs) <= static_cast<int64_t>(rhs); };
-
-inline IntRegisterFunction gtu = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return lhs > rhs; };
-
-inline IntRegisterFunction gt = [](uint64_t lhs, uint64_t rhs, std::size_t sew, bool mask_bit) -> bool
-{ return static_cast<int64_t>(lhs) > static_cast<int64_t>(rhs); };
 
 /* 11.9. Vector Integer Min/Max Instructions */
-inline IntFunctionDeprecated minu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = std::min(lhs, rhs); };
-
-inline IntFunctionDeprecated min = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = std::min(static_cast<int64_t>(lhs), static_cast<int64_t>(rhs)); };
-
-inline IntFunctionDeprecated maxu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = std::max(lhs, rhs); };
-
-inline IntFunctionDeprecated max = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = std::max(static_cast<int64_t>(lhs), static_cast<int64_t>(rhs)); };
 
 /* 11.10. Vector Single-Width Integer Multiply Instructions */
-inline IntFunctionDeprecated mul = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs); };
-
-inline IntFunctionDeprecated mulh = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = (static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs)) >> vd.width_in_bits_; };
-
-inline IntFunctionDeprecated mulhu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = (lhs * rhs) >> vd.width_in_bits_; };
-
-inline IntFunctionDeprecated mulhsu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{ vd = (static_cast<int64_t>(lhs) * rhs) >> vd.width_in_bits_; };
 
 /* 11.11. Vector Integer Divide Instructions */
-inline IntFunctionDeprecated divu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    // Divide by zero case
-    if (rhs == 0)
-    {
-        vd = -1;
-        return;
-    }
-    vd = lhs / rhs;
-};
-
-inline IntFunctionDeprecated div = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    // Divide by zero case
-    if (rhs == 0)
-    {
-        vd = -1;
-        return;
-    }
-    // Overflow case
-    if (lhs == ((uint64_t)1 << (vd.width_in_bits_ - 1)) && rhs == static_cast<uint64_t>(-1))
-    {
-        vd = lhs;
-    }
-    vd = static_cast<int64_t>(lhs) / static_cast<int64_t>(rhs);
-};
-
-inline IntFunctionDeprecated remu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    // Divide by zero case
-    if (rhs == 0)
-    {
-        vd = lhs;
-        return;
-    }
-    vd = lhs % rhs;
-};
-
-inline IntFunctionDeprecated rem = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    // Divide by zero case
-    if (rhs == 0)
-    {
-        vd = lhs;
-        return;
-    }
-    // Overflow case
-    if (lhs == ((uint64_t)1 << (vd.width_in_bits_ - 1)) && rhs == static_cast<uint64_t>(-1))
-    {
-        vd = 0;
-    }
-    vd = static_cast<int64_t>(lhs) % static_cast<int64_t>(rhs);
-};
 
 /* 11.13. Vector Single-Width Integer Multiply-Add Instructions */
-inline IntFunctionDeprecated macc = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto res = (static_cast<int64_t>(rhs) * static_cast<int64_t>(lhs)) + vd.to_i64();
-    vd = res;
-};
 
-inline IntFunctionDeprecated maccu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto res = (rhs * lhs) + vd.to_u64();
-    vd = res;
-};
-
-inline IntFunctionDeprecated madd = [](uint64_t lhs, uint64_t rhs, SVElement &vd, bool mask_bit) -> void
-{
-    auto res = (static_cast<int64_t>(rhs) * vd.to_i64()) + static_cast<int64_t>(lhs);
-    vd = res;
-};
 } // namespace deprecated
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -371,194 +194,6 @@ VILL::vpu_return_t int_op_vx_to_register(
     uint8_t *scalar_reg_mem,             //!< Memory space holding scalar data (min. _xlenb bytes)
     uint8_t scalar_reg_len_bytes,        //!< Length of scalar [bytes]
     deprecated::IntRegisterFunction func //!< Integer comparison function
-);
-
-/* rvv spec. 12.1 - Vector Single-Width Add and Substract */
-/* ADD */
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Add vector-vector
-/// \details For all i: D[i] = L[i] + R[i]
-VILL::vpu_return_t add_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,     //!< Register multiplicity numerator
-                          uint64_t emul_denom,   //!< Register multiplicity denominator
-                          uint16_t sew_bytes,         //!< Element width [bytes]
-                          uint16_t vec_len,           //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                          uint16_t reg_vd,            //!< Destination vector D [index]
-                          uint16_t reg_vs1,           //!< Source vector R [index]
-                          uint16_t reg_vs2,           //!< Source vector L [index]
-                          uint16_t vec_elem_start,    //!< Starting element [index]
-                          bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Add vector-immediate
-/// \details For all i: D[i] = L[i] + sign_extend(_vimm)
-VILL::vpu_return_t add_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,     //!< Register multiplicity numerator
-                          uint64_t emul_denom,   //!< Register multiplicity denominator
-                          uint16_t sew_bytes,         //!< Element width [bytes]
-                          uint16_t vec_len,           //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                          uint16_t reg_vd,            //!< Destination vector D [index]
-                          uint16_t reg_vs2,           //!< Source vector L [index]
-                          uint8_t s_imm,              //!< Sign or zero extending 5-bit immediate
-                          uint16_t vec_elem_start,    //!< Starting element [index]
-                          bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
-);
-
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Add vector-scalar
-/// \details For all i: D[i] = L[i] + sign_extend(*X)
-VILL::vpu_return_t add_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,      //!< Register multiplicity numerator
-                          uint64_t emul_denom,    //!< Register multiplicity denominator
-                          uint16_t sew_bytes,          //!< Element width [bytes]
-                          uint16_t vec_len,            //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                          uint16_t reg_vd,             //!< Destination vector D [index]
-                          uint16_t reg_vs2,            //!< Source vector L [index]
-                          uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                          uint16_t vec_elem_start,     //!< Starting element [index]
-                          bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                          uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
-);
-
-/* SUB */
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Sub vector-vector
-/// \details For all i: D[i] = L[i] - R[i]
-VILL::vpu_return_t sub_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,     //!< Register multiplicity numerator
-                          uint64_t emul_denom,   //!< Register multiplicity denominator
-                          uint16_t sew_bytes,         //!< Element width [bytes]
-                          uint16_t vec_len,           //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                          uint16_t reg_vd,            //!< Destination vector D [index]
-                          uint16_t reg_vs1,           //!< Source vector R [index]
-                          uint16_t reg_vs2,           //!< Source vector L [index]
-                          uint16_t vec_elem_start,    //!< Starting element [index]
-                          bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
-);
-
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Sub vector-scalar
-/// \details For all i: D[i] = L[i] - sign_extend(*X). No sub_vi (use add_vi with negative immediate
-VILL::vpu_return_t sub_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,      //!< Register multiplicity numerator
-                          uint64_t emul_denom,    //!< Register multiplicity denominator
-                          uint16_t sew_bytes,          //!< Element width [bytes]
-                          uint16_t vec_len,            //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                          uint16_t reg_vd,             //!< Destination vector D [index]
-                          uint16_t reg_vs2,            //!< Source vector L [index]
-                          uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                          uint16_t vec_elem_start,     //!< Starting element [index]
-                          bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                          uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
-);
-/* Reverse-SUB */
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Sub vector-scalar
-/// \details For all i: D[i] = sign_extend(*X) - R[i].
-VILL::vpu_return_t rsub_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                           uint64_t emul_num,      //!< Register multiplicity numerator
-                           uint64_t emul_denom,    //!< Register multiplicity denominator
-                           uint16_t sew_bytes,          //!< Element width [bytes]
-                           uint16_t vec_len,            //!< Vector length [elements]
-                           uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                           uint16_t reg_vd,             //!< Destination vector D [index]
-                           uint16_t reg_vs1,            //!< Source vector R [index]
-                           uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                           uint16_t vec_elem_start,     //!< Starting element [index]
-                           bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                           uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Sub vector-scalar
-/// \details For all i: D[i] = sign_extend(imm) - R[i].
-VILL::vpu_return_t rsub_vi(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                           uint64_t emul_num,     //!< Register multiplicity numerator
-                           uint64_t emul_denom,   //!< Register multiplicity denominator
-                           uint16_t sew_bytes,         //!< Element width [bytes]
-                           uint16_t vec_len,           //!< Vector length [elements]
-                           uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                           uint16_t reg_vd,            //!< Destination vector D [index]
-                           uint16_t reg_vs1,           //!< Source vector R [index]
-                           uint8_t s_imm,              //!< Sign or zero extending 5-bit immediate
-                           uint16_t vec_elem_start,    //!< Starting element [index]
-                           bool mask_f                 //!< Vector mask flag. 1: masking 0: no masking
-);
-
-/* rvv spec. 12.2 - Vector Widening Add/Substract */
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening unsigned <OP> Add vector-vector
-/// \details For all i: D[i] = L[i] + R[i]. w/ D:2*SEW, L:SEW,  R:SEW
-VILL::vpu_return_t wop_vv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,     //!< Register multiplicity numerator
-                          uint64_t emul_denom,   //!< Register multiplicity denominator
-                          uint16_t sew_bytes,         //!< Element width [bytes]
-                          uint16_t vec_len,           //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                          uint16_t reg_vd,            //!< Destination vector D [index]
-                          uint16_t reg_vs1,           //!< Source vector R [index]
-                          uint16_t reg_vs2,           //!< Source vector L [index]
-                          uint16_t vec_elem_start,    //!< Starting element [index]
-                          bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
-                          bool dir_f,                 //!< Operation type: val > 0: ADD else SUB
-                          bool signed_f               //!< Signed or unsigned operation type: vaL = true: signed
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening unsigned <OP> Add vector-scalar
-/// \details For all i: D[i] = L[i] + sign_extend(*X). w/ D:2*SEW, L:SEW
-VILL::vpu_return_t wop_vx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,      //!< Register multiplicity numerator
-                          uint64_t emul_denom,    //!< Register multiplicity denominator
-                          uint16_t sew_bytes,          //!< Element width [bytes]
-                          uint16_t vec_len,            //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                          uint16_t reg_vd,             //!< Destination vector D [index]
-                          uint16_t reg_vs2,            //!< Source vector L [index]
-                          uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                          uint16_t vec_elem_start,     //!< Starting element [index]
-                          bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                          bool dir_f,                  //!< Operation type: val > 0: ADD else SUB
-                          bool signed_f,               //!< Signed or unsigned operation type: vaL = true: signed
-                          uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening integer <OP> vector-vector
-/// \details For all i: D[i] = L[i] + R[i]. w/ D:2*SEW, L:SEW,  R:SEW
-VILL::vpu_return_t wop_wv(uint8_t *vec_reg_mem,       //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,     //!< Register multiplicity numerator
-                          uint64_t emul_denom,   //!< Register multiplicity denominator
-                          uint16_t sew_bytes,         //!< Element width [bytes]
-                          uint16_t vec_len,           //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
-                          uint16_t reg_vd,            //!< Destination vector D [index]
-                          uint16_t reg_vs1,           //!< Source vector R [index]
-                          uint16_t reg_vs2,           //!< Source vector L [index]
-                          uint16_t vec_elem_start,    //!< Starting element [index]
-                          bool mask_f,                //!< Vector mask flag. 1: masking 0: no masking
-                          bool dir_f,                 //!< Operation type: val > 0: ADD else SUB
-                          bool signed_f               //!< Signed or unsigned operation type: vaL = true: signed
-);
-//////////////////////////////////////////////////////////////////////////////////////
-/// \brief Widening unsigned <OP> Add vector-scalar
-/// \details For all i: D[i] = L[i] + sign_extend(*X). w/ D:2*SEW, L:SEW
-VILL::vpu_return_t wop_wx(uint8_t *vec_reg_mem,        //!< Vector register file memory space. One dimensional
-                          uint64_t emul_num,      //!< Register multiplicity numerator
-                          uint64_t emul_denom,    //!< Register multiplicity denominator
-                          uint16_t sew_bytes,          //!< Element width [bytes]
-                          uint16_t vec_len,            //!< Vector length [elements]
-                          uint16_t vec_reg_len_bytes,  //!< Vector register length [bytes]
-                          uint16_t reg_vd,             //!< Destination vector D [index]
-                          uint16_t reg_vs2,            //!< Source vector L [index]
-                          uint8_t *scalar_reg_mem,     //!< Memory space holding scalar data (min. _xlenb bytes)
-                          uint16_t vec_elem_start,     //!< Starting element [index]
-                          bool mask_f,                 //!< Vector mask flag. 1: masking 0: no masking
-                          bool dir_f,                  //!< Operation type: val > 0: ADD else SUB
-                          bool signed_f,               //!< Signed or unsigned operation type: vaL = true: signed
-                          uint8_t scalar_reg_len_bytes //!< Length of scalar [bytes]
 );
 
 /* 11.3. Vector Integer Extension */
