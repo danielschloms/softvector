@@ -1200,149 +1200,308 @@ inline constexpr uint64_t classify_float(uint64_t const lhs, SewType const sew)
     return 0;
 };
 
-// /* 13.17. Single-Width Floating-Point/Integer Type-Convert Instructions */
-// // Float to (un)signed int, same width
-// inline FloatConversionFunction convert_x_f = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x, bool rtz,
-//                                                 bool rod = false) -> void {
-//     auto rounding_mode = rtz ? softfloat_round_minMag : softfloat_roundingMode;
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? f16_to_i16(f16(opL), rounding_mode, true) : f16_to_ui16(f16(opL), rounding_mode, true);
-//         return;
-//     case 32:
-//         vd = signed_x ? f32_to_i32(f32(opL), rounding_mode, true) : f32_to_ui32(f32(opL), rounding_mode, true);
-//         return;
-//     case 64:
-//         vd = signed_x ? f64_to_i64(f64(opL), rounding_mode, true) : f64_to_ui64(f64(opL), rounding_mode, true);
-//         return;
-//     default:
-//         break;
-//     }
-// };
+/* 13.17. Single-Width Floating-Point/Integer Type-Convert Instructions */
+// Float to (un)signed int, same width
+inline constexpr uint64_t convert_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_ui16(f16(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f32_to_ui32(f32(lhs), softfloat_roundingMode, true);
+    case 64:
+        return f64_to_ui64(f64(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
 
-// // (Un)signed int to float, same width
-// inline FloatConversionFunction convert_f_x = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                 bool rtz = false, bool rod = false) -> void {
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? i32_to_f16(opL).v : ui32_to_f16(opL).v;
-//         return;
-//     case 32:
-//         vd = signed_x ? i32_to_f32(opL).v : ui32_to_f32(opL).v;
-//         return;
-//     case 64:
-//         vd = signed_x ? i64_to_f64(opL).v : ui64_to_f64(opL).v;
-//         return;
-//     default:
-//         break;
-//     }
-// };
-// /* End 13.17. */
+inline constexpr uint64_t convert_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_i16(f16(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f32_to_i32(f32(lhs), softfloat_roundingMode, true);
+    case 64:
+        return f64_to_i64(f64(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
 
-// /* 13.18. Widening Floating-Point/Integer Type-Convert Instructions */
-// // Float to (un)signed int, widening
-// inline FloatConversionFunction convert_widening_x_f = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                          bool rtz, bool rod = false) -> void {
-//     auto rounding_mode = rtz ? softfloat_round_minMag : softfloat_roundingMode;
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? f16_to_i32(f16(opL), rounding_mode, true) : f16_to_ui32(f16(opL), rounding_mode, true);
-//         return;
-//     case 32:
-//         vd = signed_x ? f32_to_i64(f32(opL), rounding_mode, true) : f32_to_ui64(f32(opL), rounding_mode, true);
-//         return;
-//     default:
-//         break;
-//     }
-// };
+inline constexpr uint64_t convert_rtz_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_ui16(f16(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f32_to_ui32(f32(lhs), softfloat_round_minMag, true);
+    case 64:
+        return f64_to_ui64(f64(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
 
-// // (Un)signed int to float, widening
-// inline FloatConversionFunction convert_widening_f_x = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                          bool rtz = false, bool rod = false) -> void {
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? i32_to_f32(opL).v : ui32_to_f32(opL).v;
-//         return;
-//     case 32:
-//         vd = signed_x ? i32_to_f64(opL).v : ui32_to_f64(opL).v;
-//         return;
-//     default:
-//         break;
-//     }
-// };
+inline constexpr uint64_t convert_rtz_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_i16(f16(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f32_to_i32(f32(lhs), softfloat_round_minMag, true);
+    case 64:
+        return f64_to_i64(f64(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
 
-// // Float to float, widening                         pVSTART, pVm
-// inline FloatConversionFunction convert_widening_f_f = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                          bool rtz = false, bool rod = false) -> void {
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = f16_to_f32(f16(opL)).v;
-//         return;
-//     case 32:
-//         vd = f32_to_f64(f32(opL)).v;
-//         return;
-//     default:
-//         break;
-//     }
-// };
-// /* End 13.18. */
+// (Un)signed int to float, same width
+inline constexpr uint64_t convert_f_xu(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return ui32_to_f16(lhs).v;
+    case 32:
+        return ui32_to_f32(lhs).v;
+    case 64:
+        return ui64_to_f64(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
 
-// /* 13.19. Narrowing Floating-Point/Integer Type-Convert Instructions */
-// // Float to (un)signed int, narrowing
-// inline FloatConversionFunction convert_narrowing_x_f = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                           bool rtz, bool rod = false) -> void {
-//     auto rounding_mode = rtz ? softfloat_round_minMag : softfloat_roundingMode;
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? f32_to_i16(f32(opL), rounding_mode, true) : f32_to_ui16(f32(opL), rounding_mode, true);
-//         return;
-//     case 32:
-//         vd = signed_x ? f64_to_i32(f64(opL), rounding_mode, true) : f64_to_ui32(f64(opL), rounding_mode, true);
-//         return;
-//     default:
-//         break;
-//     }
-// };
+inline constexpr uint64_t convert_f_x(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return i32_to_f16(lhs).v;
+    case 32:
+        return i32_to_f32(lhs).v;
+    case 64:
+        return i64_to_f64(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
+/* End 13.17. */
 
-// // (Un)signed int to float, narrowing
-// inline FloatConversionFunction convert_narrowing_f_x = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                           bool rtz = false, bool rod = false) -> void {
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = signed_x ? i32_to_f16(opL).v : ui32_to_f16(opL).v;
-//         return;
-//     case 32:
-//         vd = signed_x ? i64_to_f32(opL).v : ui64_to_f32(opL).v;
-//         return;
-//     default:
-//         break;
-//     }
-// };
+/* 13.18. Widening Floating-Point/Integer Type-Convert Instructions */
+// Float to (un)signed int, widening
+inline constexpr uint64_t convert_widening_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_ui32(f16(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f32_to_ui64(f32(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
 
-// // Float to float, narrowing
-// inline FloatConversionFunction convert_narrowing_f_f = [](uint64_t opL, SVElement &vd, size_t sew, bool signed_x,
-//                                                           bool rtz, bool rod) -> void {
-//     if (rod)
-//     {
-//         softfloat_roundingMode = softfloat_round_odd;
-//     }
-//     switch (sew)
-//     {
-//     case 16:
-//         vd = f32_to_f16(f32(opL)).v;
-//         return;
-//     case 32:
-//         vd = f64_to_f32(f64(opL)).v;
-//         return;
-//     default:
-//         break;
-//     }
-// };
-// /* End 13.19. */
+inline constexpr uint64_t convert_widening_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_i32(f16(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f32_to_i64(f32(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_widening_rtz_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_ui32(f16(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f32_to_ui64(f32(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_widening_rtz_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_i32(f16(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f32_to_i64(f32(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+// (Un)signed int to float, widening
+inline constexpr uint64_t convert_widening_f_xu(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return ui32_to_f32(lhs).v;
+    case 32:
+        return ui32_to_f64(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_widening_f_x(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return i32_to_f32(lhs).v;
+    case 32:
+        return i32_to_f64(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
+
+// Float to float, widening
+inline constexpr uint64_t convert_widening_f_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f16_to_f32(f16(lhs)).v;
+    case 32:
+        return f32_to_f64(f32(lhs)).v;
+    default:
+        break;
+    }
+    return 0;
+};
+/* End 13.18. */
+
+/* 13.19. Narrowing Floating-Point/Integer Type-Convert Instructions */
+// Float to (un)signed int, narrowing
+inline constexpr uint64_t convert_narrowing_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f32_to_ui16(f32(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f64_to_ui32(f64(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_narrowing_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f32_to_i16(f32(lhs), softfloat_roundingMode, true);
+    case 32:
+        return f64_to_i32(f64(lhs), softfloat_roundingMode, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_narrowing_rtz_xu_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f32_to_ui16(f32(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f64_to_ui32(f64(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_narrowing_rtz_x_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f32_to_i16(f32(lhs), softfloat_round_minMag, true);
+    case 32:
+        return f64_to_i32(f64(lhs), softfloat_round_minMag, true);
+    default:
+        break;
+    }
+    return 0;
+};
+
+// (Un)signed int to float, narrowing
+inline constexpr uint64_t convert_narrowing_f_xu(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return ui32_to_f16(lhs).v;
+    case 32:
+        return ui64_to_f32(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
+
+inline constexpr uint64_t convert_narrowing_f_x(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return i32_to_f16(lhs).v;
+    case 32:
+        return i64_to_f32(lhs).v;
+    default:
+        break;
+    }
+    return 0;
+};
+
+// Float to float, narrowing
+inline constexpr uint64_t convert_narrowing_f_f(uint64_t const lhs, SewType const sew)
+{
+    switch (std::to_underlying(sew))
+    {
+    case 16:
+        return f32_to_f16(f32(lhs)).v;
+    case 32:
+        return f64_to_f32(f64(lhs)).v;
+    default:
+        break;
+    }
+    return 0;
+};
+/* End 13.19. */
