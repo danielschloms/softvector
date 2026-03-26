@@ -465,6 +465,14 @@ inline constexpr Bit xnor_mask(Bit lhs, Bit rhs)
     return lhs == rhs;
 }
 
+/*
+============================================================================================================
+The following code is copied from or heavily inspired by https://github.com/ics-jku/riscv-vp-plusplus
+Therefore, this marks the start of the following copyright notice:
+Copyright (c) 2017-2018 Group of Computer Architecture, University of Bremen <riscv@systemc-verification.org>
+Copyright (c) 2022-2023 Intitute for Complex Systems, Johannes Kepler University Linz <ics-office@jku.at>
+============================================================================================================
+*/
 inline constexpr uint64_t add_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
     switch (std::to_underlying(sew))

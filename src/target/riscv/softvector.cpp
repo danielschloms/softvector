@@ -38,7 +38,6 @@
 #include "arithmetic/fixedpoint.hpp"
 #include "misc/mask.hpp"
 #include "misc/permutation.hpp"
-#include "misc/reduction.hpp"
 
 #ifdef ETISS_SOFTFLOAT
 extern "C"

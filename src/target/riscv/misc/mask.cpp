@@ -5,9 +5,6 @@
 #include "misc/mask.hpp"
 
 // Private function declarations
-auto iterate_register_logical(const SVRegister &vs2, const SVRegister &vs1, SVRegister &vd, MaskFunction func,
-                              size_t length, size_t start_index) -> void;
-
 auto iterate_register_vcpop(const SVRegister &vs2, const SVRegister &vm, bool mask, size_t length,
                             size_t start_index) -> uint64_t;
 
@@ -21,15 +18,6 @@ auto iterate_register_sxf(const SVRegister &vs2, SVRegister &vd, const SVRegiste
 auto check_vector_register_overlap(const RVVector &vec, const SVRegister &reg) -> bool;
 
 // Private function definitions
-auto iterate_register_logical(const SVRegister &vs2, const SVRegister &vs1, SVRegister &vd, MaskFunction func,
-                              size_t length, size_t start_index) -> void
-{
-    for (size_t i_element = start_index; i_element < length; ++i_element)
-    {
-        func(vs2.get_bit(i_element), vs1.get_bit(i_element)) ? vd.set_bit(i_element) : vd.reset_bit(i_element);
-    }
-}
-
 auto iterate_register_vcpop(const SVRegister &vs2, const SVRegister &vm, bool mask, size_t length,
                             size_t start_index) -> uint64_t
 {
@@ -105,37 +93,6 @@ auto check_vector_register_overlap(const RVVector &vec, const SVRegister &reg) -
 }
 
 // Public function definitions
-auto VMASK::mask_op_logical(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
-                            uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg,
-                            uint16_t src_vec_reg_rhs, uint16_t src_vec_reg_lhs, uint16_t vec_elem_start, bool mask_f,
-                            MaskFunction func) -> VILL::vpu_return_t
-{
-    RVVRegField V(vec_reg_len_bytes * 8, vec_len, sew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
-
-    if (!V.vec_reg_is_aligned(src_vec_reg_rhs))
-    {
-        return (VILL::VPU_RETURN::SRC1_VEC_ILL);
-    }
-    if (!V.vec_reg_is_aligned(src_vec_reg_lhs))
-    {
-        return (VILL::VPU_RETURN::SRC2_VEC_ILL);
-    }
-    if (!V.vec_reg_is_aligned(dst_vec_reg))
-    {
-        return (VILL::VPU_RETURN::DST_VEC_ILL);
-    }
-
-    V.init();
-
-    SVRegister &vs1 = V.get_vecreg(src_vec_reg_rhs);
-    SVRegister &vs2 = V.get_vecreg(src_vec_reg_lhs);
-    SVRegister &vd = V.get_vecreg(dst_vec_reg);
-
-    iterate_register_logical(vs2, vs1, vd, func, vec_len, vec_elem_start);
-
-    return VILL::VPU_RETURN::NO_EXCEPT;
-}
-
 auto VMASK::mask_op_to_scalar(uint8_t *vec_reg_mem, uint64_t emul_num, uint64_t emul_denom, uint16_t sew_bytes,
                               uint16_t vec_len, uint16_t vec_reg_len_bytes, uint16_t src_vec_reg_lhs,
                               uint8_t *dst_scalar_reg, uint16_t vec_elem_start, bool mask_f,
