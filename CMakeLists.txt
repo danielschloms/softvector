@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15)
 PROJECT(softvector)
 
-SET(CMAKE_CXX_STANDARD 20)
+SET(CMAKE_CXX_STANDARD 23)
 SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 IF(NOT TARGET_NAME)
@@ -30,7 +30,6 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/target/${TARGET_PLATFORM_NAME}/arithmetic/softfloat-extension.cpp
 	src/target/${TARGET_PLATFORM_NAME}/misc/mask.cpp
 	src/target/${TARGET_PLATFORM_NAME}/misc/permutation.cpp
-	src/target/${TARGET_PLATFORM_NAME}/misc/reduction.cpp
 	${TARGET_SRCS}
 )
 
