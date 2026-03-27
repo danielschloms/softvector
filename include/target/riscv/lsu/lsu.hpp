@@ -52,7 +52,8 @@ VILL::vpu_return_t load_eew(
     int16_t stride_bytes        //!< Stride length [bytes]
 );
 
-VILL::vpu_return_t load_eew_v2(
+template <bool Masked>
+VILL::vpu_return_t __attribute__((always_inline)) load_unitstride(
     std::function<void(size_t, uint8_t *, size_t)> func_read_mem, //!< Function for memory read access
     uint8_t *const vector_field, //!< Vector register file memory space. One dimensional [0..32*VLEN-1] byte array
     uint16_t const eew_bytes,    //!< Effective element width [bytes]
@@ -60,11 +61,40 @@ VILL::vpu_return_t load_eew_v2(
     uint16_t const vlen_bytes,   //!< Vector register length [bytes]
     uint16_t const vd,           //!< Destination vector [index]
     uint64_t src_mem_offset,     //!< Source memory start address
-    uint16_t const vstart,       //!< Starting element [index]
-    int16_t const stride_bytes   //!< Stride length [bytes]
-);
+    uint16_t const vstart        //!< Starting element [index]
+)
+{
+    auto const vd_base = vd * vlen_bytes;
+    src_mem_offset += (vstart * eew_bytes);
 
-VILL::vpu_return_t load_eew_v2_m(
+    // Fast path for common case
+    // Unmasked loads with stride = eew can be done in one go
+    if constexpr (!Masked)
+    {
+        // We can do it with one request
+        func_read_mem(src_mem_offset, vector_field + vd_base + (vstart * eew_bytes), (vl - vstart) * eew_bytes);
+        return VILL::VPU_RETURN::NO_EXCEPT;
+    }
+
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        if constexpr (Masked)
+        {
+            if (!(vector_field[i / 8] >> (i % 8) & 1))
+            {
+                src_mem_offset += eew_bytes;
+                continue;
+            }
+        }
+        func_read_mem(src_mem_offset, vector_field + vd_base + (i * eew_bytes), eew_bytes);
+        src_mem_offset += eew_bytes;
+    }
+
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
+
+template <bool Masked>
+VILL::vpu_return_t __attribute__((always_inline)) load_eew_v2(
     std::function<void(size_t, uint8_t *, size_t)> func_read_mem, //!< Function for memory read access
     uint8_t *const vector_field, //!< Vector register file memory space. One dimensional [0..32*VLEN-1] byte array
     uint16_t const eew_bytes,    //!< Effective element width [bytes]
@@ -74,7 +104,39 @@ VILL::vpu_return_t load_eew_v2_m(
     uint64_t src_mem_offset,     //!< Source memory start address
     uint16_t const vstart,       //!< Starting element [index]
     int16_t const stride_bytes   //!< Stride length [bytes]
-);
+)
+{
+    auto const vd_base = vd * vlen_bytes;
+    src_mem_offset += (vstart * stride_bytes);
+
+    // Fast path for common case
+    // Unmasked loads with stride = eew can be done in one go
+    if constexpr (!Masked)
+    {
+        if (eew_bytes == stride_bytes)
+        {
+            // We can do it with one request
+            func_read_mem(src_mem_offset, vector_field + vd_base + (vstart * eew_bytes), (vl - vstart) * eew_bytes);
+            return VILL::VPU_RETURN::NO_EXCEPT;
+        }
+    }
+
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        if constexpr (Masked)
+        {
+            if (!(vector_field[i / 8] >> (i % 8) & 1))
+            {
+                src_mem_offset += stride_bytes;
+                continue;
+            }
+        }
+        func_read_mem(src_mem_offset, vector_field + vd_base + (i * eew_bytes), eew_bytes);
+        src_mem_offset += stride_bytes;
+    }
+
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Store <vl>-times <eew>-elements through func_write_mem function from vector register file

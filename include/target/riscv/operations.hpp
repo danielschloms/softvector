@@ -7,6 +7,7 @@
 #include <type_traits>
 #include <utility>
 
+#include "arithmetic/fixedpoint.hpp"
 #include "base/base.hpp"
 #include "arithmetic/softfloat-extension.hpp"
 
@@ -25,6 +26,12 @@ enum class SewType : uint8_t
     sew_16 = 16,
     sew_32 = 32,
     sew_64 = 64
+};
+
+struct SatResult
+{
+    uint64_t result;
+    bool sat;
 };
 
 template <unsigned Sew>
@@ -59,8 +66,7 @@ using AccumulatorOpSewData = uint64_t (*)(uint64_t const /* lhs */, uint64_t con
 
 using MaskOp = Bit (*)(Bit const /* lhs */, Bit const /* rhs */);
 
-using SaturatingFpOp = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */,
-                                    bool & /* overflow */);
+using SatResultOp = SatResult (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */);
 using AveragingFpOp = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */,
                                    uint8_t const /* rounding_mode */);
 
@@ -397,10 +403,10 @@ inline constexpr uint64_t saturate_boundary_unsigned(uint64_t value, uint8_t sew
     return (value <= upper_bound) ? value : upper_bound;
 }
 
-inline constexpr uint64_t sadd(uint64_t const lhs, uint64_t const rhs, SewType const sew, bool &overflow)
+inline constexpr SatResult sadd(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
 
-    auto const res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
+    uint64_t const res = lhs + rhs;
     auto msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
     auto msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
     auto msb_res = msb_is_set(res, std::to_underlying(sew));
@@ -408,19 +414,29 @@ inline constexpr uint64_t sadd(uint64_t const lhs, uint64_t const rhs, SewType c
     if (msb_lhs && msb_rhs && !msb_res)
     {
         // Negative overflow
-        overflow = true;
-        return get_min_signed(std::to_underlying(sew));
+        return { get_min_signed(std::to_underlying(sew)), true };
     }
 
     if (!msb_lhs && !msb_rhs && msb_res)
     {
         // Positive overflow
-        overflow = true;
-        return get_n_bit_mask(std::to_underlying(sew) - 1);
+        return { get_n_bit_mask(std::to_underlying(sew) - 1), true };
     }
 
-    overflow = false;
-    return res;
+    return { res, false };
+};
+
+inline constexpr SatResult saddu(uint64_t const lhs, uint64_t const rhs, SewType const sew)
+{
+
+    auto const sew_mask = get_n_bit_mask(std::to_underlying(sew));
+    uint64_t const res = (lhs + rhs) & sew_mask;
+    if (res < lhs)
+    {
+        // Overflow
+        return { sew_mask, true };
+    }
+    return { res, false };
 };
 
 // 15. Vector Mask Instructions

@@ -141,8 +141,7 @@ typedef enum BITS_EEW
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Decode a VTYPE bitfield and store retrieved fields to Output parameter set
 /// \return If field valid 1, else -1 (e.g. reserved LMUL code)
-int8_t decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul,
-              uint8_t *n_lmul);
+int8_t decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Encode Input parameter set of bitfields to a VTYPE bitfield
@@ -240,12 +239,12 @@ inline constexpr auto zero_extend_immediate(uint8_t imm5) -> uint64_t
     return imm5 & imm_width_mask;
 }
 
-inline constexpr auto get_n_bit_mask(size_t n_bits) -> uint64_t
+inline constexpr auto get_n_bit_mask(size_t const n_bits) -> uint64_t
 {
     return (1_u64 << (n_bits)) - 1;
 }
 
-inline constexpr auto get_min_signed(size_t sew) -> int64_t
+inline constexpr auto get_min_signed(size_t sew) -> uint64_t
 {
     return -1_i64 & (~get_n_bit_mask(sew - 1));
 }
