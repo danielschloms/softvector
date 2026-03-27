@@ -21,6 +21,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 #include "base/base.hpp"
 #include "base/softvector-platform-types.hpp"
@@ -28,6 +29,56 @@
 #include "lsu/lsu.hpp"
 
 // TODO: Read/Write exceptions are currently ignored
+VILL::vpu_return_t VLSU::load_eew_v2_m(std::function<void(size_t, uint8_t *, size_t)> func_read_mem,
+                                       uint8_t *const vector_field, uint16_t const eew_bytes, uint16_t vl,
+                                       uint16_t const vlen_bytes, uint16_t const vd, uint64_t src_mem_offset,
+                                       uint16_t const vstart, int16_t const stride_bytes)
+{
+    auto const vd_base = vd * vlen_bytes;
+    src_mem_offset += (vstart * stride_bytes);
+
+    for (size_t i = vstart; i < vl; ++i)
+    {
+
+        if (!(vector_field[i / 8] >> (i % 8) & 1))
+        {
+            src_mem_offset += stride_bytes;
+            continue;
+        }
+
+        func_read_mem(src_mem_offset, vector_field + vd_base + (i * eew_bytes), eew_bytes);
+        src_mem_offset += stride_bytes;
+    }
+
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
+
+VILL::vpu_return_t VLSU::load_eew_v2(std::function<void(size_t, uint8_t *, size_t)> func_read_mem,
+                                     uint8_t *const vector_field, uint16_t const eew_bytes, uint16_t vl,
+                                     uint16_t const vlen_bytes, uint16_t const vd, uint64_t src_mem_offset,
+                                     uint16_t const vstart, int16_t const stride_bytes)
+{
+    auto const vd_base = vd * vlen_bytes;
+    src_mem_offset += (vstart * stride_bytes);
+
+    // Fast path for common case
+    // Unmasked loads with stride = eew can be done in one go
+
+    if (eew_bytes == stride_bytes)
+    {
+        // We can do it with one request
+        func_read_mem(src_mem_offset, vector_field + vd_base + (vstart * eew_bytes), (vl - vstart) * eew_bytes);
+        return VILL::VPU_RETURN::NO_EXCEPT;
+    }
+
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        func_read_mem(src_mem_offset, vector_field + vd_base + (i * eew_bytes), eew_bytes);
+        src_mem_offset += stride_bytes;
+    }
+
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
 
 VILL::vpu_return_t VLSU::load_eew(std::function<void(size_t, uint8_t *, size_t)> func_read_mem, uint8_t *vec_reg_mem,
                                   uint64_t emul_num, uint64_t emul_denom, uint16_t eew_bytes, uint16_t vec_len,
@@ -160,7 +211,7 @@ auto VLSU::store_indices(std::function<void(size_t, uint8_t *, size_t)> func_wri
     V_indices.init();
 
     // This is done to match the store order in the testing repository.
-    // However, the speficiation states that stores can occur in any order, 
+    // However, the speficiation states that stores can occur in any order,
     // so the tests should reflect that in the future.
     auto vectors = std::vector<std::reference_wrapper<RVVector>>();
     for (size_t i = 0; i < nf; i++)
