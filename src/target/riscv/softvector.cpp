@@ -284,26 +284,24 @@ inline constexpr uint64_t get_float_scalar(void *const float_scalar_field, unsig
         void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1, \
         uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, OpType const op);
 
+#define VX_DISPATCHER_DECL(iterator)                                                                                 \
+    template <SignType Sign, typename OpType>                                                                        \
+    inline constexpr GO_FAST void iterator##_dispatch(                                                               \
+        void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const mask_bit,            \
+        uint8_t const vd, uint8_t const vs2, uint8_t rs1, uint16_t const vstart, uint16_t const vlen, uint16_t xlen, \
+        uint16_t const vl, OpType const op);
+
 VV_DISPATCHER_DECL(vv)
+VV_DISPATCHER_DECL(widening_vv)
+VV_DISPATCHER_DECL(widening_wv)
+VV_DISPATCHER_DECL(narrowing_wv)
 VV_DISPATCHER_DECL(reduce)
+VV_DISPATCHER_DECL(widening_reduce)
 
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_vv(void *const vector_field, uint16_t const vtype,
-                                                           uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                           uint8_t const vs2, uint16_t const vstart,
-                                                           uint16_t const vlen, uint16_t const vl, OpType const op);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_wv(void *const vector_field, uint16_t const vtype,
-                                                           uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                           uint8_t const vs2, uint16_t const vstart,
-                                                           uint16_t const vlen, uint16_t const vl, OpType const op);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_narrowing_wv(void *const vector_field, uint16_t const vtype,
-                                                            uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                            uint8_t const vs2, uint16_t const vstart,
-                                                            uint16_t const vlen, uint16_t const vl, OpType const op);
+VX_DISPATCHER_DECL(vx)
+VX_DISPATCHER_DECL(widening_vx)
+VX_DISPATCHER_DECL(widening_wx)
+VX_DISPATCHER_DECL(narrowing_wx)
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
 inline constexpr GO_FAST void dispatch_iterate_vi(void *const vector_field, uint16_t const vtype,
@@ -317,46 +315,11 @@ inline constexpr GO_FAST void dispatch_iterate_narrowing_wi(void *const vector_f
                                                             uint8_t const immediate, uint16_t const vstart,
                                                             uint16_t const vlen, uint16_t const vl, OpType const op);
 
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_vx(void *const vector_field, void *const scalar_field,
-                                                  uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
-                                                  uint8_t const vs2, uint8_t rs1, uint16_t const vstart,
-                                                  uint16_t const vlen, uint16_t xlen, uint16_t const vl,
-                                                  OpType const op);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_vx(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                           uint16_t const vl, OpType const op);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_wx(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                           uint16_t const vl, OpType const op);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_narrowing_wx(void *const vector_field, void *const scalar_field,
-                                                            uint16_t const vtype, uint8_t const mask_bit,
-                                                            uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                            uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                            uint16_t const vl, OpType const op);
-
 template <unsigned Sew, unsigned Factor>
 inline constexpr GO_FAST void dispatch_iterate_vext(void *const vector_field, uint16_t const vtype,
                                                     bool const is_masked, uint8_t const vd, uint8_t const vs2,
                                                     bool const is_signed, uint16_t const vstart, uint16_t const vlen,
                                                     uint16_t const vl);
-
-template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_reduce(void *const vector_field, uint16_t const vtype,
-                                                               uint8_t const mask_bit, uint8_t const vd,
-                                                               uint8_t const vs1, uint8_t const vs2,
-                                                               uint16_t const vstart, uint16_t const vlen,
-                                                               uint16_t const vl, OpType const op);
 
 template <SignType Sign, typename OpType>
 inline constexpr GO_FAST void dispatch_iterate_v_unary(void *const vector_field, uint16_t const vtype,
@@ -385,6 +348,12 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_fi
                                                            uint16_t const vstart, uint16_t const vlen, uint16_t flen,
                                                            uint16_t const vl, OpType const op);
 
+template <SignType Sign, typename OpType>
+inline constexpr GO_FAST bool dispatch_iterate_fp_sat_vv(void *const vector_field, uint16_t const vtype,
+                                                         uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                         uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                                         uint16_t const vl, OpType const op);
+
 // Iterator declarations
 #define VV_ITERATOR_DECL(name)                                                                                     \
     template <typename VectorElementType, MaskType Mask, typename OpType>                                          \
@@ -393,69 +362,29 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_fi
                                          unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base, \
                                          OpType const op);
 
+#define VXI_ITERATOR_DECL(name)                                                                                  \
+    template <typename VectorElementType, MaskType Mask, typename OpType>                                        \
+        requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>                            \
+    inline constexpr void name##_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,     \
+                                         unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar, \
+                                         OpType const op);
+
 VV_ITERATOR_DECL(vv)
 VV_ITERATOR_DECL(reduce)
 VV_ITERATOR_DECL(widening_reduce)
+VV_ITERATOR_DECL(widening_vv)
+VV_ITERATOR_DECL(widening_wv)
+VV_ITERATOR_DECL(narrowing_wv)
 
-// template <typename VectorElementType, MaskType Mask, typename OpType>
-//     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-// inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-//                                  unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
-//                                  OpType const op);
-
-// template <typename VectorElementType, MaskType Mask, typename OpType>
-//     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-// inline constexpr void reduce_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-//                                      unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
-//                                      OpType const op);
-
-// template <typename VectorElementType, MaskType Mask, typename OpType>
-//     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-// inline constexpr void widening_reduce_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-//                                               unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
-//                                               OpType const op);
+VXI_ITERATOR_DECL(vxi)
+VXI_ITERATOR_DECL(widening_vx)
+VXI_ITERATOR_DECL(widening_wx)
+VXI_ITERATOR_DECL(narrowing_wxi)
 
 template <typename VectorElementType, MaskType Mask, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
-                                          OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
-                                          OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, ValueResultOpSewData>
-inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                           unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
-                                           OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                  unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar,
-                                  OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void widening_vx_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar,
-                                          OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void widening_wx_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar,
-                                          OpType const op);
-
-template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, ValueResultOpSewData>
-inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                            unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar,
-                                            OpType const op);
+inline constexpr void unary_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
+                                    unsigned const vd_base, unsigned const vs2_base, OpType const op);
 
 template <typename SourceType, typename DestType, MaskType Masked>
     requires ValidVectorElementType<SourceType> and ValidVectorElementType<DestType>
@@ -464,7 +393,7 @@ inline constexpr void vext_iterate(void *const vector_field, uint16_t const vsta
 
 template <SxfType Sxf, MaskType Mask>
 inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit,
-                                  int8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                  unsigned const vd, unsigned const vs2, uint16_t const vstart, uint16_t const vlen,
                                   uint16_t const vl);
 
 /* --- Public function definitions --- */
@@ -481,8 +410,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t masked_instruction_bit, uint8_t const vd,    \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
-        dispatch_iterate_widening_reduce<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart,     \
-                                               vlen, vl, inner_op);                                                   \
+        widening_reduce_dispatch<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, vl,   \
+                                       inner_op);                                                                     \
         return 0;                                                                                                     \
     }
 
@@ -505,8 +434,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     {                                                                                                                 \
         softfloat_exceptionFlags = 0;                                                                                 \
         softfloat_roundingMode = rounding_mode;                                                                       \
-        dispatch_iterate_widening_reduce<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1,    \
-                                                             vs2, vstart, vlen, vl, inner_op);                        \
+        widening_reduce_dispatch<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2,       \
+                                                     vstart, vlen, vl, inner_op);                                     \
         return 0;                                                                                                     \
     }
 
@@ -522,8 +451,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t masked_instruction_bit, uint8_t const vd,    \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
-        dispatch_iterate_widening_vv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen,   \
-                                           vl, inner_op);                                                             \
+        widening_vv_dispatch<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, vl,       \
+                                   inner_op);                                                                         \
         return 0;                                                                                                     \
     }
 
@@ -531,8 +460,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t masked_instruction_bit, uint8_t const vd,    \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
-        dispatch_iterate_widening_wv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen,   \
-                                           vl, inner_op);                                                             \
+        widening_wv_dispatch<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, vl,       \
+                                   inner_op);                                                                         \
         return 0;                                                                                                     \
     }
 
@@ -540,8 +469,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t masked_instruction_bit, uint8_t const vd,    \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
-        dispatch_iterate_narrowing_wv<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen,  \
-                                            vl, inner_op);                                                            \
+        narrowing_wv_dispatch<sign>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart, vlen, vl,      \
+                                    inner_op);                                                                        \
         return 0;                                                                                                     \
     }
 
@@ -563,14 +492,14 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
         return 0;                                                                                                     \
     }
 
-#define VX_OP(name, inner_op, sign)                                                                                \
-    uint8_t name(void *const vector_field, void *const scalar_field, uint16_t const vtype,                         \
-                 uint8_t masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t rs1,                 \
-                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t xlen)                      \
-    {                                                                                                              \
-        dispatch_iterate_vx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, vstart, \
-                                  vlen, xlen, vl, inner_op);                                                       \
-        return 0;                                                                                                  \
+#define VX_OP(name, inner_op, sign)                                                                                    \
+    uint8_t name(void *const vector_field, void *const scalar_field, uint16_t const vtype,                             \
+                 uint8_t masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t rs1,                     \
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t xlen)                          \
+    {                                                                                                                  \
+        vx_dispatch<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, vstart, vlen, xlen, \
+                          vl, inner_op);                                                                               \
+        return 0;                                                                                                      \
     }
 
 #define W_VX_OP(name, inner_op, sign)                                                                               \
@@ -578,8 +507,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
                  uint8_t masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t rs1,                  \
                  uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t xlen)                       \
     {                                                                                                               \
-        dispatch_iterate_widening_vx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, \
-                                           vstart, vlen, xlen, vl, inner_op);                                       \
+        widening_vx_dispatch<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, vstart, \
+                                   vlen, xlen, vl, inner_op);                                                       \
         return 0;                                                                                                   \
     }
 
@@ -588,8 +517,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
                  uint8_t masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t rs1,                  \
                  uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t xlen)                       \
     {                                                                                                               \
-        dispatch_iterate_widening_wx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, \
-                                           vstart, vlen, xlen, vl, inner_op);                                       \
+        widening_wx_dispatch<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, vstart, \
+                                   vlen, xlen, vl, inner_op);                                                       \
         return 0;                                                                                                   \
     }
 
@@ -598,8 +527,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
                  uint8_t masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t rs1,                   \
                  uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t xlen)                        \
     {                                                                                                                \
-        dispatch_iterate_narrowing_wx<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, \
-                                            vstart, vlen, xlen, vl, inner_op);                                       \
+        narrowing_wx_dispatch<sign>(vector_field, scalar_field, vtype, masked_instruction_bit, vd, vs2, rs1, vstart, \
+                                    vlen, xlen, vl, inner_op);                                                       \
         return 0;                                                                                                    \
     }
 
@@ -622,8 +551,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     {                                                                                                                \
         softfloat_exceptionFlags = 0;                                                                                \
         softfloat_roundingMode = rounding_mode;                                                                      \
-        dispatch_iterate_widening_vv<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2,  \
-                                                         vstart, vlen, vl, inner_op);                                \
+        widening_vv_dispatch<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart,  \
+                                                 vlen, vl, inner_op);                                                \
         return 0;                                                                                                    \
     }
 
@@ -634,8 +563,8 @@ inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype
     {                                                                                                                \
         softfloat_exceptionFlags = 0;                                                                                \
         softfloat_roundingMode = rounding_mode;                                                                      \
-        dispatch_iterate_widening_wv<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2,  \
-                                                         vstart, vlen, vl, inner_op);                                \
+        widening_wv_dispatch<SignType::Unsigned>(vector_field, vtype, masked_instruction_bit, vd, vs1, vs2, vstart,  \
+                                                 vlen, vl, inner_op);                                                \
         return 0;                                                                                                    \
     }
 
@@ -956,7 +885,7 @@ inline constexpr bool fp_sat_iterate(void *const vector_field, uint16_t const vs
         }
         else
         {
-            static_assert(false, "Invalid operation for fp sat");
+            static_assert(false, "Invalid operation for fp sat (or not implemented)");
         }
     }
 
@@ -965,12 +894,15 @@ inline constexpr bool fp_sat_iterate(void *const vector_field, uint16_t const vs
 
 // 12. Vector Fixed-Point Arithmetic Instructions
 // 12.1. Vector Single-Width Saturating Add and Subtract
-#define SAT_FP_VV(name)                                                                                               \
+#define SAT_FP_VV(name, inner_op, sign)                                                                               \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,            \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
-        return 0;                                                                                                     \
+        return dispatch_iterate_fp_sat_vv<sign>(vector_field, vtype, mask_bit, vd, vs1, vs2, vstart, vlen, vl,        \
+                                                inner_op);                                                            \
     }
+
+// SAT_FP_VV(vsaddu_vv, saddu, SignType::Unsigned)
 
 std::uint8_t vsaddu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
                        std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
@@ -1535,7 +1467,7 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
 template <typename VectorElementType, MaskType Mask, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
+                                          unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                           OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
@@ -1587,7 +1519,7 @@ inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t con
 template <typename VectorElementType, MaskType Mask, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                          unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
+                                          unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                           OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
@@ -1617,15 +1549,15 @@ inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t con
         }
         else
         {
-            static_assert(false, "Invalid operation for widening wx");
+            static_assert(false, "Invalid operation for widening wx (or not implemented)");
         }
     }
 }
 
 template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, ValueResultOpSewData>
+    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                           unsigned vd_base, unsigned const vs1_base, unsigned const vs2_base,
+                                           unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                            OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
@@ -1643,14 +1575,21 @@ inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t co
                 continue;
             }
         }
-        // Only ValueResultOpSewData for now
-        vector_elements[vd_base + i] =
-            op(wide_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew * 2));
+        if constexpr (std::is_same_v<OpType, ValueResultOpSewData>)
+        {
+            // Narrowing Shifts need 2*SEW (to mask of log2(2*SEW) bits of the shift amount)
+            vector_elements[vd_base + i] =
+                op(wide_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew * 2));
+        }
+        else
+        {
+            static_assert(false, "Invalid operation for narrowing wv (or not implemented)");
+        }
     }
 }
 
 template <typename VectorElementType, MaskType Mask, typename OpType>
-    requires ValidVectorElementType<VectorElementType> and std::is_same_v<OpType, ValueResultOpSewData>
+    requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
 inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
                                             unsigned const vd_base, unsigned const vs2_base, uint64_t const scalar,
                                             OpType const op)
@@ -1670,8 +1609,15 @@ inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t c
                 continue;
             }
         }
-        // Only ValueResultOpSewData for now
-        vector_elements[vd_base + i] = op(wide_elements[vs2_base + i], scalar, static_cast<SewType>(sew * 2));
+        if constexpr (std::is_same_v<OpType, ValueResultOpSewData>)
+        {
+            // Narrowing Shifts need 2*SEW (to mask of log2(2*SEW) bits of the shift amount)
+            vector_elements[vd_base + i] = op(wide_elements[vs2_base + i], scalar, static_cast<SewType>(sew * 2));
+        }
+        else
+        {
+            static_assert(false, "Invalid operation for narrowing wxi (or not implemented)");
+        }
     }
 }
 
@@ -1839,8 +1785,8 @@ inline constexpr void vext_iterate(void *const vector_field, uint16_t const vsta
 
 template <typename VectorElementType, MaskType Mask, typename OpType>
     requires ValidVectorElementType<VectorElementType> and ValidOperation<OpType>
-inline constexpr void v_unary_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
-                                      unsigned const vd_base, unsigned const vs2_base, OpType const op)
+inline constexpr void unary_iterate(void *const vector_field, uint16_t const vstart, uint16_t const vl,
+                                    unsigned const vd_base, unsigned const vs2_base, OpType const op)
 {
     static constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
@@ -1862,14 +1808,14 @@ inline constexpr void v_unary_iterate(void *const vector_field, uint16_t const v
         }
         else
         {
-            static_assert(false, "Invalid operation for vv");
+            static_assert(false, "Invalid operation for unary");
         }
     }
 }
 
 template <SxfType Sxf, MaskType Mask>
 inline constexpr void sxf_iterate(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit,
-                                  int8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                  unsigned const vd, unsigned const vs2, uint16_t const vstart, uint16_t const vlen,
                                   uint16_t const vl)
 {
     auto vector_elements = static_cast<uint8_t *>(vector_field);
@@ -2162,10 +2108,10 @@ VV_DISPATCHER(vv)
 VV_DISPATCHER(reduce)
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_vv(void *const vector_field, uint16_t const vtype,
-                                                           uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                           uint8_t const vs2, uint16_t const vstart,
-                                                           uint16_t const vlen, uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void widening_vv_dispatch(void *const vector_field, uint16_t const vtype,
+                                                   uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                   uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                                   uint16_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2177,11 +2123,10 @@ inline constexpr GO_FAST void dispatch_iterate_widening_vv(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_reduce(void *const vector_field, uint16_t const vtype,
-                                                               uint8_t const mask_bit, uint8_t const vd,
-                                                               uint8_t const vs1, uint8_t const vs2,
-                                                               uint16_t const vstart, uint16_t const vlen,
-                                                               uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void widening_reduce_dispatch(void *const vector_field, uint16_t const vtype,
+                                                       uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                       uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                                       uint16_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2193,10 +2138,10 @@ inline constexpr GO_FAST void dispatch_iterate_widening_reduce(void *const vecto
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_wv(void *const vector_field, uint16_t const vtype,
-                                                           uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                           uint8_t const vs2, uint16_t const vstart,
-                                                           uint16_t const vlen, uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void widening_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                                   uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                   uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                                   uint16_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2208,10 +2153,10 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wv(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_narrowing_wv(void *const vector_field, uint16_t const vtype,
-                                                            uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
-                                                            uint8_t const vs2, uint16_t const vstart,
-                                                            uint16_t const vlen, uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void narrowing_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                                    uint8_t const mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                    uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                                                    uint16_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2263,11 +2208,10 @@ inline constexpr GO_FAST void dispatch_iterate_narrowing_wi(void *const vector_f
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_vx(void *const vector_field, void *const scalar_field,
-                                                  uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
-                                                  uint8_t const vs2, uint8_t const rs1, uint16_t const vstart,
-                                                  uint16_t const vlen, uint16_t xlen, uint16_t const vl,
-                                                  OpType const op)
+inline constexpr GO_FAST void vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                          uint8_t const mask_bit, uint8_t const vd, uint8_t const vs2,
+                                          uint8_t const rs1, uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
+                                          uint16_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2331,11 +2275,11 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_vx(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t rs1,
-                                                           uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                           uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void widening_vx_dispatch(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
+                                                   uint8_t const vs2, uint8_t rs1, uint16_t const vstart,
+                                                   uint16_t const vlen, uint16_t xlen, uint16_t const vl,
+                                                   OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2348,11 +2292,11 @@ inline constexpr GO_FAST void dispatch_iterate_widening_vx(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_widening_wx(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t rs1,
-                                                           uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                           uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void widening_wx_dispatch(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
+                                                   uint8_t const vs2, uint8_t rs1, uint16_t const vstart,
+                                                   uint16_t const vlen, uint16_t xlen, uint16_t const vl,
+                                                   OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2365,11 +2309,11 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wx(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_narrowing_wx(void *const vector_field, void *const scalar_field,
-                                                            uint16_t const vtype, uint8_t const mask_bit,
-                                                            uint8_t const vd, uint8_t const vs2, uint8_t rs1,
-                                                            uint16_t const vstart, uint16_t const vlen, uint16_t xlen,
-                                                            uint16_t const vl, OpType const op)
+inline constexpr GO_FAST void narrowing_wx_dispatch(void *const vector_field, void *const scalar_field,
+                                                    uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
+                                                    uint8_t const vs2, uint8_t rs1, uint16_t const vstart,
+                                                    uint16_t const vlen, uint16_t xlen, uint16_t const vl,
+                                                    OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -2446,41 +2390,41 @@ inline constexpr GO_FAST void dispatch_iterate_v_unary(void *const vector_field,
     case sew_8:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            v_unary_iterate<elm_8_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_8_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         else
         {
-            v_unary_iterate<elm_8_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_8_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         break;
     case sew_16:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            v_unary_iterate<elm_16_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_16_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         else
         {
-            v_unary_iterate<elm_16_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_16_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         break;
     case sew_32:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            v_unary_iterate<elm_32_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_32_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         else
         {
-            v_unary_iterate<elm_32_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_32_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         break;
     case sew_64:
         if (is_masked_instruction(static_cast<bool>(mask_bit)))
         {
-            v_unary_iterate<elm_64_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_64_t, MaskType::Masked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         else
         {
-            v_unary_iterate<elm_64_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
+            unary_iterate<elm_64_t, MaskType::Unmasked>(vector_field, vstart, vl, vd_base, vs2_base, op);
         }
         break;
     default:
