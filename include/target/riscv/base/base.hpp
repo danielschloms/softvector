@@ -196,12 +196,12 @@ class VTYPE
 
 // General helper constants, functions, and structs, etc.
 
-inline constexpr auto operator"" _u64(unsigned long long value) -> uint64_t
+inline constexpr auto operator""_u64(unsigned long long value) -> uint64_t
 {
     return static_cast<uint64_t>(value);
 }
 
-inline constexpr auto operator"" _i64(unsigned long long value) -> int64_t
+inline constexpr auto operator""_i64(unsigned long long value) -> int64_t
 {
     return static_cast<int64_t>(value);
 }
