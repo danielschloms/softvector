@@ -264,6 +264,9 @@ constexpr auto sew_16 = 16;
 constexpr auto sew_32 = 32;
 constexpr auto sew_64 = 64;
 
+// Questionable
+auto g_fp_rounding_mode = FPRoundingMode(FPRoundingMode::rnu);
+
 /* --- Private function declarations --- */
 
 // Helper declarations
@@ -969,7 +972,7 @@ uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t cons
 }
 
 // 12. Vector Fixed-Point Arithmetic Instructions
-#define SAT_FP_VV(name, inner_op, sign)                                                                               \
+#define SAT_FP_VV_OP(name, inner_op, sign)                                                                            \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,            \
                  uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl) \
     {                                                                                                                 \
@@ -977,7 +980,7 @@ uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t cons
                                                 inner_op);                                                            \
     }
 
-#define SAT_FP_VI(name, inner_op, sign, imm_extension)                                                            \
+#define SAT_FP_VI_OP(name, inner_op, sign, imm_extension)                                                         \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,        \
                  uint8_t const vs2, uint8_t const immediate, uint16_t const vstart, uint16_t const vlen,          \
                  uint16_t const vl)                                                                               \
@@ -986,7 +989,7 @@ uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t cons
                                                                vstart, vlen, vl, inner_op);                       \
     }
 
-#define SAT_FP_VX(name, inner_op, sign)                                                                              \
+#define SAT_FP_VX_OP(name, inner_op, sign)                                                                           \
     uint8_t name(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const mask_bit,   \
                  uint8_t const vd, uint8_t const vs2, uint8_t const rs1, uint16_t const vstart, uint16_t const vlen, \
                  uint16_t const vl, uint8_t const xlen)                                                              \
@@ -995,23 +998,65 @@ uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t cons
                                                 vlen, xlen, vl, inner_op);                                           \
     }
 
+#define ROUND_FP_VV_OP(name, inner_op, sign)                                                                          \
+    uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,            \
+                 uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, \
+                 uint8_t const rounding_mode)                                                                         \
+    {                                                                                                                 \
+        g_fp_rounding_mode = static_cast<FPRoundingMode>(rounding_mode);                                              \
+        vv_dispatch<sign>(vector_field, vtype, mask_bit, vd, vs1, vs2, vstart, vlen, vl, inner_op);                   \
+        return 0;                                                                                                     \
+    }
+
+// #define ROUND_FP_VI_OP(name, inner_op, sign, imm_extension)                                                   \
+//     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,    \
+//                  uint8_t const vs2, uint8_t const immediate, uint16_t const vstart, uint16_t const vlen,      \
+//                  uint16_t const vl, uint8_t const rounding_mode)                                              \
+//     {                                                                                                         \
+//         g_fp_rounding_mode = static_cast<FPRoundingMode>(rounding_mode);                                      \
+//         vi_dispatch<sign, imm_extension>(vector_field, vtype, mask_bit, vd, vs2, immediate, vstart, vlen, vl, \
+//                                          inner_op);                                                           \
+//         return 0;                                                                                             \
+//     }
+
+#define ROUND_FP_VX_OP(name, inner_op, sign)                                                                         \
+    uint8_t name(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const mask_bit,   \
+                 uint8_t const vd, uint8_t const vs2, uint8_t const rs1, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const xlen, uint8_t const rounding_mode)                                 \
+    {                                                                                                                \
+        g_fp_rounding_mode = static_cast<FPRoundingMode>(rounding_mode);                                             \
+        vx_dispatch<sign>(vector_field, scalar_field, vtype, mask_bit, vd, vs2, rs1, vstart, vlen, xlen, vl,         \
+                          inner_op);                                                                                 \
+        return 0;                                                                                                    \
+    }
+
 // 12.1. Vector Single-Width Saturating Add and Subtract
-SAT_FP_VV(vsaddu_vv, saddu, SignType::Unsigned)
-SAT_FP_VI(vsaddu_vi, saddu, SignType::Unsigned, ImmExtensionType::ZeroExtend)
-SAT_FP_VX(vsaddu_vx, saddu, SignType::Unsigned)
+SAT_FP_VV_OP(vsaddu_vv, saddu, SignType::Unsigned)
+SAT_FP_VI_OP(vsaddu_vi, saddu, SignType::Unsigned, ImmExtensionType::ZeroExtend)
+SAT_FP_VX_OP(vsaddu_vx, saddu, SignType::Unsigned)
 
-SAT_FP_VV(vsadd_vv, sadd, SignType::Signed)
-SAT_FP_VI(vsadd_vi, sadd, SignType::Signed, ImmExtensionType::SignExtend)
-SAT_FP_VX(vsadd_vx, sadd, SignType::Signed)
+SAT_FP_VV_OP(vsadd_vv, sadd, SignType::Signed)
+SAT_FP_VI_OP(vsadd_vi, sadd, SignType::Signed, ImmExtensionType::SignExtend)
+SAT_FP_VX_OP(vsadd_vx, sadd, SignType::Signed)
 
-SAT_FP_VV(vssubu_vv, ssubu, SignType::Unsigned)
-SAT_FP_VX(vssubu_vx, ssubu, SignType::Unsigned)
+SAT_FP_VV_OP(vssubu_vv, ssubu, SignType::Unsigned)
+SAT_FP_VX_OP(vssubu_vx, ssubu, SignType::Unsigned)
 
-SAT_FP_VV(vssub_vv, ssub, SignType::Signed)
-SAT_FP_VX(vssub_vx, ssub, SignType::Signed)
+SAT_FP_VV_OP(vssub_vv, ssub, SignType::Signed)
+SAT_FP_VX_OP(vssub_vx, ssub, SignType::Signed)
 
 // 12.2. Vector Single-Width Averaging Add and Subtract
+ROUND_FP_VV_OP(vaaddu_vv, aaddu, SignType::Unsigned)
+ROUND_FP_VX_OP(vaaddu_vx, aaddu, SignType::Unsigned)
 
+ROUND_FP_VV_OP(vaadd_vv, aadd, SignType::Signed)
+ROUND_FP_VX_OP(vaadd_vx, aadd, SignType::Signed)
+
+ROUND_FP_VV_OP(vasubu_vv, asubu, SignType::Unsigned)
+ROUND_FP_VX_OP(vasubu_vx, asubu, SignType::Unsigned)
+
+ROUND_FP_VV_OP(vasub_vv, asub, SignType::Signed)
+ROUND_FP_VX_OP(vasub_vx, asub, SignType::Signed)
 
 // 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
 
@@ -1563,6 +1608,11 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
             // Conditionally set bit
             vector_elements[vd_base + (i / sew)] |= op(lhs, rhs) << (i % sew);
         }
+        else if constexpr (std::is_same_v<OpType, AveragingFpOp>)
+        {
+            vector_elements[vd_base + i] =
+                op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], g_fp_rounding_mode);
+        }
         else
         {
             static_assert(false, "Invalid operation for vv");
@@ -1795,11 +1845,38 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
             vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], scalar, mask_data_bit)
                                                     << (i % sew);
         }
+        else if constexpr (std::is_same_v<OpType, BitResultOpSewMaskData>)
+        {
+            // vmadc & vmsbc: If instruction is masked, use mask bit as carry/borrow, otherwise don't use mask data.
+            auto const mask_data_bit =
+                (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
+
+            // Clear bit
+            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
+            // Conditionally set bit
+            vector_elements[vd_base + (i / sew)] |=
+                op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew), mask_data_bit) << (i % sew);
+        }
         else if constexpr (std::is_same_v<OpType, AccumulatorOp>)
         {
             // Accumulator instructions have vs2 and vs1 elements switched compared to e.g. vadd.vv
             // I.e. here vs2 is rhs and the scalar is lhs
             vector_elements[vd_base + i] = op(scalar, vector_elements[vs2_base + i], vector_elements[vd_base + i]);
+        }
+        else if constexpr (std::is_same_v<OpType, AccumulatorOpSewData>)
+        {
+            // Accumulator instructions have vs2 and vs1 elements switched compared to e.g. vadd.vv
+            // I.e. here vs2 is rhs and vs1 lhs
+            vector_elements[vd_base + i] =
+                op(scalar, vector_elements[vs2_base + i], vector_elements[vd_base + i], static_cast<SewType>(sew));
+        }
+        else if constexpr (std::is_same_v<OpType, AveragingFpOp>)
+        {
+            vector_elements[vd_base + i] = op(vector_elements[vs2_base + i], scalar, g_fp_rounding_mode);
+        }
+        else
+        {
+            static_assert(std::is_same_v<OpType, AveragingFpOp>, "Invalid operation for vxi (or not implemented)");
         }
     }
 }
@@ -3135,201 +3212,6 @@ std::uint8_t vfslide1down_vf(void *pV, void *pF, std::uint16_t pVTYPE, std::uint
 /* End 11.10. */
 
 /* 12. Vector Fixed-Point Arithmetic Instructions */
-
-/* 12.2. Vector Single-Width Averaging Add and Subtract */
-/* TODO: Check for illegal rounding mode values */
-std::uint8_t vaaddu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_FIXP::vaadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                          pVSTART, pVm, false, pRm);
-
-    return (0);
-}
-
-std::uint8_t vaaddu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pXLEN, std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VInstrInfo v_instr_info{ .lmul_num = _vt._z_lmul,
-                             .lmul_denom = _vt._n_lmul,
-                             .sew = _vt._sew,
-                             .vector_length = pVL,
-                             .vector_register_length = pVLEN,
-                             .start_element = pVSTART,
-                             .masked = !pVm,
-                             .signed_op = false };
-
-    VARITH_FIXP::FpInstrInfo fixedpoint_instr_info{ .rounding_mode = pRm, .narrowing_op = false };
-
-    VARITH_FIXP::fixp_op_vx(VectorRegField, v_instr_info, fixedpoint_instr_info, pVd, pVs2, ScalarReg, pXLEN,
-                            VARITH_FIXP::aaddu);
-
-    return (0);
-}
-
-std::uint8_t vaadd_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                      std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                      std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_FIXP::vaadd_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                          pVSTART, pVm, true, pRm);
-
-    return (0);
-}
-
-std::uint8_t vaadd_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                      std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                      std::uint8_t pXLEN, std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VInstrInfo v_instr_info{ .lmul_num = _vt._z_lmul,
-                             .lmul_denom = _vt._n_lmul,
-                             .sew = _vt._sew,
-                             .vector_length = pVL,
-                             .vector_register_length = pVLEN,
-                             .start_element = pVSTART,
-                             .masked = !pVm,
-                             .signed_op = true };
-
-    VARITH_FIXP::FpInstrInfo fixedpoint_instr_info{ .rounding_mode = pRm, .narrowing_op = false };
-
-    VARITH_FIXP::fixp_op_vx(VectorRegField, v_instr_info, fixedpoint_instr_info, pVd, pVs2, ScalarReg, pXLEN,
-                            VARITH_FIXP::aadd);
-    return (0);
-}
-
-std::uint8_t vasubu_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                       std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VInstrInfo v_instr_info{ .lmul_num = _vt._z_lmul,
-                             .lmul_denom = _vt._n_lmul,
-                             .sew = _vt._sew,
-                             .vector_length = pVL,
-                             .vector_register_length = pVLEN,
-                             .start_element = pVSTART,
-                             .masked = !pVm,
-                             .signed_op = false };
-
-    VARITH_FIXP::FpInstrInfo fixedpoint_instr_info{ .rounding_mode = pRm, .narrowing_op = false };
-
-    auto ret = VARITH_FIXP::fixp_op_vv(VectorRegField, v_instr_info, fixedpoint_instr_info, pVd, pVs1, pVs2,
-                                       VARITH_FIXP::asubu);
-
-    return (0);
-}
-
-std::uint8_t vasubu_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                       std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                       std::uint8_t pXLEN, std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VInstrInfo v_instr_info{ .lmul_num = _vt._z_lmul,
-                             .lmul_denom = _vt._n_lmul,
-                             .sew = _vt._sew,
-                             .vector_length = pVL,
-                             .vector_register_length = pVLEN,
-                             .start_element = pVSTART,
-                             .masked = !pVm,
-                             .signed_op = false };
-
-    VARITH_FIXP::FpInstrInfo fixedpoint_instr_info{ .rounding_mode = pRm, .narrowing_op = false };
-
-    VARITH_FIXP::fixp_op_vx(VectorRegField, v_instr_info, fixedpoint_instr_info, pVd, pVs2, ScalarReg, pXLEN,
-                            VARITH_FIXP::asubu);
-    return (0);
-}
-
-std::uint8_t vasub_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
-                      std::uint8_t pVs2, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                      std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_FIXP::vasub_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVs2,
-                          pVSTART, pVm, true, pRm);
-
-    return (0);
-}
-
-std::uint8_t vasub_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                      std::uint8_t pRs1, std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL,
-                      std::uint8_t pXLEN, std::uint8_t pRm)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VInstrInfo v_instr_info{ .lmul_num = _vt._z_lmul,
-                             .lmul_denom = _vt._n_lmul,
-                             .sew = _vt._sew,
-                             .vector_length = pVL,
-                             .vector_register_length = pVLEN,
-                             .start_element = pVSTART,
-                             .masked = !pVm,
-                             .signed_op = true };
-
-    VARITH_FIXP::FpInstrInfo fixedpoint_instr_info{ .rounding_mode = pRm, .narrowing_op = false };
-
-    VARITH_FIXP::fixp_op_vx(VectorRegField, v_instr_info, fixedpoint_instr_info, pVd, pVs2, ScalarReg, pXLEN,
-                            VARITH_FIXP::asub);
-    return (0);
-}
-/* End 12.2. */
 
 /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
 std::uint8_t vsmul_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs1,
