@@ -75,44 +75,6 @@ auto SVElement::set_min_signed() const -> void
     mem_[width_in_bytes - 1] = 0x80;
 }
 
-inline SVElement u_mul_u(const SVElement &target, const SVElement &op1, const SVElement &op2)
-{
-    size_t size = target.width_in_bits_ >> 3;
-    SVElement out(target.width_in_bits_ << 1);
-    uint16_t temp1 = 0;
-    uint8_t temp2 = 0;
-    uint16_t temp3 = 0;
-
-    for (int i = 0; i < size; i++)
-    {
-        for (int j = 0; j < size; j++)
-        {
-            temp1 = op1[i] * op2[j];
-
-            temp3 = (uint16_t)out[i + j] + temp1;
-            out[i + j] = (uint8_t)temp3;
-
-            temp2 = (temp3 >> 8);
-            temp3 = (uint16_t)out[i + j + 1] + temp2;
-            out[i + j + 1] = (uint8_t)temp3;
-
-            temp1 = (temp3 >> 8);
-
-            for (int k = i + j + 2; k < size * 2; k++)
-            {
-                temp3 = out[k] + temp1;
-                out[k] = (uint8_t)temp3;
-                temp1 = (temp3 >> 8);
-                if (temp1 == 0)
-                {
-                    break;
-                }
-            }
-        }
-    }
-    return out;
-}
-
 inline size_t get_shiftamount(size_t target_width_bits, const uint8_t *rhs)
 {
     size_t numberofbits = 0;

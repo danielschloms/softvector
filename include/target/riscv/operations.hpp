@@ -1,7 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <type_traits>
@@ -53,10 +52,13 @@ using ValueResultOpMaskData = uint64_t (*)(uint64_t const /* lhs */, uint64_t co
                                            Bit const /* mask data bit */);
 using ValueResultOpSewData = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */);
 
+using UnaryOp = uint64_t (*)(uint64_t const val);
 using UnaryOpSewData = uint64_t (*)(uint64_t const /* val */, SewType const /* sew */);
 
 using BitResultOp = Bit (*)(uint64_t const /* lhs */, uint64_t const /* rhs */);
 using BitResultOpSewData = Bit (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const);
+using BitResultOpMaskData = Bit (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, Bit const);
+using BitResultOpSewMaskData = Bit (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const, Bit const);
 
 using AccumulatorOp = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */,
                                    uint64_t const /* accumulator */);
@@ -74,11 +76,15 @@ using CarryBorrowOpMaskData = Bit (*)(SewType const /* sew */, uint64_t const /*
                                       Bit const /* mask data bit */);
 
 template <typename F>
-concept ValidOperation =
-    std::is_same_v<F, ValueResultOp> or std::is_same_v<F, BitResultOp> or std::is_same_v<F, ValueResultOpSewData> or
-    std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, AccumulatorOp> or
-    std::is_same_v<F, AccumulatorOpSewData> or std::is_same_v<F, MaskOp> or std::is_same_v<F, UnaryOpSewData> or
-    std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, SatResultOp>;
+concept ValidOperation = std::is_same_v<F, ValueResultOp> or std::is_same_v<F, ValueResultOpSewData> or
+                         std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOp> or
+                         std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, BitResultOpSewMaskData> or
+                         std::is_same_v<F, AccumulatorOp> or std::is_same_v<F, AccumulatorOpSewData> or
+                         std::is_same_v<F, MaskOp> or std::is_same_v<F, UnaryOp> or std::is_same_v<F, UnaryOpSewData> or
+                         std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, SatResultOp>;
+
+template <typename F>
+concept IsMaskDataOp = std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOpMaskData>;
 
 inline constexpr uint64_t add_int(uint64_t const lhs, uint64_t const rhs)
 {
@@ -95,6 +101,9 @@ inline constexpr uint64_t rsub_int(uint64_t const lhs, uint64_t const rhs)
     return rhs - lhs;
 }
 
+// ValueResultOpMaskData
+// Regular operations that take in a mask bit (v0)
+// e.g. vmerge, vadc, vsbc
 inline constexpr uint64_t adc_int(uint64_t const lhs, uint64_t const rhs, Bit carry)
 {
     return lhs + rhs + carry;
@@ -105,8 +114,12 @@ inline constexpr uint64_t sbc_int(uint64_t const lhs, uint64_t const rhs, Bit bo
     return lhs - rhs - borrow;
 }
 
+inline constexpr uint64_t merge(uint64_t const lhs, uint64_t const rhs, Bit choice)
+{
+    return choice ? rhs : lhs;
+}
 
-inline constexpr Bit madc_carry_in(SewType const sew, uint64_t const lhs, uint64_t const rhs, Bit const carry)
+inline constexpr Bit madc(uint64_t const lhs, uint64_t const rhs, SewType const sew, Bit const carry)
 {
     auto const result = lhs + rhs + carry;
 
@@ -120,37 +133,9 @@ inline constexpr Bit madc_carry_in(SewType const sew, uint64_t const lhs, uint64
     return (msb_lhs && msb_rhs) || (msb_lhs && !msb_rhs && !msb_result) || (!msb_lhs && msb_rhs && !msb_result);
 }
 
-inline constexpr Bit madc_no_carry_in(SewType const sew, uint64_t const lhs, uint64_t const rhs)
-{
-    auto const result = lhs + rhs;
-
-    auto const msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto const msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto const msb_result = msb_is_set(result, std::to_underlying(sew));
-
-    // Carry out if:
-    // - MSB of both operands are set
-    // - MSB of one operand is set, but result MSB is not set
-    return (msb_lhs && msb_rhs) || (msb_lhs && !msb_rhs && !msb_result) || (!msb_lhs && msb_rhs && !msb_result);
-}
-
-inline constexpr Bit msbc_borrow_in(SewType const sew, uint64_t const lhs, uint64_t const rhs, Bit const borrow)
+inline constexpr Bit msbc(uint64_t const lhs, uint64_t const rhs, SewType const sew, Bit const borrow)
 {
     auto const result = lhs - rhs - borrow;
-
-    auto const msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto const msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto const msb_result = msb_is_set(result, std::to_underlying(sew));
-
-    // Borrow out if:
-    // - MSB of rhs is set and MSB of lhs is not set
-    // - MSB of result is set and MSB of lhs = MSB of rhs
-    return (!msb_lhs && msb_rhs) || (msb_lhs && msb_rhs && msb_result) || (!msb_lhs && !msb_rhs && msb_result);
-}
-
-inline constexpr Bit msbc_no_borrow_in(SewType const sew, uint64_t const lhs, uint64_t const rhs)
-{
-    auto const result = lhs - rhs;
 
     auto const msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
     auto const msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
