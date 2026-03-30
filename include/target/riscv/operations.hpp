@@ -26,6 +26,14 @@ enum class SewType : uint8_t
     sew_64 = 64
 };
 
+enum class FPRoundingMode : uint8_t
+{
+    rnu = 0,
+    rne = 1,
+    rdn = 2,
+    rod = 3
+};
+
 struct SatResult
 {
     uint64_t result;
@@ -68,20 +76,21 @@ using AccumulatorOpSewData = uint64_t (*)(uint64_t const /* lhs */, uint64_t con
 using MaskOp = Bit (*)(Bit const /* lhs */, Bit const /* rhs */);
 
 using SatResultOp = SatResult (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */);
-using AveragingFpOp = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */, SewType const /* sew */,
-                                   uint8_t const /* rounding_mode */);
+using AveragingFpOp = uint64_t (*)(uint64_t const /* lhs */, uint64_t const /* rhs */,
+                                   FPRoundingMode const /* rounding_mode */);
 
 using CarryBorrowOp = Bit (*)(SewType const /* sew */, uint64_t const /* lhs */, uint64_t const /* rhs */);
 using CarryBorrowOpMaskData = Bit (*)(SewType const /* sew */, uint64_t const /* lhs */, uint64_t const /* rhs */,
                                       Bit const /* mask data bit */);
 
 template <typename F>
-concept ValidOperation = std::is_same_v<F, ValueResultOp> or std::is_same_v<F, ValueResultOpSewData> or
-                         std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOp> or
-                         std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, BitResultOpSewMaskData> or
-                         std::is_same_v<F, AccumulatorOp> or std::is_same_v<F, AccumulatorOpSewData> or
-                         std::is_same_v<F, MaskOp> or std::is_same_v<F, UnaryOp> or std::is_same_v<F, UnaryOpSewData> or
-                         std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, SatResultOp>;
+concept ValidOperation =
+    std::is_same_v<F, ValueResultOp> or std::is_same_v<F, ValueResultOpSewData> or
+    std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOp> or
+    std::is_same_v<F, BitResultOpSewData> or std::is_same_v<F, BitResultOpSewMaskData> or
+    std::is_same_v<F, AccumulatorOp> or std::is_same_v<F, AccumulatorOpSewData> or std::is_same_v<F, MaskOp> or
+    std::is_same_v<F, UnaryOp> or std::is_same_v<F, UnaryOpSewData> or std::is_same_v<F, BitResultOpSewData> or
+    std::is_same_v<F, SatResultOp> or std::is_same_v<F, AveragingFpOp>;
 
 template <typename F>
 concept IsMaskDataOp = std::is_same_v<F, ValueResultOpMaskData> or std::is_same_v<F, BitResultOpMaskData>;
@@ -454,38 +463,155 @@ inline constexpr SatResult ssubu(uint64_t const lhs, uint64_t const rhs, SewType
 };
 
 /* 12.2. Vector Single-Width Averaging Add and Subtract */
-//
-// inline FixpointFunction aadd = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
-//                                   uint8_t rounding_mode) -> bool {
-//     static constexpr auto rounding_bits = 1;
-//     auto res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
-//     vd = roundoff_signed(res, rounding_bits, rounding_mode);
-//     return false;
-// };
-//
-// inline FixpointFunction aaddu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
-//                                    uint8_t rounding_mode) -> bool {
-//     static constexpr auto rounding_bits = 1;
-//     auto res = lhs + rhs;
-//     vd = roundoff_unsigned(res, rounding_bits, rounding_mode);
-//     return false;
-// };
-//
-// inline FixpointFunction asub = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
-//                                   uint8_t rounding_mode) -> bool {
-//     static constexpr auto rounding_bits = 1;
-//     auto res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
-//     vd = roundoff_signed(res, rounding_bits, rounding_mode);
-//     return false;
-// };
-//
-// inline FixpointFunction asubu = [](uint64_t lhs, uint64_t rhs, SVElement &vd, size_t sew,
-//                                    uint8_t rounding_mode) -> bool {
-//     static constexpr auto rounding_bits = 1;
-//     auto res = lhs - rhs;
-//     vd = roundoff_unsigned(res, rounding_bits, rounding_mode);
-//     return false;
-// };
+
+inline constexpr uint64_t roundoff_unsigned(uint64_t const value, uint8_t const rounding_bits,
+                                            FPRoundingMode const rounding_mode)
+{
+    // Only lower 2 bits are used
+    // rounding_mode &= 0b11;
+
+    if (rounding_bits == 0)
+    {
+        return value;
+    }
+    auto rounding_increment = false;
+    auto range_zero_check = false;
+    auto bitmask = 0U;
+
+    switch (rounding_mode)
+    {
+    case FPRoundingMode::rnu:
+    {
+        rounding_increment = static_cast<bool>(value & (1U << (rounding_bits - 1)));
+        break;
+    }
+    case FPRoundingMode::rne:
+    {
+        // Needs check v[d-2:0] != 0
+        if (rounding_bits >= 2)
+        {
+            // Bitmask for v[d-2 : 0]
+            bitmask = (1 << (rounding_bits - 1)) - 1;
+            range_zero_check = value & bitmask;
+        }
+        // v[d-1] & (v[d-2:0] != 0 | v[d])
+        bool condition_1 = (value & (1 << (rounding_bits - 1)));
+        bool condition_2 = static_cast<bool>(range_zero_check || (value & (1 << rounding_bits)));
+        rounding_increment = condition_1 && condition_2;
+        break;
+    }
+    case FPRoundingMode::rdn:
+    {
+        // rounding_increment = 0;
+        break;
+    }
+    case FPRoundingMode::rod:
+    {
+        // Bitmask for v[d-1 : 0]
+        bitmask = (1 << (rounding_bits)) - 1;
+        // Needs check v[d-1:0] != 0
+        range_zero_check = value & bitmask;
+        rounding_increment = !static_cast<bool>(value & (1 << rounding_bits)) && range_zero_check;
+        break;
+    }
+    default:
+    {
+        // Illegal!
+        break;
+    }
+    }
+
+    return (value >> rounding_bits) + rounding_increment;
+}
+
+inline constexpr uint64_t roundoff_signed(int64_t const value, uint8_t const rounding_bits,
+                                          FPRoundingMode const rounding_mode)
+{
+    if (rounding_bits == 0)
+    {
+        return value;
+    }
+
+    // Only lower 2 bits are used
+    // rounding_mode &= 0b11;
+    auto range_zero_check = false;
+    int64_t bitmask = 0;
+
+    auto rounding_increment = false;
+    switch (rounding_mode)
+    {
+    case FPRoundingMode::rnu:
+    {
+        rounding_increment = static_cast<bool>(value & (1 << (rounding_bits - 1)));
+        break;
+    }
+    case FPRoundingMode::rne:
+    {
+        // Needs check v[d-2:0] != 0
+        if (rounding_bits >= 2)
+        {
+            // Bitmask for v[d-2 : 0]
+            bitmask = (1 << (rounding_bits - 1)) - 1;
+            range_zero_check = value & bitmask;
+        }
+        // v[d-1] & (v[d-2:0] != 0 | v[d])
+        bool condition_1 = (value & (1 << (rounding_bits - 1)));
+        bool condition_2 = static_cast<bool>(range_zero_check || (value & (1 << rounding_bits)));
+        rounding_increment = condition_1 && condition_2;
+        break;
+    }
+    case FPRoundingMode::rdn:
+    {
+        // rounding_increment = 0;
+        break;
+    }
+    case FPRoundingMode::rod:
+    {
+        // Bitmask for v[d-1 : 0]
+        bitmask = (1 << (rounding_bits)) - 1;
+        // Needs check v[d-1:0] != 0
+        range_zero_check = value & bitmask;
+        rounding_increment = !static_cast<bool>(value & (1 << rounding_bits)) && range_zero_check;
+        break;
+    }
+    default:
+    {
+        // Illegal!
+        break;
+    }
+    }
+
+    return (value >> rounding_bits) + rounding_increment;
+}
+
+inline constexpr uint64_t aadd(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
+{
+    static constexpr auto rounding_bits = 1;
+    auto res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
+    return roundoff_signed(res, rounding_bits, rounding_mode);
+};
+
+inline constexpr uint64_t aaddu(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
+{
+    static constexpr auto rounding_bits = 1;
+    auto res = lhs + rhs;
+    return roundoff_unsigned(res, rounding_bits, rounding_mode);
+};
+
+inline constexpr uint64_t asub(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
+{
+    static constexpr auto rounding_bits = 1;
+    auto res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
+    return roundoff_signed(res, rounding_bits, rounding_mode);
+};
+
+inline constexpr uint64_t asubu(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
+{
+    static constexpr auto rounding_bits = 1;
+    auto res = lhs - rhs;
+    return roundoff_unsigned(res, rounding_bits, rounding_mode);
+};
+
 //
 // /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
 //

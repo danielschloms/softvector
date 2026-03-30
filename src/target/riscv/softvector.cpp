@@ -33,6 +33,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <type_traits>
 
 #include "softvector.h"
@@ -41,7 +42,6 @@
 
 #include "base/base.hpp"
 #include "lsu/lsu.hpp"
-#include "arithmetic/integer.hpp"
 #include "arithmetic/floatingpoint.hpp"
 #include "arithmetic/fixedpoint.hpp"
 #include "misc/mask.hpp"
@@ -921,49 +921,51 @@ VX_OP_MASKED_ONLY(vmerge_vx, merge, SignType::Unsigned)
 VI_OP_MASKED_ONLY(vmerge_vi, merge, SignType::Unsigned, ImmExtensionType::SignExtend)
 
 // 11.16. Vector Integer Move Instructions
-std::uint8_t vmv_vv(void *pV, std::uint16_t pVTYPE, std::uint8_t pVd, std::uint8_t pVs1, std::uint16_t pVSTART,
-                    std::uint16_t pVLEN, std::uint16_t pVL)
+uint8_t vmv_vv(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
+               uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
+    auto const sew_bytes = decode_sew(vtype) >> 3;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    // Always unmasked, so we can just memcopy all the data
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
 
-    VARITH_INT::mv_vv(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs1, pVSTART);
+    // Add vstart in bytes to pointers, so we don't have to do it afterwards
+    auto *const vd_ptr = vector_elements + (vd * (vlen >> 3)) + (vstart * sew_bytes);
+    auto *const vs1_ptr = vector_elements + (vs1 * (vlen >> 3)) + (vstart * sew_bytes);
 
-    return (0);
+    // TODO: is memcpy always correct?
+    std::memcpy(vd_ptr, vs1_ptr, (vl - vstart) * sew_bytes);
+    return 0;
 }
 
-std::uint8_t vmv_vi(void *pV, std::uint16_t pVTYPE, std::uint8_t pVd, std::uint8_t pVimm, std::uint16_t pVSTART,
-                    std::uint16_t pVLEN, std::uint16_t pVL)
+uint8_t vmv_vi(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const imm,
+               uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VARITH_INT::mv_vi(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVimm, pVSTART);
-
-    return (0);
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const scalar = sign_extend_immediate(imm);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+    auto *const vd_ptr = vector_elements + (vd * (vlen >> 3));
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        std::memcpy(vd_ptr + (i * sew_bytes), &scalar, sew_bytes);
+    }
+    return 0;
 }
 
-std::uint8_t vmv_vx(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVd, std::uint8_t pRs1,
-                    std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL, std::uint8_t pXLEN)
+uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
+               uint8_t const rs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRs1 * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRs1 * 8]);
-
-    VARITH_INT::mv_vx(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, ScalarReg, pVSTART,
-                      pXLEN / 8);
-
-    return (0);
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const scalar = get_scalar<SignType::Signed>(scalar_field, sew, xlen, rs1);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+    auto *const vd_ptr = vector_elements + (vd * (vlen >> 3));
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        std::memcpy(vd_ptr + (i * sew_bytes), &scalar, sew_bytes);
+    }
+    return 0;
 }
 
 // 12. Vector Fixed-Point Arithmetic Instructions
@@ -1009,6 +1011,9 @@ SAT_FP_VV(vssub_vv, ssub, SignType::Signed)
 SAT_FP_VX(vssub_vx, ssub, SignType::Signed)
 
 // 12.2. Vector Single-Width Averaging Add and Subtract
+
+
+// 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
 
 // 13. Vector Floating-Point Instructions
 // 13.2. Vector Single-Width Floating-Point Add/Subtract Instructions
