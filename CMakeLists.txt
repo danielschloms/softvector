@@ -24,7 +24,6 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/vpu/softvector-register.cpp
 	src/target/${TARGET_PLATFORM_NAME}/base/base.cpp
 	src/target/${TARGET_PLATFORM_NAME}/lsu/lsu.cpp
-	src/target/${TARGET_PLATFORM_NAME}/arithmetic/fixedpoint.cpp
 	src/target/${TARGET_PLATFORM_NAME}/arithmetic/floatingpoint.cpp
 	src/target/${TARGET_PLATFORM_NAME}/arithmetic/softfloat-extension.cpp
 	src/target/${TARGET_PLATFORM_NAME}/misc/mask.cpp

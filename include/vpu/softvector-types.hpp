@@ -70,33 +70,6 @@ class SVRegister
     }
 
     //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked assignment. Updates bits in main memory with input register only where mask register is true
-    void m_assign(const SVRegister &in,  //!< Input
-                  const SVRegister &vm,  //!< Mask register
-                  size_t start_index = 0 //!< Start (bit) index
-    );
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Produce carry-out for right-hand-side SVector. If mask is false, use carry-in.
-    /// \return A SVRegister, which each bit holds the carry-out of the relevant addition
-    SVRegister &m_madc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Produce carry-out for right-hand-side signed 64 bit value. If mask is false, use carry-in.
-    /// \return A SVRegister, which each bit holds the carry-out of the relevant addition
-    SVRegister &m_madc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Produce borrow-out for right-hand-side SVector. If mask is false, use borrow-in.
-    /// \return A SVRegister, which each bit holds the borrow-out of the relevant subtraction
-    SVRegister &m_msbc(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Produce borrow-out for right-hand-side signed 64 bit value. If mask is false, use borrow-in.
-    /// \return A SVRegister, which each bit holds the borrow-out of the relevant subtraction
-    SVRegister &m_msbc(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-
-    //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Overloaded array subscript to return the indexed byte of memory as reference
     uint8_t &operator[](const size_t index) const { return ((mem_[index])); }
 
@@ -455,19 +428,6 @@ class SVector
     /// element index 0
     SVRegister operator>=(const int64_t rhs) const;
 
-    // masked (self assign) operations
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked assignment. Updates elements only where mask register's respective bit is true. All elements
-    /// before start_index are not updated
-    void m_assign(const SVector &vin,    //!< Input Vector
-                  const SVRegister &vm,  //!< Mask register
-                  bool mask,             //!< Mask flag
-                  size_t start_index = 0 //!< Start (bit) index
-    );
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked assign/copy/move for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    void m_assign(const int64_t rhs, const SVRegister &vm, bool mask, size_t start_index = 0);
-
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Slide the Vector elements up by right-hand-side unsigned 64 bit value. rhs is zero extended to element
     /// size
@@ -477,153 +437,6 @@ class SVector
     /// size
     SVector &m_slidedown(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, size_t vlmax,
                          size_t start_index = 0);
-
-    // 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Sum with carry for right-hand-side SVector.
-    SVector &m_adc(const SVector &opL, const SVector &rhs, const SVRegister &vm, size_t start_index = 0);
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Sum with carry for right-hand-side signed 64 bit value.
-    SVector &m_adc(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Difference with borrow for right-hand-side SVector.
-    SVector &m_sbc(const SVector &opL, const SVector &rhs, const SVRegister &vm, size_t start_index = 0);
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Difference with borrow for right-hand-side signed 64 bit value.
-    SVector &m_sbc(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
-    /* End 11.4. */
-
-    /* */
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Vector merge for right-hand-side vector.
-    SVector &m_merge(const SVector &opL, const SVector &rhs, const SVRegister &vm, size_t start_index = 0);
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Vector merge for right-hand-side 64 bit value.
-    SVector &m_merge(const SVector &opL, const int64_t rhs, const SVRegister &vm, size_t start_index = 0);
-    /* End 11.15. */
-
-    /* 12. Vector Fixed-Point Arithmetic Instructions */
-    /* 12.1. Vector Single-Width Saturating Add and Subtract */
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating unsigned ADD for right-hand-side SVector
-    SVector &m_sat_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating unsigned ADD for right-hand-side signed 64 bit value.
-    SVector &m_sat_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, bool *sat,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating ADD for right-hand-side SVector
-    SVector &m_sat_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_sat_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, bool *sat,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating unsigned SUB for right-hand-side SVector
-    SVector &m_sat_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating unsigned SUB for right-hand-side signed 64 bit value.
-    SVector &m_sat_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, bool *sat,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating SUB for right-hand-side SVector
-    SVector &m_sat_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, bool *sat,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked saturating SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_sat_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, bool *sat,
-                       size_t start_index = 0);
-    /* End 12.1. */
-
-    /* 12.2. Vector Single-Width Averaging Add and Subtract */
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging unsigned ADD for right-hand-side SVector
-    SVector &m_avg_addu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging unsigned ADD for right-hand-side signed 64 bit value.
-    SVector &m_avg_addu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging ADD for right-hand-side SVector
-    SVector &m_avg_add(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging ADD for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_avg_add(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging unsigned SUB for right-hand-side SVector
-    SVector &m_avg_subu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging unsigned SUB for right-hand-side signed 64 bit value.
-    SVector &m_avg_subu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                        size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging SUB for right-hand-side SVector
-    SVector &m_avg_sub(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                       size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked averaging SUB for right-hand-side signed 64 bit value. rhs is sign extended to element size
-    SVector &m_avg_sub(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask, uint8_t rounding_mode,
-                       size_t start_index = 0);
-    /* End 12.2. */
-
-    /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked fractional MUL with rounding and saturation for right-hand-side SVector
-    SVector &m_round_sat_mul(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
-                             uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked fractional MUL with rounding and saturation for right-hand-side signed 64 bit value. rhs is sign
-    /// extended to element size
-    SVector &m_round_sat_mul(const SVector &opL, const int64_t rhs, const SVRegister &vm, bool mask,
-                             uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    /* End 12.3. */
-
-    /* 12.4. Vector Single-Width Scaling Shift Instructions */
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked scaling SRL for right-hand-side SVector
-    SVector &m_scaling_srl(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
-                           uint8_t rounding_mode, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked scaling SRL for right-hand-side signed 64 bit value.
-    SVector &m_scaling_srl(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
-                           uint8_t rounding_mode, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked scaling SRA for right-hand-side SVector
-    SVector &m_scaling_sra(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
-                           uint8_t rounding_mode, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked scaling SRA for right-hand-side signed 64 bit value.
-    SVector &m_scaling_sra(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
-                           uint8_t rounding_mode, size_t start_index = 0);
-    /* End 12.4. */
-
-    /* 12.5. Vector Narrowing Fixed-Point Clip Instructions */
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked unsigned narrowing CLIP for right-hand-side SVector
-    SVector &m_narrowing_clipu(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
-                               uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked unsigned narrowing CLIP for right-hand-side unsigned 64 bit value.
-    SVector &m_narrowing_clipu(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
-                               uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked signed narrowing CLIP for right-hand-side SVector
-    SVector &m_narrowing_clip(const SVector &opL, const SVector &rhs, const SVRegister &vm, bool mask,
-                              uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Masked signed narrowing CLIP for right-hand-side unsigned 64 bit value.
-    SVector &m_narrowing_clip(const SVector &opL, const uint64_t rhs, const SVRegister &vm, bool mask,
-                              uint8_t rounding_mode, bool *sat, size_t start_index = 0);
-    /* End 12.5. */
-
-    /* End 12. */
 
     /* 16.4. Vector Register Gather Instructions */
     //////////////////////////////////////////////////////////////////////////////////////
