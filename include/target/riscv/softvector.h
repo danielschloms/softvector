@@ -1853,15 +1853,15 @@ extern "C"
                      uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
     /* End 15.3. */
     /* 15.4. vmsbf.m set-before-first mask bit */
-    uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+    uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                     uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
     /* End 15.4. */
     /* 15.5. vmsif.m set-including-first mask bit */
-    uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+    uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                     uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
     /* End 15.5. */
     /* 15.6. vmsof.m set-only-first mask bit */
-    uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+    uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                     uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
     /* End 15.6. */
     /* 15.8. Vector Iota Instruction */

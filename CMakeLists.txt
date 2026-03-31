@@ -25,7 +25,6 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/target/${TARGET_PLATFORM_NAME}/base/base.cpp
 	src/target/${TARGET_PLATFORM_NAME}/lsu/lsu.cpp
 	src/target/${TARGET_PLATFORM_NAME}/arithmetic/softfloat-extension.cpp
-	src/target/${TARGET_PLATFORM_NAME}/misc/mask.cpp
 	src/target/${TARGET_PLATFORM_NAME}/misc/permutation.cpp
 	${TARGET_SRCS}
 )

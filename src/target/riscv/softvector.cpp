@@ -28,6 +28,7 @@
  *     -> E.g. Saturating add / sub
  */
 
+#include <bit>
 #include <cassert>
 #include <cstdint>
 #include <cstddef>
@@ -42,7 +43,6 @@
 
 #include "base/base.hpp"
 #include "lsu/lsu.hpp"
-#include "misc/mask.hpp"
 #include "misc/permutation.hpp"
 
 #ifdef ETISS_SOFTFLOAT
@@ -1382,10 +1382,101 @@ VV_OP(vmnor_mm, nor_mask, SignType::Unsigned)
 VV_OP(vmorn_mm, orn_mask, SignType::Unsigned)
 VV_OP(vmxnor_mm, xnor_mask, SignType::Unsigned)
 
+// 15.2. Vector count population in mask vcpop.m
+uint8_t vcpop_m(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                uint8_t masked_instruction_bit, uint8_t const rd, uint8_t const vs2, uint16_t const vstart,
+                uint16_t const vlen, uint16_t const vl, uint8_t const xlen)
+{
+    // vstart must be 0
+    uint64_t const n_mask_bytes = vl >> 3;
+    auto const n_trailing_elements = vl & 0b111;
+    auto const vs2_base = vs2 * (vlen >> 3);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+
+    uint64_t sum = 0;
+    // Bytewise computation
+    for (size_t i = 0; i < n_mask_bytes; ++i)
+    {
+        uint8_t mask = (-masked_instruction_bit) | vector_elements[i];
+        sum += std::popcount(static_cast<uint8_t>(vector_elements[vs2_base + i] & mask));
+    }
+
+    // Trailing elements
+    if (n_trailing_elements != 0)
+    {
+        uint8_t mask = ((-masked_instruction_bit) | vector_elements[n_mask_bytes]) & ((1 << n_trailing_elements) - 1);
+        sum += std::popcount(static_cast<uint8_t>(vector_elements[vs2_base + n_mask_bytes] & mask));
+    }
+
+    switch (xlen)
+    {
+    case 32:
+        static_cast<uint32_t *const>(scalar_field)[rd] = sum;
+        break;
+    case 64:
+        static_cast<uint64_t *const>(scalar_field)[rd] = sum;
+        break;
+    default:
+        // Illegal
+        break;
+    }
+
+    return 0;
+}
+
+// 15.3. vfirst find-first-set mask bit
+uint8_t vfirst_m(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                 uint8_t masked_instruction_bit, uint8_t const rd, uint8_t const vs2, uint16_t const vstart,
+                 uint16_t const vlen, uint16_t const vl, uint8_t const xlen)
+{
+    // vstart must be 0
+    uint64_t const n_mask_bytes = vl >> 3;
+    auto const n_trailing_elements = vl & 0b111;
+    auto const vs2_base = vs2 * (vlen >> 3);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+
+    size_t i = 0;
+    uint64_t running_index = 0;
+    auto found = false;
+
+    // Bytewise computation
+    for (; i < n_mask_bytes && !found; ++i)
+    {
+        uint8_t mask = (-masked_instruction_bit) | vector_elements[i];
+        auto const idx = std::countr_zero(static_cast<uint8_t>(vector_elements[vs2_base + i] & mask));
+        running_index += idx;
+        found = idx < 8;
+    }
+
+    // Trailing elements
+    if ((n_trailing_elements != 0) && !found)
+    {
+        uint8_t mask = ((-masked_instruction_bit) | vector_elements[n_mask_bytes]) & ((1 << n_trailing_elements) - 1);
+        auto const idx = std::countr_zero(static_cast<uint8_t>(vector_elements[vs2_base + n_mask_bytes] & mask));
+        running_index += idx;
+        found = idx < 8;
+    }
+
+    auto const final_index = (!found * -1_i64) | running_index;
+
+    switch (xlen)
+    {
+    case 32:
+        static_cast<uint32_t *const>(scalar_field)[rd] = final_index;
+        break;
+    case 64:
+        static_cast<uint64_t *const>(scalar_field)[rd] = final_index;
+        break;
+    default:
+        // Illegal
+        break;
+    }
+
+    return 0;
+}
+
 // 15.4. vmsbf.m set-before-first mask bit
-// 15.5. vmsif.m set-including-first mask bit
-// 15.6. vmsof.m set-only-first mask bit
-uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                 uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
     if (is_masked_instruction(mask_bit))
@@ -1399,7 +1490,8 @@ uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const ma
     return 0;
 }
 
-uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+// 15.5. vmsif.m set-including-first mask bit
+uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                 uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
     if (is_masked_instruction(mask_bit))
@@ -1413,7 +1505,8 @@ uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const ma
     return 0;
 }
 
-uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, int8_t const vd,
+// 15.6. vmsof.m set-only-first mask bit
+uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
                 uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
     if (is_masked_instruction(mask_bit))
@@ -1423,6 +1516,55 @@ uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const ma
     else
     {
         sxf_iterate<SxfType::Sof, MaskType::Unmasked>(vector_field, vtype, mask_bit, vd, vs2, vstart, vlen, vl);
+    }
+    return 0;
+}
+
+// 15.7. does not refer to an instruction
+
+// 15.8. Vector Iota Instruction
+uint8_t viota_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
+                uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+{
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const vd_base = vd * (vlen >> 3);
+    auto const vs2_base = vs2 * (vlen >> 3);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+
+    uint64_t accumulator = 0;
+
+    // vstart must be 0
+    for (size_t i = 0; i < vl; ++i)
+    {
+        auto const element_mask_bit = (vector_elements[i >> 3] >> (i & 0b111)) & 1;
+        if (!is_masked_instruction(mask_bit) || !is_masked_element(element_mask_bit))
+        {
+            std::memcpy(vector_elements + vd_base + (i * sew_bytes), &accumulator, sew_bytes);
+            auto const vs2_bit = (vector_elements[vs2_base + (i >> 3)] >> (i & 0b111)) & 1;
+            accumulator += vs2_bit;
+        }
+    }
+
+    return 0;
+}
+
+// 15.9. Vector Element Index Instruction
+uint8_t vid_v(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
+              uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+{
+    auto const sew = decode_sew(vtype);
+    auto const sew_bytes = sew >> 3;
+    auto const vd_base = vd * (vlen >> 3);
+    auto *const vector_elements = static_cast<uint8_t *const>(vector_field);
+
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        auto const element_mask_bit = (vector_elements[i >> 3] >> (i & 0b111)) & 1;
+        if (!is_masked_instruction(mask_bit) || !is_masked_element(element_mask_bit))
+        {
+            std::memcpy(vector_elements + vd_base + (i * sew_bytes), &i, sew_bytes);
+        }
     }
     return 0;
 }
@@ -3570,79 +3712,6 @@ std::uint8_t vfslide1down_vf(void *pV, void *pF, std::uint16_t pVTYPE, std::uint
 
     return (0);
 }
-
-/* 15.2. Vector count population in mask vcpop.m */
-std::uint8_t vcpop_m(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pRd, std::uint8_t pVs2,
-                     std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL, std::uint8_t pXLEN)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRd * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRd * 8]);
-
-    VMASK::mask_op_to_scalar(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVs2, ScalarReg,
-                             pVSTART, pVm, pXLEN / 8, /* is_vcpop = */ true);
-
-    return (0);
-}
-/* End 15.2. */
-/* 15.3. vfirst find-first-set mask bit */
-std::uint8_t vfirst_m(void *pV, void *pR, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pRd, std::uint8_t pVs2,
-                      std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL, std::uint8_t pXLEN)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *ScalarReg;
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-    if (pXLEN <= 32)
-        ScalarReg = &((static_cast<std::uint8_t *>(pR))[pRd * 4]);
-    else
-        ScalarReg = &(static_cast<std::uint8_t *>(pR)[pRd * 8]);
-
-    VMASK::mask_op_to_scalar(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVs2, ScalarReg,
-                             pVSTART, pVm, pXLEN / 8, /* is_vcpop = */ false);
-
-    return (0);
-}
-
-/* 15.8. Vector Iota Instruction */
-std::uint8_t viota_m(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint8_t pVs2,
-                     std::uint16_t pVSTART, std::uint16_t pVLEN, std::uint16_t pVL)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VMASK::mask_viota(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVs2, pVSTART, pVm);
-
-    return 0;
-}
-/* End 15.8. */
-/* 15.9. Vector Element Index Instruction */
-std::uint8_t vid_v(void *pV, std::uint16_t pVTYPE, std::uint8_t pVm, std::uint8_t pVd, std::uint16_t pVSTART,
-                   std::uint16_t pVLEN, std::uint16_t pVL)
-{
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint8_t *VectorRegField;
-
-    VectorRegField = static_cast<std::uint8_t *>(pV);
-
-    VMASK::mask_vid(VectorRegField, _vt._z_lmul, _vt._n_lmul, _vt._sew / 8, pVL, pVLEN / 8, pVd, pVSTART, pVm);
-
-    return 0;
-}
-/* End 15.9. */
-/* End 15. */
-/* 16. Vector Permutation Instructions */
-/* 16.1. Integer Scalar Move Instructions */
-/* End 16.1. */
 
 /* 16.2. Floating-Point Scalar Move Instructions */
 uint8_t vfmv_f_s(void *pV, void *pF, uint16_t pVTYPE, uint8_t pRd, uint8_t pVs2, uint16_t pVSTART, uint16_t pVLEN,
