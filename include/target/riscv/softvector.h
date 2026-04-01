@@ -1374,20 +1374,20 @@ extern "C"
                    uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
                    uint8_t pXLEN);
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Move first element (0) of a vector register A to scalar fp register F := SEW>XLEN ? A[0] : sext(A[0])
-    /// \return 0 if no exception triggered, else 1
-    uint8_t vfmv_fs(void *pV, //!<[in] Vector register field as local memory
-                    void *pF, //!<[inout] Floating point register field
-                    uint16_t pVTYPE, uint8_t pRd, uint8_t pVs2, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
+    // //////////////////////////////////////////////////////////////////////////////////////
+    // /// \brief Move first element (0) of a vector register A to scalar fp register F := SEW>XLEN ? A[0] : sext(A[0])
+    // /// \return 0 if no exception triggered, else 1
+    // uint8_t vfmv_fs(void *pV, //!<[in] Vector register field as local memory
+    //                 void *pF, //!<[inout] Floating point register field
+    //                 uint16_t pVTYPE, uint8_t pRd, uint8_t pVs2, uint16_t pVLEN, uint16_t pVL, uint8_t pXLEN);
 
-    //////////////////////////////////////////////////////////////////////////////////////
-    /// \brief Move scalar fp register to first element (0) of a vector register A[0] := SEW<XLEN ? F : sext(F)
-    /// \return 0 if no exception triggered, else 1
-    uint8_t vfmv_sf(void *pV, //!<[in] Vector register field as local memory
-                    void *pF, //!<[inout] Floating point register field
-                    uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
-                    uint8_t pXLEN);
+    // //////////////////////////////////////////////////////////////////////////////////////
+    // /// \brief Move scalar fp register to first element (0) of a vector register A[0] := SEW<XLEN ? F : sext(F)
+    // /// \return 0 if no exception triggered, else 1
+    // uint8_t vfmv_sf(void *pV, //!<[in] Vector register field as local memory
+    //                 void *pF, //!<[inout] Floating point register field
+    //                 uint16_t pVTYPE, uint8_t pVd, uint8_t pRs1, uint16_t pVSTART, uint16_t pVLEN, uint16_t pVL,
+    //                 uint8_t pXLEN);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief vslideup.vx vd, vs2, rs1, vm        # vd[i+rs1] = vs2[i]

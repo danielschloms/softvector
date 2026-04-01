@@ -35,7 +35,7 @@ int8_t VTYPE::decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, ui
     switch (bits_LMUL_t(_flmul))
     {
     case BITS_LMUL::MF8:
-        *z_lmul = 8;
+        *n_lmul = 8;
         break;
     case BITS_LMUL::MF4:
         *n_lmul = 4;
