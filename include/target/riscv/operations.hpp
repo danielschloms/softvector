@@ -1011,13 +1011,13 @@ inline constexpr uint64_t madd_float(uint64_t const lhs, uint64_t const rhs, uin
     switch (std::to_underlying(sew))
     {
     case 16:
-        return f16_mulAdd(f16(accumulator), f16(rhs), f16(lhs)).v;
+        return f16_mulAdd(f16(accumulator), f16(lhs), f16(rhs)).v;
         break;
     case 32:
-        return f32_mulAdd(f32(accumulator), f32(rhs), f32(lhs)).v;
+        return f32_mulAdd(f32(accumulator), f32(lhs), f32(rhs)).v;
         break;
     case 64:
-        return f64_mulAdd(f64(accumulator), f64(rhs), f64(lhs)).v;
+        return f64_mulAdd(f64(accumulator), f64(lhs), f64(rhs)).v;
         break;
     default:
         // Illegal
@@ -1032,13 +1032,13 @@ inline constexpr uint64_t nmadd_float(uint64_t const lhs, uint64_t const rhs, ui
     switch (std::to_underlying(sew))
     {
     case 16:
-        return f16_mulAdd(f16(accumulator), f16_neg(f16(rhs)), f16_neg(f16(lhs))).v;
+        return f16_mulAdd(f16(accumulator), f16_neg(f16(lhs)), f16_neg(f16(rhs))).v;
         break;
     case 32:
-        return f32_mulAdd(f32(accumulator), f32_neg(f32(rhs)), f32_neg(f32(lhs))).v;
+        return f32_mulAdd(f32(accumulator), f32_neg(f32(lhs)), f32_neg(f32(rhs))).v;
         break;
     case 64:
-        return f64_mulAdd(f64(accumulator), f64_neg(f64(rhs)), f64_neg(f64(lhs))).v;
+        return f64_mulAdd(f64(accumulator), f64_neg(f64(lhs)), f64_neg(f64(rhs))).v;
         break;
     default:
         // Illegal
@@ -1053,13 +1053,13 @@ inline constexpr uint64_t msub_float(uint64_t const lhs, uint64_t const rhs, uin
     switch (std::to_underlying(sew))
     {
     case 16:
-        return f16_mulAdd(f16(accumulator), f16(rhs), f16_neg(f16(lhs))).v;
+        return f16_mulAdd(f16(accumulator), f16(lhs), f16_neg(f16(rhs))).v;
         break;
     case 32:
-        return f32_mulAdd(f32(accumulator), f32(rhs), f32_neg(f32(lhs))).v;
+        return f32_mulAdd(f32(accumulator), f32(lhs), f32_neg(f32(rhs))).v;
         break;
     case 64:
-        return f64_mulAdd(f64(accumulator), f64(rhs), f64_neg(f64(lhs))).v;
+        return f64_mulAdd(f64(accumulator), f64(lhs), f64_neg(f64(rhs))).v;
         break;
     default:
         // Illegal
@@ -1074,13 +1074,13 @@ inline constexpr uint64_t nmsub_float(uint64_t const lhs, uint64_t const rhs, ui
     switch (std::to_underlying(sew))
     {
     case 16:
-        return f16_mulAdd(f16(accumulator), f16_neg(f16(rhs)), f16(lhs)).v;
+        return f16_mulAdd(f16(accumulator), f16_neg(f16(lhs)), f16(rhs)).v;
         break;
     case 32:
-        return f32_mulAdd(f32(accumulator), f32_neg(f32(rhs)), f32(lhs)).v;
+        return f32_mulAdd(f32(accumulator), f32_neg(f32(lhs)), f32(rhs)).v;
         break;
     case 64:
-        return f64_mulAdd(f64(accumulator), f64_neg(f64(rhs)), f64(lhs)).v;
+        return f64_mulAdd(f64(accumulator), f64_neg(f64(lhs)), f64(rhs)).v;
         break;
     default:
         // Illegal

@@ -50,7 +50,7 @@ class SVRegister
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Set the value of a single bit
     void set_bit(size_t bit_index, //!< Index (bit number) of the target bit
-                 bool val = true)
+                 [[maybe_unused]]bool val = true)
     {
         mem_[bit_index / 8] |= (1 << (bit_index % 8));
     }

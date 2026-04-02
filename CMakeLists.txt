@@ -25,16 +25,18 @@ ADD_LIBRARY(${PROJECT_NAME} SHARED
 	src/target/${TARGET_PLATFORM_NAME}/base/base.cpp
 	src/target/${TARGET_PLATFORM_NAME}/lsu/lsu.cpp
 	src/target/${TARGET_PLATFORM_NAME}/arithmetic/softfloat-extension.cpp
-	src/target/${TARGET_PLATFORM_NAME}/misc/permutation.cpp
 	${TARGET_SRCS}
 )
+
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -fstrict-aliasing -Werror")
+SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 
 # Set NO_ETISS to build using own softfloat library
 SET(NO_ETISS OFF CACHE BOOL "Use softvector softfloat instead of ETISS softfloat.")
 IF(NO_ETISS)
 	MESSAGE("Using softvector softfloat")
 	ADD_SUBDIRECTORY(lib)
-	TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} PUBLIC 
+	TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME} SYSTEM PUBLIC 
 	lib/softfloat/RISCV
 	lib/softfloat/include/softfloat
 	)
