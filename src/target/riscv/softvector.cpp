@@ -30,6 +30,7 @@
  *      -> GCC allows union type punning
  *      -> Field pointer will likely switch to uint8_t * instead of void *
  * - Adapt header: Save space with macros
+ * - Replace Load/Store instructions
  */
 
 #include <bit>
@@ -736,7 +737,7 @@ W_WX_OP(vwsub_w_vx, sub_int, SignType::Signed)
 
 // 11.3. Vector Integer Extension
 uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const vm, uint8_t const vd, uint8_t const vs2,
-                uint8_t const vs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+                uint8_t const extension_encoding, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
 {
     auto const sew = decode_sew(vtype);
 
@@ -744,14 +745,14 @@ uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const vm
     static constexpr auto f4 = 0b10;
     static constexpr auto f2 = 0b11;
 
-    switch (vs1 >> 1)
+    switch (extension_encoding >> 1)
     {
     case f8:
         switch (sew)
         {
         case 64:
-            dispatch_iterate_vext<64, 8>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<64, 8>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         default:
             break;
@@ -761,12 +762,12 @@ uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const vm
         switch (sew)
         {
         case 32:
-            dispatch_iterate_vext<32, 4>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<32, 4>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         case 64:
-            dispatch_iterate_vext<64, 4>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<64, 4>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         default:
             break;
@@ -776,16 +777,16 @@ uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const vm
         switch (sew)
         {
         case 16:
-            dispatch_iterate_vext<16, 2>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<16, 2>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         case 32:
-            dispatch_iterate_vext<32, 2>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<32, 2>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         case 64:
-            dispatch_iterate_vext<64, 2>(vector_field, is_masked_instruction(vm), vd, vs2, static_cast<bool>(vs1 & 1),
-                                         vstart, vlen, vl);
+            dispatch_iterate_vext<64, 2>(vector_field, is_masked_instruction(vm), vd, vs2,
+                                         static_cast<bool>(extension_encoding & 1), vstart, vlen, vl);
             break;
         default:
             break;

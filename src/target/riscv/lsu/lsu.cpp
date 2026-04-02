@@ -29,65 +29,28 @@
 #include "lsu/lsu.hpp"
 
 // TODO: Read/Write exceptions are currently ignored
-// template <bool Masked>
-// VILL::vpu_return_t VLSU::load_eew_v2(std::function<void(size_t, uint8_t *, size_t)> func_read_mem,
-//                                uint8_t *const vector_field, uint16_t const eew_bytes, uint16_t vl,
-//                                uint16_t const vlen_bytes, uint16_t const vd, uint64_t src_mem_offset,
-//                                uint16_t const vstart, int16_t const stride_bytes)
-// {
-//     auto const vd_base = vd * vlen_bytes;
-//     src_mem_offset += (vstart * stride_bytes);
-
-//     // Fast path for common case
-//     // Unmasked loads with stride = eew can be done in one go
-//     if constexpr (!Masked)
-//     {
-//         if (eew_bytes == stride_bytes)
-//         {
-//             // We can do it with one request
-//             func_read_mem(src_mem_offset, vector_field + vd_base + (vstart * eew_bytes), (vl - vstart) * eew_bytes);
-//             return VILL::VPU_RETURN::NO_EXCEPT;
-//         }
-//     }
-
-//     for (size_t i = vstart; i < vl; ++i)
-//     {
-//         if constexpr (Masked)
-//         {
-//             if (!(vector_field[i / 8] >> (i % 8) & 1))
-//             {
-//                 src_mem_offset += stride_bytes;
-//                 continue;
-//             }
-//         }
-//         func_read_mem(src_mem_offset, vector_field + vd_base + (i * eew_bytes), eew_bytes);
-//         src_mem_offset += stride_bytes;
-//     }
-
-//     return VILL::VPU_RETURN::NO_EXCEPT;
-// }
-
-VILL::vpu_return_t VLSU::load_eew(std::function<void(size_t, uint8_t *, size_t)> func_read_mem, uint8_t *vec_reg_mem,
-                                  uint64_t emul_num, uint64_t emul_denom, uint16_t eew_bytes, uint16_t vec_len,
-                                  uint16_t vec_reg_len_bytes, uint16_t dst_vec_reg, uint64_t src_mem_start,
-                                  uint16_t vec_elem_start, uint8_t mask_f, int16_t stride_bytes)
+VILL::vpu_return_t VLSU::load_eew(VLSU::MemoryAccessFunction func_read_mem, uint8_t *const vector_field,
+                                  uint64_t const emul_num, uint64_t const emul_denom, uint16_t const eew_bytes,
+                                  uint16_t const vec_len, uint16_t const vec_reg_len_bytes, uint16_t const vd,
+                                  uint64_t const src_mem_start, uint16_t const vstart, uint8_t const mask_f,
+                                  int16_t const stride_bytes)
 {
-    RVVRegField V(vec_reg_len_bytes * 8, vec_len, eew_bytes * 8, SVMul(emul_num, emul_denom), vec_reg_mem);
+    RVVRegField V(vec_reg_len_bytes * 8, vec_len, eew_bytes * 8, SVMul(emul_num, emul_denom), vector_field);
 
-    if (!V.vec_reg_is_aligned(dst_vec_reg))
+    if (!V.vec_reg_is_aligned(vd))
     {
         return (VILL::VPU_RETURN::DST_VEC_ILL);
     }
 
     V.init();
 
-    RVVector &vd = V.get_vec(dst_vec_reg);
+    RVVector &vd_vec = V.get_vec(vd);
     size_t memOffset = src_mem_start;
     for (size_t iElement = 0; iElement < vec_len; ++iElement)
     {
-        if (iElement >= vec_elem_start && (mask_f || V.get_mask_reg().get_bit(iElement)))
+        if (iElement >= vstart && (mask_f || V.get_mask_reg().get_bit(iElement)))
         {
-            func_read_mem(memOffset, vd[iElement].mem_, eew_bytes);
+            func_read_mem(memOffset, vd_vec[iElement].mem_, eew_bytes);
         }
         memOffset += stride_bytes;
     }
@@ -95,8 +58,8 @@ VILL::vpu_return_t VLSU::load_eew(std::function<void(size_t, uint8_t *, size_t)>
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-VILL::vpu_return_t VLSU::store_eew(std::function<void(size_t, uint8_t *, size_t)> func_write_mem, uint8_t *vec_reg_mem,
-                                   uint64_t emul_num, uint64_t emul_denom, uint16_t eew_bytes, uint16_t vec_len,
+VILL::vpu_return_t VLSU::store_eew(VLSU::MemoryAccessFunction func_write_mem, uint8_t *vec_reg_mem, uint64_t emul_num,
+                                   uint64_t emul_denom, uint16_t eew_bytes, uint16_t vec_len,
                                    uint16_t vec_reg_len_bytes, uint16_t src_vec_reg, uint64_t dst_mem_start,
                                    uint16_t vec_elem_start, uint8_t mask_f, int16_t stride_bytes)
 {
@@ -123,9 +86,8 @@ VILL::vpu_return_t VLSU::store_eew(std::function<void(size_t, uint8_t *, size_t)
     return (VILL::VPU_RETURN::NO_EXCEPT);
 }
 
-auto VLSU::load_indices(std::function<void(size_t, uint8_t *, size_t)> func_read_mem, uint8_t *vec_reg_mem,
-                        VInstrInfo const &v_instr_info, uint16_t reg_vd, uint16_t reg_vs2, uint64_t src_mem_start,
-                        uint16_t eew) -> VILL::vpu_return_t
+auto VLSU::load_indices(VLSU::MemoryAccessFunction func_read_mem, uint8_t *vec_reg_mem, VInstrInfo const &v_instr_info,
+                        uint16_t reg_vd, uint16_t reg_vs2, uint64_t src_mem_start, uint16_t eew) -> VILL::vpu_return_t
 {
     RVVRegField V_dest(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
                        SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
@@ -168,7 +130,7 @@ auto VLSU::load_indices(std::function<void(size_t, uint8_t *, size_t)> func_read
     return VILL::VPU_RETURN::NO_EXCEPT;
 }
 
-auto VLSU::store_indices(std::function<void(size_t, uint8_t *, size_t)> func_write_mem, uint8_t *vec_reg_mem,
+auto VLSU::store_indices(VLSU::MemoryAccessFunction func_write_mem, uint8_t *vec_reg_mem,
                          VInstrInfo const &v_instr_info, uint16_t reg_vs3, uint16_t reg_vs2, uint64_t dst_mem_start,
                          uint16_t eew, uint8_t nf) -> VILL::vpu_return_t
 {
