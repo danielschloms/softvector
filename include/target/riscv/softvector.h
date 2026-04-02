@@ -155,17 +155,20 @@ extern "C"
                                   uint8_t pNF, uint8_t const vd, uint16_t const vstart, uint16_t const vlen,
                                   uint16_t const vl, uint64_t pMSTART, int16_t pStride);
 
-#define VV_OP_DECL(name)                                                                                      \
-    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs1, \
-                 uint8_t vs2, uint16_t vstart, uint16_t vlen, uint16_t vl);
+#define VV_OP_DECL(name)                                                                                             \
+    uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
+                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl);
 
-#define VI_OP_DECL(name)                                                                                      \
-    uint8_t name(void *vector_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, uint8_t vs2, \
-                 uint8_t imm, uint16_t vstart, uint16_t vlen, uint16_t vl);
+#define VI_OP_DECL(name)                                                                                             \
+    uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
+                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl);
 
-#define VX_OP_DECL(name)                                                                                             \
-    uint8_t name(void *vector_field, void *scalar_field, uint16_t vtype, uint8_t masked_instruction_bit, uint8_t vd, \
-                 uint8_t vs2, uint8_t rs1, uint16_t vstart, uint16_t vlen, uint16_t vl, uint8_t xlen);
+#define VX_OP_DECL(name)                                                                                       \
+    uint8_t name(void *const vector_field, void *scalar_field, uint16_t const vtype,                           \
+                 uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t const rs1, \
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     // 11.1. Vector Single-Width Integer Add and Subtract
     VV_OP_DECL(vadd_vv)
@@ -403,7 +406,23 @@ extern "C"
     uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
                    uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
-    // 12. Vector Fixed-Point Arithmetic Instructions
+// 12. Vector Fixed-Point Arithmetic Instructions
+#define AVG_VV_OP_DECL(name)                                                                                         \
+    uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
+                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const rounding_mode);
+
+#define AVG_VX_OP_DECL(name)                                                                                   \
+    uint8_t name(void *const vector_field, void *scalar_field, uint16_t const vtype,                           \
+                 uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t const rs1, \
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen,            \
+                 uint8_t const rounding_mode);
+
+#define AVG_VI_OP_DECL(name)                                                                                         \
+    uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
+                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const rounding_mode);
+
     // 12.1. Vector Single-Width Saturating Add and Subtract
     VV_OP_DECL(vsaddu_vv)
     VX_OP_DECL(vsaddu_vx)
@@ -420,39 +439,39 @@ extern "C"
     VX_OP_DECL(vssub_vx)
 
     // 12.2. Vector Single-Width Averaging Add and Subtract
-    VV_OP_DECL(vaaddu_vv)
-    VX_OP_DECL(vaaddu_vx)
+    AVG_VV_OP_DECL(vaaddu_vv)
+    AVG_VX_OP_DECL(vaaddu_vx)
 
-    VV_OP_DECL(vaadd_vv)
-    VX_OP_DECL(vaadd_vx)
+    AVG_VV_OP_DECL(vaadd_vv)
+    AVG_VX_OP_DECL(vaadd_vx)
 
-    VV_OP_DECL(vasubu_vv)
-    VX_OP_DECL(vasubu_vx)
+    AVG_VV_OP_DECL(vasubu_vv)
+    AVG_VX_OP_DECL(vasubu_vx)
 
-    VV_OP_DECL(vasub_vv)
-    VX_OP_DECL(vasub_vx)
+    AVG_VV_OP_DECL(vasub_vv)
+    AVG_VX_OP_DECL(vasub_vx)
 
     // 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation
-    VV_OP_DECL(vsmul_vv)
-    VX_OP_DECL(vsmul_vx)
+    AVG_VV_OP_DECL(vsmul_vv)
+    AVG_VX_OP_DECL(vsmul_vx)
 
     // 12.4. Vector Single-Width Scaling Shift Instructions
-    VV_OP_DECL(vssrl_vv)
-    VX_OP_DECL(vssrl_vx)
-    VI_OP_DECL(vssrl_vi)
+    AVG_VV_OP_DECL(vssrl_vv)
+    AVG_VX_OP_DECL(vssrl_vx)
+    AVG_VI_OP_DECL(vssrl_vi)
 
-    VV_OP_DECL(vssra_vv)
-    VX_OP_DECL(vssra_vx)
-    VI_OP_DECL(vssra_vi)
+    AVG_VV_OP_DECL(vssra_vv)
+    AVG_VX_OP_DECL(vssra_vx)
+    AVG_VI_OP_DECL(vssra_vi)
 
     // 12.5. Vector Narrowing Fixed-Point Clip Instructions
-    VV_OP_DECL(vnclipu_wv)
-    VX_OP_DECL(vnclipu_wx)
-    VI_OP_DECL(vnclipu_wi)
+    AVG_VV_OP_DECL(vnclipu_wv)
+    AVG_VX_OP_DECL(vnclipu_wx)
+    AVG_VI_OP_DECL(vnclipu_wi)
 
-    VV_OP_DECL(vnclip_wv)
-    VX_OP_DECL(vnclip_wx)
-    VI_OP_DECL(vnclip_wi)
+    AVG_VV_OP_DECL(vnclip_wv)
+    AVG_VX_OP_DECL(vnclip_wx)
+    AVG_VI_OP_DECL(vnclip_wi)
 
 // 13. Vector Floating-Point Instructions
 #define F_VV_OP_DECL(name)                                                                                           \
