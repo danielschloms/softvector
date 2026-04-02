@@ -192,15 +192,15 @@ extern "C"
     VV_OP_DECL(vwsub_vv)
     VX_OP_DECL(vwsub_vx)
 
-    VV_OP_DECL(vwaddu_wv)
-    VX_OP_DECL(vwaddu_wx)
-    VV_OP_DECL(vwsubu_wv)
-    VX_OP_DECL(vwsubu_wx)
+    VV_OP_DECL(vwaddu_w_vv)
+    VX_OP_DECL(vwaddu_w_vx)
+    VV_OP_DECL(vwsubu_w_vv)
+    VX_OP_DECL(vwsubu_w_vx)
 
-    VV_OP_DECL(vwadd_wv)
-    VX_OP_DECL(vwadd_wx)
-    VV_OP_DECL(vwsub_wv)
-    VX_OP_DECL(vwsub_wx)
+    VV_OP_DECL(vwadd_w_vv)
+    VX_OP_DECL(vwadd_w_vx)
+    VV_OP_DECL(vwsub_w_vv)
+    VX_OP_DECL(vwsub_w_vx)
 
     // 11.3. Vector Integer Extension
     uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
@@ -721,14 +721,14 @@ extern "C"
     VV_OP_DECL(vwredsum_vs)
 
     // 14.3. Vector Single-Width Floating-Point Reduction Instructions
-    VV_OP_DECL(vfredosum_vs)
-    VV_OP_DECL(vfredusum_vs)
-    VV_OP_DECL(vfredmax_vs)
-    VV_OP_DECL(vfredmin_vs)
+    F_VV_OP_DECL(vfredosum_vs)
+    F_VV_OP_DECL(vfredusum_vs)
+    F_VV_OP_DECL(vfredmax_vs)
+    F_VV_OP_DECL(vfredmin_vs)
 
     // 14.4. Vector Widening Floating-Point Reduction Instructions
-    VV_OP_DECL(vfwredosum_vs)
-    VV_OP_DECL(vfwredusum_vs)
+    F_VV_OP_DECL(vfwredosum_vs)
+    F_VV_OP_DECL(vfwredusum_vs)
 
     // 15. Vector Mask Instructions
     // 15.1. Vector Mask-Register Logical Instructions

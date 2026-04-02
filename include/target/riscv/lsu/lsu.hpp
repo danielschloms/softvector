@@ -24,6 +24,7 @@
 #define __RVVHL_VLSU_H__
 
 #include <cstdint>
+#include <cstring>
 #include <functional>
 #include "base/base.hpp"
 
@@ -225,103 +226,89 @@ auto store_indices(
     uint8_t nf                      //!< Number of fields
     ) -> VILL::vpu_return_t;
 
-// auto VLSU::load_indices(VLSU::MemoryAccessFunction func_read_mem, uint8_t *vec_reg_mem, VInstrInfo const
-// &v_instr_info,
-//                         uint16_t reg_vd, uint16_t reg_vs2, uint64_t src_mem_start, uint16_t eew) ->
-//                         VILL::vpu_return_t
-// {
-//     RVVRegField V_dest(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
-//                        SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
+template <bool Masked>
+VILL::vpu_return_t __attribute__((always_inline)) load_indices_v2(MemoryAccessFunction func_read_mem,
+                                                                  uint8_t *const vector_field,
+                                                                  VInstrInfo const &v_instr_info, uint16_t const vd,
+                                                                  uint16_t const vs2, uint64_t const src_mem_start,
+                                                                  uint16_t const eew)
+{
+    auto const sew = v_instr_info.sew;
+    auto const sew_bytes = v_instr_info.sew >> 3;
+    auto const eew_bytes = eew >> 3;
+    auto const vlen = v_instr_info.vector_register_length;
+    auto const vl = v_instr_info.vector_length;
+    auto const vstart = v_instr_info.start_element;
+    auto const vs2_base = vs2 * (vlen / eew); // Offsets
+    auto const vd_base = vd * (vlen / sew);   // Destination
 
-//     auto const emul_num = eew * v_instr_info.lmul_num;
-//     auto const emul_denom = v_instr_info.sew * v_instr_info.lmul_denom;
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        if constexpr (Masked)
+        {
+            if ((vector_field[i >> 3] >> (i % 0b111)) & 1)
+            {
+                continue;
+            }
+        }
+        // TODO: Overflow possible? Checking?
+        uint64_t vs2_offset = 0;
+        std::memcpy(&vs2_offset, vector_field + vs2_base + (i * eew_bytes), eew_bytes);
+        size_t mem_offset = src_mem_start + vs2_offset;
+        func_read_mem(mem_offset, vector_field + vd_base + (i * sew_bytes), sew_bytes);
+    }
 
-//     RVVRegField V_indices(v_instr_info.vector_register_length, v_instr_info.vector_length, eew,
-//                           SVMul(emul_num, emul_denom), vec_reg_mem);
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
 
-//     if (!V_dest.vec_reg_is_aligned(reg_vd))
-//     {
-//         return (VILL::VPU_RETURN::DST_VEC_ILL);
-//     }
-//     if (!V_indices.vec_reg_is_aligned(reg_vs2))
-//     {
-//         return (VILL::VPU_RETURN::SRC2_VEC_ILL);
-//     }
+template <bool Masked>
+VILL::vpu_return_t __attribute__((always_inline)) store_indices_v2(MemoryAccessFunction func_write_mem,
+                                                                   uint8_t *const vector_field,
+                                                                   VInstrInfo const &v_instr_info, uint16_t const vs3,
+                                                                   uint16_t const vs2, uint64_t const dest_mem_start,
+                                                                   uint16_t const eew, uint8_t const nf)
+{
+    auto const sew = v_instr_info.sew;
+    auto const sew_bytes = v_instr_info.sew >> 3;
+    auto const eew_bytes = eew >> 3;
+    auto const vlen = v_instr_info.vector_register_length;
+    auto const vl = v_instr_info.vector_length;
+    auto const vstart = v_instr_info.start_element;
+    auto const vs2_base = vs2 * (vlen / eew); // Offsets
+    auto const vs3_base = vs3 * (vlen / sew); // Source
 
-//     V_dest.init();
-//     V_indices.init();
+    for (size_t i = vstart; i < vl; ++i)
+    {
+        if constexpr (Masked)
+        {
+            if ((vector_field[i >> 3] >> (i % 0b111)) & 1)
+            {
+                continue;
+            }
+        }
 
-//     RVVector &vd = V_dest.get_vec(reg_vd);
-//     RVVector &vs2 = V_indices.get_vec(reg_vs2);
+        uint64_t vs2_offset = 0;
+        std::memcpy(&vs2_offset, vector_field + vs2_base + (i * eew_bytes), eew_bytes);
 
-//     // auto const eew_bytes = eew >> 3;
-//     auto const sew_bytes = v_instr_info.sew >> 3;
+        size_t mem_offset = dest_mem_start + vs2_offset;
 
-//     for (size_t i = 0; i < v_instr_info.vector_length; ++i)
-//     {
-//         // TODO: Overflow possible? Checking?
-//         auto index_offset = vs2[i].to_u64();
-//         size_t mem_offset = src_mem_start + index_offset;
-//         if (i >= v_instr_info.start_element && (!v_instr_info.masked || V_dest.get_mask_reg().get_bit(i)))
-//         {
-//             func_read_mem(mem_offset, vd[i].mem_, sew_bytes);
-//         }
-//     }
+        // TODO: Check if this is still relevant (ChipsAlliance Tests)
+        // This ordering is done to match the store order in the testing repository.
+        // However, the speficiation states that stores can occur in any order,
+        // so the tests should reflect that in the future.
+        for (size_t field = 0; field < nf; field++)
+        {
+            auto const field_reg_base =
+                vs3_base + std::max(field * (vlen / sew),
+                                    field * (v_instr_info.lmul_num / v_instr_info.lmul_denom) * (vlen / sew));
 
-//     return VILL::VPU_RETURN::NO_EXCEPT;
-// }
+            func_write_mem(mem_offset, vector_field + field_reg_base + (i * sew_bytes), sew_bytes);
+            mem_offset += sew_bytes;
+        }
+    }
 
-// VILL::vpu_return_t store_indices_v2(VLSU::MemoryAccessFunction func_write_mem, uint8_t *vec_reg_mem,
-//                                     VInstrInfo const &v_instr_info, uint16_t vs3, uint16_t vs2, uint64_t dst_mem_start,
-//                                     uint16_t eew, uint8_t nf)
-// {
-//     auto const sew = v_instr_info.sew;
-//     auto const vlen = v_instr_info.vector_register_length;
-//     auto const vs2_base = vs2 * (vlen / eew); // Indices
-//     auto const vs3_base = vs3 * (vlen / sew); // Source
-
-//     RVVRegField V_src(v_instr_info.vector_register_length, v_instr_info.vector_length, v_instr_info.sew,
-//                       SVMul(v_instr_info.lmul_num, v_instr_info.lmul_denom), vec_reg_mem);
-
-//     auto const emul_num = eew * v_instr_info.lmul_num;
-//     auto const emul_denom = v_instr_info.sew * v_instr_info.lmul_denom;
-
-//     RVVRegField V_indices(v_instr_info.vector_register_length, v_instr_info.vector_length, eew,
-//                           SVMul(emul_num, emul_denom), vec_reg_mem);
-
-//     V_src.init();
-//     V_indices.init();
-
-//     // This is done to match the store order in the testing repository.
-//     // However, the speficiation states that stores can occur in any order,
-//     // so the tests should reflect that in the future.
-//     auto vectors = std::vector<std::reference_wrapper<RVVector>>();
-//     for (size_t i = 0; i < nf; i++)
-//     {
-//         auto reg = vs3 + std::max(i, i * (v_instr_info.lmul_num / v_instr_info.lmul_denom));
-//         RVVector &v = V_src.get_vec(reg);
-//         vectors.push_back(v);
-//     }
-
-//     RVVector &vs2 = V_indices.get_vec(vs2);
-
-//     auto const sew_bytes = v_instr_info.sew >> 3;
-
-//     for (size_t i = 0; i < v_instr_info.vector_length; ++i)
-//     {
-//         if (i >= v_instr_info.start_element && (!v_instr_info.masked || V_src.get_mask_reg().get_bit(i)))
-//         {
-//             size_t mem_offset = dst_mem_start + vs2[i].to_u64();
-//             for (size_t field = 0; field < nf; field++)
-//             {
-//                 func_write_mem(mem_offset, vectors[field].get()[i].mem_, sew_bytes);
-//                 mem_offset += sew_bytes;
-//             }
-//         }
-//     }
-
-//     return VILL::VPU_RETURN::NO_EXCEPT;
-// }
+    return VILL::VPU_RETURN::NO_EXCEPT;
+}
 
 } // namespace VLSU
 
