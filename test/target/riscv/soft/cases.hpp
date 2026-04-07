@@ -541,7 +541,7 @@ class Cvadd_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vadd_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vadd_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -612,7 +612,7 @@ class Cvsub_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vsub_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vsub_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -712,7 +712,7 @@ class Cvand_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vand_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vand_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -812,7 +812,7 @@ class Cvor_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vor_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vor_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -912,7 +912,7 @@ class Cvxor_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vxor_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vxor_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1012,7 +1012,7 @@ class Cvsll_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vsll_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vsll_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1112,7 +1112,7 @@ class Cvsrl_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vsrl_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vsrl_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1212,7 +1212,7 @@ class Cvsra_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vsra_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vsra_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1542,7 +1542,7 @@ class Cvmul_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vmul_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vmul_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1609,7 +1609,7 @@ class Cvmulh_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vmulh_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vmulh_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1676,7 +1676,7 @@ class Cvmulhu_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vmulhu_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vmulhu_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
@@ -1745,7 +1745,7 @@ class Cvmulhsu_vx final : public VCase
         for (int i = 0; i < _xlen / 8; ++i)
             r[i] = ((uint8_t *)(&_x))[i];
 
-        auto ret = vmulhsu_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen / 8);
+        auto ret = vmulhsu_vx(_V, r, vtype, _vm, _vd, _vs2, 0, _vstart, _vlen, _vl, _xlen);
 
         delete[] r;
 
