@@ -835,7 +835,7 @@ extern "C"
                    uint8_t const imm, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t const vd, uint8_t const vs1,
-                      uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
+                      uint8_t const vs2, uint16_t const vstart, uint16_t const vlen);
 
 #ifdef __cplusplus
 } // extern "C"

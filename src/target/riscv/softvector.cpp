@@ -2216,7 +2216,7 @@ struct MatrixVtype
 MatrixVtype decode_matrix_vtype(uint32_t vtype)
 {
     return {
-        .lmul = vtype & 0b11,
+        .lmul = 1U << (vtype & 0b11),
         .sew = 8U << ((vtype >> 3) & 0b11),
         .lambda = 1U << (((vtype >> 28) & 0b111) - 1),
         .altfmt_A = static_cast<bool>((vtype >> 27) & 1),
@@ -2226,7 +2226,8 @@ MatrixVtype decode_matrix_vtype(uint32_t vtype)
 }
 
 template <typename T>
-void print_v_matrix(T *const vector_elements, unsigned const lambda, unsigned const vlen, unsigned v_register)
+void print_v_matrix(T *const vector_elements, unsigned const lambda, unsigned const vlen, unsigned v_register,
+                    unsigned widening, unsigned lmul)
 {
     auto const sew = sizeof(T) * 8;
     auto const elements_per_register = vlen / sew;
@@ -2234,15 +2235,22 @@ void print_v_matrix(T *const vector_elements, unsigned const lambda, unsigned co
 
     std::printf("v%u: ", v_register);
 
-    for (size_t i = 0; i < elements_per_register; ++i)
+    auto const cols = lambda * lmul * widening;
+    auto const rows = (vlen / sew) / lambda;
+    for (size_t row = 0; row < rows; ++row)
     {
-        std::printf("%x ", vector_elements[v_base + i]);
+        for (size_t col = 0; col < cols; ++col)
+        {
+            auto const v_offset = (col / lambda) * elements_per_register;
+            auto const v_element = (row * lambda) + (col % lambda);
+            std::printf("| %x ", vector_elements[v_base + v_offset + v_element]);
+        }
+        std::printf(" |\n\n");
     }
-    std::printf("\n");
 }
 
 uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t const vd, uint8_t const vs1,
-                  uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+                  uint8_t const vs2, uint16_t const vstart, uint16_t const vlen)
 {
     auto const vtype_decoded = decode_matrix_vtype(vtype);
     auto punner = PointerPunner(vector_field);
@@ -2259,10 +2267,10 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t con
     auto const lmul = vtype_decoded.lmul;
     auto const widening = 1;
 
-    auto const n_res_elements = vlen / sew;
+    auto const elements_per_register = vlen / sew;
 
     // Accumulator C has a register group multiplier of MUL_C = (VLEN / SEW) / (Lambda^2)
-    auto const mul_C = n_res_elements / (lambda * lambda);
+    auto const mul_C = elements_per_register / (lambda * lambda);
     // MUL_C in {1, 2, 4, 8, 16}
     assert(mul_C == 1 || mul_C == 2 || mul_C == 4 || mul_C == 8 || mul_C == 16);
     // The register group start is MUL_C aligned (e.g. MUL_C = 16 -> vd = [0, 16])
@@ -2272,11 +2280,11 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t con
     auto const K_eff = lambda * widening * lmul;
 
     // vs1 marks the start of A
-    auto *const A_elements = input_elements + vs1;
+    auto *const A_elements = input_elements + (vs1 * elements_per_register * widening);
     // vs2 marks the start of B
-    auto *const B_elements = input_elements + vs2;
+    auto *const B_elements = input_elements + (vs2 * elements_per_register * widening);
     // vd marks the start of C
-    auto *const C_elements = output_elements + vd;
+    auto *const C_elements = output_elements + (vd * elements_per_register);
 
     // Rows & columns of C
     // Dimensions of C, M = N,
@@ -2284,23 +2292,30 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t con
     // = ((LMUL * VLEN * W) / SEW) / K_eff                  | Replace K_eff with definition
     // = ((LMUL * VLEN * W) / SEW) / (Lambda * W * LMUL)    | Cross out LMUL & W
     // = (VLEN / SEW) / Lambda
-    auto const dim_C = n_res_elements / lambda;
+    auto const dim_C = elements_per_register / lambda;
+    std::printf("dim_C %u\n", dim_C);
 
     for (size_t row_C = 0; row_C < dim_C; ++row_C)
     {
         for (size_t col_C = 0; col_C < dim_C; ++col_C)
         {
             int64_t accumulator = 0;
+            std::printf("C[%lu][%lu]=", row_C, col_C);
             for (size_t i_input = 0; i_input < K_eff; ++i_input)
             {
-                auto const vs_offset = i_input / (lambda * widening);
-                auto const vs_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
-                accumulator += (A_elements + vs_offset)[vs_element] * (B_elements + vs_offset)[vs_element];
+                auto const vs_offset = (i_input / (lambda * widening)) * (elements_per_register * widening);
+                auto const vs_A_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
+                auto const vs_B_element = (col_C * lambda * widening) + (i_input % (lambda * widening));
+                auto const a = A_elements[vs_offset + vs_A_element];
+                auto const b = B_elements[vs_offset + vs_B_element];
+                std::printf("+ (%u * %u) ", a, b);
+                accumulator += A_elements[vs_offset + vs_A_element] * B_elements[vs_offset + vs_B_element];
             }
+            std::printf("= %lu\n", accumulator);
 
-            auto const vd_offset = col_C / lambda;
+            auto const vd_offset = (col_C / lambda) * elements_per_register;
             auto const vd_element = (row_C * lambda) + (col_C % lambda);
-            (C_elements + vd_offset)[vd_element] = accumulator;
+            C_elements[vd_offset + vd_element] = accumulator;
         }
     }
 
