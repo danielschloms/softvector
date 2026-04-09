@@ -260,6 +260,20 @@ constexpr auto sew_64 = 64;
 // Questionable
 auto g_fp_rounding_mode = FPRoundingMode::rnu;
 
+// For testing purposes
+union PointerPunner
+{
+    void *const field;
+    uint8_t *const u8;
+    uint16_t *const u16;
+    uint32_t *const u32;
+    uint64_t *const u64;
+    int8_t *const i8;
+    int16_t *const i16;
+    int32_t *const i32;
+    int64_t *const i64;
+};
+
 /* --- Private function declarations --- */
 
 // Helper declarations
@@ -2171,20 +2185,6 @@ uint8_t vcompress_vm(void *const vector_field, uint16_t const vtype, uint8_t con
     return 0;
 }
 
-// For testing purposes
-union PointerPunner
-{
-    void *const field;
-    uint8_t *const u8;
-    uint16_t *const u16;
-    uint32_t *const u32;
-    uint64_t *const u64;
-    int8_t *const i8;
-    int16_t *const i16;
-    int32_t *const i32;
-    int64_t *const i64;
-};
-
 // 16.6. Whole Vector Register Move */
 uint8_t vmvr_v(void *const vector_field, [[maybe_unused]] uint16_t const vtype, uint8_t const vd, uint8_t const vs2,
                uint8_t const imm, uint16_t const vstart, uint32_t const vlen, uint32_t const vl)
@@ -2199,6 +2199,111 @@ uint8_t vmvr_v(void *const vector_field, [[maybe_unused]] uint16_t const vtype, 
     auto const vd_base = vd * vlen_bytes;
     auto const vs2_base = vs2 * vlen_bytes;
     std::memcpy(vector_elements + vd_base, vector_elements + vs2_base, n_registers * vlen_bytes);
+    return 0;
+}
+
+// Zvvmm
+struct MatrixVtype
+{
+    unsigned lmul = 0;
+    unsigned sew = 0;
+    unsigned lambda = 0;
+    bool altfmt_A = false;
+    bool altfmt_B = false;
+    bool bs = false;
+};
+
+MatrixVtype decode_matrix_vtype(uint32_t vtype)
+{
+    return {
+        .lmul = vtype & 0b11,
+        .sew = 8U << ((vtype >> 3) & 0b11),
+        .lambda = 1U << (((vtype >> 28) & 0b111) - 1),
+        .altfmt_A = static_cast<bool>((vtype >> 27) & 1),
+        .altfmt_B = static_cast<bool>((vtype >> 26) & 1),
+        .bs = static_cast<bool>((vtype >> 25) & 1),
+    };
+}
+
+template <typename T>
+void print_v_matrix(T *const vector_elements, unsigned const lambda, unsigned const vlen, unsigned v_register)
+{
+    auto const sew = sizeof(T) * 8;
+    auto const elements_per_register = vlen / sew;
+    auto const v_base = v_register * elements_per_register;
+
+    std::printf("v%u: ", v_register);
+
+    for (size_t i = 0; i < elements_per_register; ++i)
+    {
+        std::printf("%x ", vector_elements[v_base + i]);
+    }
+    std::printf("\n");
+}
+
+uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t const vd, uint8_t const vs1,
+                  uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    auto punner = PointerPunner(vector_field);
+    auto *const input_elements = punner.u8;
+
+    // Accumulator is always signed
+    auto *const output_elements = punner.i8;
+
+    // For now just try uint8_t * uint8_t = uint8_t (fixed SEW and Widening, ignore altfmt fields)
+    // Also ignore bs, as this encodes the block size for microscaling operations (vm = 0)
+    // For future reference: bs == 0 -> block size = 32, 16 otherwise
+    auto const sew = 8; // vtype_decoded.sew;
+    auto const lambda = vtype_decoded.lambda;
+    auto const lmul = vtype_decoded.lmul;
+    auto const widening = 1;
+
+    auto const n_res_elements = vlen / sew;
+
+    // Accumulator C has a register group multiplier of MUL_C = (VLEN / SEW) / (Lambda^2)
+    auto const mul_C = n_res_elements / (lambda * lambda);
+    // MUL_C in {1, 2, 4, 8, 16}
+    assert(mul_C == 1 || mul_C == 2 || mul_C == 4 || mul_C == 8 || mul_C == 16);
+    // The register group start is MUL_C aligned (e.g. MUL_C = 16 -> vd = [0, 16])
+    assert((vd % mul_C) == 0);
+
+    // Multiplication dimension for inputs, i.e. a result element is the sum of K_eff multiplications
+    auto const K_eff = lambda * widening * lmul;
+
+    // vs1 marks the start of A
+    auto *const A_elements = input_elements + vs1;
+    // vs2 marks the start of B
+    auto *const B_elements = input_elements + vs2;
+    // vd marks the start of C
+    auto *const C_elements = output_elements + vd;
+
+    // Rows & columns of C
+    // Dimensions of C, M = N,
+    // = ((LMUL * VLEN) / (SEW / W)) / K_eff                | Move W to numerator
+    // = ((LMUL * VLEN * W) / SEW) / K_eff                  | Replace K_eff with definition
+    // = ((LMUL * VLEN * W) / SEW) / (Lambda * W * LMUL)    | Cross out LMUL & W
+    // = (VLEN / SEW) / Lambda
+    auto const dim_C = n_res_elements / lambda;
+
+    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    {
+        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        {
+            int64_t accumulator = 0;
+            for (size_t i_input = 0; i_input < K_eff; ++i_input)
+            {
+                auto const vs_offset = i_input / (lambda * widening);
+                auto const vs_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
+                accumulator += (A_elements + vs_offset)[vs_element] * (B_elements + vs_offset)[vs_element];
+            }
+
+            auto const vd_offset = col_C / lambda;
+            auto const vd_element = (row_C * lambda) + (col_C % lambda);
+            (C_elements + vd_offset)[vd_element] = accumulator;
+        }
+    }
+
     return 0;
 }
 
