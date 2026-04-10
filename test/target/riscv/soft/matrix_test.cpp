@@ -1,133 +1,118 @@
 #include "softvector.h"
+#include "matrix_helpers.hpp"
+
 #include <array>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <type_traits>
+#include <vector>
 
-#define LMUL_M1 0b000
-#define LMUL_M2 0b001
-#define LMUL_M4 0b010
-#define LMUL_M8 0b011
+static constexpr auto max_vlen = 1024;
+static constexpr auto max_vlen_bytes = max_vlen >> 3;
+static constexpr auto n_vector_registers = 32;
+static constexpr auto vector_field_bytes = max_vlen_bytes * n_vector_registers;
 
-#define SEW_OFFSET 3
-
-#define SEW_E8 0b000
-#define SEW_E16 0b001
-#define SEW_E32 0b010
-#define SEW_E64 0b011
-
-#define LAMBDA_1 0b001
-#define LAMBDA_2 0b010
-#define LAMBDA_4 0b011
-#define LAMBDA_8 0b100
-#define LAMBDA_16 0b101
-#define LAMBDA_32 0b110
-#define LAMBDA_64 0b111
-
-struct MatrixVtype
-{
-    unsigned lmul = 0;
-    unsigned sew = 0;
-    unsigned lambda = 0;
-    bool altfmt_A = false;
-    bool altfmt_B = false;
-    bool bs = false;
-};
-
-MatrixVtype decode_matrix_vtype(uint32_t vtype)
-{
-    return {
-        .lmul = 1U << (vtype & 0b11),
-        .sew = 8U << ((vtype >> 3) & 0b11),
-        .lambda = 1U << (((vtype >> 28) & 0b111) - 1),
-        .altfmt_A = static_cast<bool>((vtype >> 27) & 1),
-        .altfmt_B = static_cast<bool>((vtype >> 26) & 1),
-        .bs = static_cast<bool>((vtype >> 25) & 1),
-    };
-}
+alignas(64) auto vector_field = std::array<uint8_t, vector_field_bytes>{ 0 };
 
 template <typename T>
-void print_v_matrix_trans(T *const vector_elements, unsigned const lambda, unsigned const vlen, unsigned v_register,
-                          unsigned widening, unsigned lmul)
+    requires std::is_integral_v<T>
+void seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsigned vs1, unsigned vs2,
+                       unsigned vlen)
 {
-    auto const sew = sizeof(T) * 8;
-    auto const elements_per_register = vlen / sew;
-    auto const v_base = v_register * elements_per_register;
-
-    std::printf("v%u: ", v_register);
-
-    auto const cols = lambda * lmul * widening;
-    auto const rows = (vlen / sew) / lambda;
-    std::printf("%u cols, %lu rows\n", cols, rows);
-    for (size_t col = 0; col < cols; ++col)
+    auto const vtype = encode_matrix_vtype(sew, lmul, lambda, false, false, false);
+    auto const decoded_vtype = decode_matrix_vtype(vtype);
+    auto const elements_per_register = vlen / decoded_vtype.sew;
+    auto const mul_C = elements_per_register / (decoded_vtype.lambda * decoded_vtype.lambda);
+    // std::printf("# of C registers: %u\n", mul_C);
+    if (!check(mul_C, sew))
     {
-        for (size_t row = 0; row < rows; ++row)
-        {
-            auto const v_offset = (col / lambda) * elements_per_register;
-            auto const v_element = (row * lambda) + (col % lambda);
-            std::printf("| %-3u ", vector_elements[v_base + v_offset + v_element]);
-        }
-        std::printf("|\n\n");
+        std::printf("Illegal MUL_C or SEW\n");
+        return;
     }
-}
 
-template <typename T>
-void print_v_matrix(T *const vector_elements, unsigned const lambda, unsigned const vlen, unsigned v_register,
-                    unsigned widening, unsigned lmul)
-{
-    auto const sew = sizeof(T) * 8;
-    auto const elements_per_register = vlen / sew;
-    auto const v_base = v_register * elements_per_register;
+    // std::printf("Setup references\n");
+    std::vector<T> A;
+    // A.reserve(elements_per_register * lmul);
 
-    std::printf("v%u: ", v_register);
+    std::vector<T> B;
+    // B.reserve(elements_per_register * lmul);
 
-    auto const cols = lambda * lmul * widening;
-    auto const rows = (vlen / sew) / lambda;
-    std::printf("%u cols, %lu rows\n", cols, rows);
-    for (size_t row = 0; row < rows; ++row)
+    std::vector<T> C;
+    // C.reserve(elements_per_register * mul_C);
+    C.resize(elements_per_register * mul_C);
+    zero_vec(C);
+
+    // std::printf("Fill RV\n");
+
+    // Fill vectors sequentially
+    // RISC-V
+    vid_v(vector_field.data(), static_cast<uint16_t>(vtype), 1, vs1, 0, vlen,
+          (vlen / decoded_vtype.sew) * decoded_vtype.lmul);
+    vid_v(vector_field.data(), static_cast<uint16_t>(vtype), 1, vs2, 0, vlen,
+          (vlen / decoded_vtype.sew) * decoded_vtype.lmul);
+
+    // std::printf("Fill golden\n");
+    // Golden
+    seq_fill(A, decoded_vtype.lmul, decoded_vtype.lambda, 1, elements_per_register * decoded_vtype.lmul);
+    seq_fill(B, decoded_vtype.lmul, decoded_vtype.lambda, 1, elements_per_register * decoded_vtype.lmul);
+    print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+
+    // std::printf("AS %lu\n", A.size());
+
+    // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, 1, decoded_vtype.lmul, false);
+    // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs2, 1, decoded_vtype.lmul, true);
+
+    // MMACC
+    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen);
+    mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, 1);
+
+    std::vector<T> C_from_RV;
+
+    convert(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, mul_C, false, C_from_RV, true);
+    if (!is_equal(C, C_from_RV))
     {
-        for (size_t col = 0; col < cols; ++col)
-        {
-            auto const v_offset = (col / lambda) * elements_per_register;
-            auto const v_element = (row * lambda) + (col % lambda);
-            std::printf("| %-3u ", vector_elements[v_base + v_offset + v_element]);
-        }
-        std::printf("|\n\n");
+        std::printf("Result not equal to golden result!\n");
+        std::printf("C\n");
+        print_matrix(C, decoded_vtype.lambda, mul_C, 1);
+        std::printf("C from RV\n");
+        print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
+        std::printf("RV\n");
+        print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, mul_C, false);
     }
-}
-
-constexpr uint32_t encode_matrix_vtype(unsigned sew, unsigned lmul, unsigned lambda, bool altfmt_A, bool altfmt_B,
-                                       bool bs)
-{
-    // Ignore VILL
-    return (sew << SEW_OFFSET) | (lmul) | (lambda << 28) | (altfmt_A << 27) | (altfmt_B << 26) | (bs << 25);
+    else
+    {
+        std::printf("Test success\n");
+    }
+    // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, mul_C, false);
+    zero_vectors(vector_field.data(), vector_field.size());
 }
 
 int main()
 {
-    // Example
-    // VLEN 128, SEW = 8, unsigned, non-widening, Lambda = 4, LMUL = 1
-    // -> MUL_C = (VLEN / SEW) / Lambda^2 = 1
-    // -> Multiply 2 4x4 matrices into a 4x4 matrix
-    // Let vd = 0, vs1 = 1, vs2 = 2
-    auto vd = 0;
-    auto vs1 = 1;
-    auto vs2 = 2;
-    static constexpr auto vlen = 128;
-    static constexpr auto vlen_bytes = vlen >> 3;
-    alignas(64) auto vector_field = std::array<uint8_t, vlen_bytes>{ 0 };
-    for (auto &&elm : vector_field)
+    auto const lambdas = std::to_array({ LAMBDA_1, LAMBDA_2, LAMBDA_4, LAMBDA_8, LAMBDA_16, LAMBDA_32, LAMBDA_64 });
+    auto const vlens = std::to_array({ 64, 128, 256, 512, 1024 });
+    auto const lmuls = std::to_array({ LMUL_M1, LMUL_M2, LMUL_M8, LMUL_M8 });
+    auto const sew = 8;
+
+    for (auto &&vlen : vlens)
     {
-        elm = 0;
+        for (auto &&lmul : lmuls)
+        {
+            for (auto &&lambda : lambdas)
+            {
+                auto const elements_per_register = vlen / 8;
+                auto const lambda_val = (1U << lambda) - 1;
+                auto const mul_C = elements_per_register / (lambda_val * lambda_val);
+                if (!check(mul_C, SEW_E8))
+                {
+                    continue;
+                }
+                std::printf("SEW: %u, LMUL: %u, LAMBDA: %u, VLEN: %u\n", 8, 1U << lmul, 1U << (lambda - 1), vlen);
+                seq_increase_test<uint8_t>(SEW_E8, lmul, lambda, 0, 1, 2, vlen);
+                exit(EXIT_SUCCESS);
+            }
+        }
     }
-    auto const vtype = encode_matrix_vtype(SEW_E8, LMUL_M1, LAMBDA_4, false, false, false);
-    auto const decoded_vtype = decode_matrix_vtype(vtype);
-
-    vid_v(vector_field.data(), static_cast<uint16_t>(vtype), 1, vs1, 0, vlen, vlen_bytes);
-    vid_v(vector_field.data(), static_cast<uint16_t>(vtype), 1, vs2, 0, vlen, vlen_bytes);
-
-    print_v_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, 1, decoded_vtype.lmul);
-    print_v_matrix_trans(vector_field.data(), decoded_vtype.lambda, vlen, vs2, 1, decoded_vtype.lmul);
-
-    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen);
-    print_v_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, decoded_vtype.lmul);
 }

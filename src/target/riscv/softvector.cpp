@@ -2293,7 +2293,6 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t con
     // = ((LMUL * VLEN * W) / SEW) / (Lambda * W * LMUL)    | Cross out LMUL & W
     // = (VLEN / SEW) / Lambda
     auto const dim_C = elements_per_register / lambda;
-    std::printf("dim_C %u\n", dim_C);
 
     for (size_t row_C = 0; row_C < dim_C; ++row_C)
     {
@@ -2315,7 +2314,7 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint8_t con
 
             auto const vd_offset = (col_C / lambda) * elements_per_register;
             auto const vd_element = (row_C * lambda) + (col_C % lambda);
-            C_elements[vd_offset + vd_element] = accumulator;
+            C_elements[vd_offset + vd_element] += accumulator;
         }
     }
 
