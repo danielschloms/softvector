@@ -181,6 +181,11 @@ inline constexpr void zero_vectors(uint8_t *vector_field, size_t size)
     std::memset(vector_field, 0, size);
 }
 
+inline constexpr bool check_mul_C(unsigned mul_C)
+{
+    return (mul_C == 1 || mul_C == 2 || mul_C == 4 || mul_C == 8 || mul_C == 16);
+}
+
 inline constexpr bool check(unsigned mul_C, unsigned sew)
 {
     auto valid_mul_C = (mul_C == 1 || mul_C == 2 || mul_C == 4 || mul_C == 8 || mul_C == 16);
@@ -202,16 +207,18 @@ void mmacc(std::vector<T> const &A, std::vector<T> const &B, std::vector<T> &C, 
         for (size_t col = 0; col < C_dim; ++col)
         {
             uint64_t accumulator = 0;
+            // std::printf("C_R[%u][%u] = ", row, col);
             for (size_t i = 0; i < inner_dim; ++i)
             {
                 // std::printf("at %lu\n", row * inner_dim + i);
                 // auto const a_v = A.at(row * inner_dim + i);
-                // auto const b_v = B.at(row * inner_dim + i);
-                // std::printf("%lu += %lu * %lu\n", accumulator, a_v, b_v);
-                accumulator += A.at(row * inner_dim + i) * B.at(row * inner_dim + i);
+                // auto const b_v = B.at(col * inner_dim + i);
+                // std::printf("+ (%lu * %lu) ", a_v, b_v);
+                accumulator += A.at(row * inner_dim + i) * B.at(col * inner_dim + i);
             }
             // std::printf("acc %u\n", accumulator);
             C.at(row * C_dim + col) += accumulator;
+            // std::printf("\n");
         }
     }
 }
@@ -234,9 +241,10 @@ void seq_fill(std::vector<T> &vec, unsigned lmul, unsigned lambda, unsigned wide
     {
         for (size_t col = 0; col < cols; ++col)
         {
-            auto const fill_val = (col % (lambda * widening)) + (row * lambda * widening);
+            auto const fill_val = (col % (lambda * widening)) + (row * lambda * widening) +
+                                  (((col / (lambda * widening)) * rows) * lambda);
             // std::printf("col %u, row %u, Fill %u,\n", col, row, fval);
-            vec.push_back(fill_val);
+            vec.push_back(static_cast<T>(fill_val));
         }
     }
 }
