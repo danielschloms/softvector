@@ -157,18 +157,18 @@ extern "C"
 
 #define VV_OP_DECL(name)                                                                                             \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
-                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, \
-                 uint32_t const vl);
+                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl);
 
 #define VI_OP_DECL(name)                                                                                             \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
-                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint32_t const vlen, \
-                 uint32_t const vl);
+                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl);
 
 #define VX_OP_DECL(name)                                                                                       \
     uint8_t name(void *const vector_field, void *scalar_field, uint16_t const vtype,                           \
                  uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t const rs1, \
-                 uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     // 11.1. Vector Single-Width Integer Add and Subtract
     VV_OP_DECL(vadd_vv)
@@ -205,27 +205,27 @@ extern "C"
     // 11.3. Vector Integer Extension
     uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
                     uint8_t const vd, uint8_t const vs2, uint8_t const extension_encoding, uint16_t const vstart,
-                    uint32_t const vlen, uint32_t const vl);
+                    uint16_t const vlen, uint16_t const vl);
 
     // 11.4. Vector Integer Add-with-Carry / Subtract-with-Borrow Instructions
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Sum with carry vector-vector
     /// \return 0 if no exception triggered
     uint8_t vadc_vvm(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
-                     uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                     uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Sum with carry vector-scalar
     /// \return 0 if no exception triggered
     uint8_t vadc_vxm(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                     uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                     uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                      uint8_t const xlen);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Sum with carry vector-immediate
     /// \return 0 if no exception triggered
     uint8_t vadc_vim(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs2, uint8_t pVimm,
-                     uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                     uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     VV_OP_DECL(vmadc_vv)
     VX_OP_DECL(vmadc_vx)
@@ -235,13 +235,13 @@ extern "C"
     /// \brief Difference with borrow vector-vector
     /// \return 0 if no exception triggered
     uint8_t vsbc_vvm(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
-                     uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                     uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Difference with borrow vector-scalar
     /// \return 0 if no exception triggered
     uint8_t vsbc_vxm(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                     uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                     uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                      uint8_t const xlen);
 
     VV_OP_DECL(vmsbc_vv)
@@ -387,41 +387,41 @@ extern "C"
 
     // 11.15. Vector Integer Merge Instructions
     uint8_t vmerge_vv(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
-                      uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                      uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     uint8_t vmerge_vi(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs2,
-                      uint8_t pVimm, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                      uint8_t pVimm, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     uint8_t vmerge_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                      uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                      uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                       uint8_t const xlen);
 
     // 11.16. Vector Integer Move Instructions
     uint8_t vmv_vv(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
-                   uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                   uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     uint8_t vmv_vi(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t pVimm,
-                   uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                   uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     uint8_t vmv_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                   uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                   uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
 // 12. Vector Fixed-Point Arithmetic Instructions
 #define AVG_VV_OP_DECL(name)                                                                                         \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
-                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, \
-                 uint32_t const vl, uint8_t const rounding_mode);
+                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const rounding_mode);
 
 #define AVG_VX_OP_DECL(name)                                                                                   \
     uint8_t name(void *const vector_field, void *scalar_field, uint16_t const vtype,                           \
                  uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t const rs1, \
-                 uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen,            \
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen,            \
                  uint8_t const rounding_mode);
 
 #define AVG_VI_OP_DECL(name)                                                                                         \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
-                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint32_t const vlen, \
-                 uint32_t const vl, uint8_t const rounding_mode);
+                 uint8_t const vd, uint8_t const vs2, uint8_t const imm, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const rounding_mode);
 
     // 12.1. Vector Single-Width Saturating Add and Subtract
     VV_OP_DECL(vsaddu_vv)
@@ -476,13 +476,13 @@ extern "C"
 // 13. Vector Floating-Point Instructions
 #define F_VV_OP_DECL(name)                                                                                           \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
-                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, \
-                 uint32_t const vl, uint8_t const rounding_mode);
+                 uint8_t const vd, uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, \
+                 uint16_t const vl, uint8_t const rounding_mode);
 
 #define F_VF_OP_DECL(name)                                                                                     \
     uint8_t name(void *const vector_field, void *const float_scalar_field, uint16_t const vtype,               \
                  uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t const rs1, \
-                 uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen,            \
+                 uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen,            \
                  uint8_t const rounding_mode);
 
     // 13.2. Vector Single-Width Floating-Point Add/Subtract Instructions
@@ -557,17 +557,17 @@ extern "C"
 
     // 13.8. Vector Floating-Point Square-Root Instruction
     uint8_t vfsqrt_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                     uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                     uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                      uint8_t pRm);
 
     // 13.9. Vector Floating-Point Reciprocal Square-Root Estimate Instruction
     uint8_t vfrsqrt7_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                       uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                       uint32_t const vl, uint8_t pRm);
+                       uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                       uint16_t const vl, uint8_t pRm);
 
     // 13.10. Vector Floating-Point Reciprocal Estimate Instruction
     uint8_t vfrec7_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                     uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                     uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                      uint8_t pRm);
 
     // 13.11. Vector Floating-Point MIN/MAX Instructions
@@ -606,104 +606,104 @@ extern "C"
 
     // 13.14. Vector Floating-Point Classify Instruction
     uint8_t vfclass_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                      uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                      uint32_t const vl, uint8_t pRm);
+                      uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                      uint16_t const vl, uint8_t pRm);
 
     // 13.15. Vector Floating-Point Merge Instruction
     uint8_t vfmerge_vfm(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                        uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                        uint8_t const vs2, uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl,
                         uint8_t const flen);
 
     // 13.16. Vector Floating-Point Move Instruction
     uint8_t vfmv_v_f(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                     uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen);
+                     uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen);
 
     // 13.17. Single-Width Floating-Point/Integer Type-Convert Instructions
     uint8_t vfcvt_xu_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfcvt_x_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                        uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                        uint32_t const vl, uint8_t pRm);
+                        uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                        uint16_t const vl, uint8_t pRm);
 
     uint8_t vfcvt_rtz_xu_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                             uint32_t const vl, uint8_t pRm);
+                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                             uint16_t const vl, uint8_t pRm);
 
     uint8_t vfcvt_rtz_x_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                            uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                            uint32_t const vl, uint8_t pRm);
+                            uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                            uint16_t const vl, uint8_t pRm);
 
     uint8_t vfcvt_f_xu_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfcvt_f_x_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                        uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                        uint32_t const vl, uint8_t pRm);
+                        uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                        uint16_t const vl, uint8_t pRm);
 
     // 13.18. Widening Floating-Point/Integer Type-Convert Instructions
     uint8_t vfwcvt_xu_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                          uint32_t const vl, uint8_t pRm);
+                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                          uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_x_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_rtz_xu_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                              uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                              uint32_t const vl, uint8_t pRm);
+                              uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                              uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_rtz_x_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                             uint32_t const vl, uint8_t pRm);
+                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                             uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_f_xu_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                          uint32_t const vl, uint8_t pRm);
+                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                          uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_f_x_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfwcvt_f_f_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     // 13.19. Narrowing Floating-Point/Integer Type-Convert Instructions
     uint8_t vfncvt_xu_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                          uint32_t const vl, uint8_t pRm);
+                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                          uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_x_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_rtz_xu_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                              uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                              uint32_t const vl, uint8_t pRm);
+                              uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                              uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_rtz_x_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                             uint32_t const vl, uint8_t pRm);
+                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                             uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_f_xu_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                          uint32_t const vl, uint8_t pRm);
+                          uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                          uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_f_x_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_f_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                         uint32_t const vl, uint8_t pRm);
+                         uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                         uint16_t const vl, uint8_t pRm);
 
     uint8_t vfncvt_rod_f_f_w(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                             uint32_t const vl, uint8_t pRm);
+                             uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen,
+                             uint16_t const vl, uint8_t pRm);
 
     // 14. Vector Reduction Operations
     // 14.1. Vector Single-Width Integer Reduction Instructions
@@ -745,80 +745,80 @@ extern "C"
     // 15.2. Vector count population in mask vcpop.m
     uint8_t vcpop_m(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                     uint8_t const masked_instruction_bit, uint8_t pRd, uint8_t const vs2, uint16_t const vstart,
-                    uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                    uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     // 15.3. vfirst find-first-set mask bit
     uint8_t vfirst_m(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                      uint8_t const masked_instruction_bit, uint8_t pRd, uint8_t const vs2, uint16_t const vstart,
-                     uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                     uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     // 15.4. vmsbf.m set-before-first mask bit
     uint8_t vmsbf_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
-                    uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                    uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 15.5. vmsif.m set-including-first mask bit
     uint8_t vmsif_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
-                    uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                    uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 15.6. vmsof.m set-only-first mask bit
     uint8_t vmsof_m(void *const vector_field, uint16_t const vtype, uint8_t const mask_bit, uint8_t const vd,
-                    uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                    uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 15.8. Vector Iota Instruction
     uint8_t viota_m(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                    uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                    uint8_t const vd, uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 15.9. Vector Element Index Instruction
     uint8_t vid_v(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                  uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                  uint8_t const vd, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 16. Vector Permutation Instructions
     // 16.1. Integer Scalar Move Instructions
     uint8_t vmv_xs(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t pRd,
-                   uint8_t const vs2, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                   uint8_t const vs2, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     uint8_t vmv_sx(void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const vd,
-                   uint8_t pRs1, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                   uint8_t pRs1, uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     // 16.2. Floating-Point Scalar Move Instructions
     uint8_t vfmv_f_s(void *const vector_field, void *pF, uint16_t const vtype, uint8_t pRd, uint8_t const vs2,
-                     uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen);
+                     uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen);
 
     uint8_t vfmv_s_f(void *const vector_field, void *pF, uint16_t const vtype, uint8_t const vd, uint8_t pRs1,
-                     uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen);
+                     uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen);
 
     // 16.3. Vector Slide Instructions
     uint8_t vslideup_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                         uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                        uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                        uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     uint8_t vslideup_vi(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
-                        uint8_t const vd, uint8_t const vs2, uint8_t pVimm, uint16_t const vstart, uint32_t const vlen,
-                        uint32_t const vl);
+                        uint8_t const vd, uint8_t const vs2, uint8_t pVimm, uint16_t const vstart, uint16_t const vlen,
+                        uint16_t const vl);
 
     uint8_t vslidedown_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                           uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                          uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                          uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     uint8_t vslidedown_vi(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,
                           uint8_t const vd, uint8_t const vs2, uint8_t pVimm, uint16_t const vstart,
-                          uint32_t const vlen, uint32_t const vl);
+                          uint16_t const vlen, uint16_t const vl);
 
     uint8_t vslide1up_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                          uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                         uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                         uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     uint8_t vfslide1up_vf(void *const vector_field, void *pF, uint16_t const vtype,
                           uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                          uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen);
+                          uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen);
 
     uint8_t vslide1down_vx(void *const vector_field, void *const scalar_field, uint16_t const vtype,
                            uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                           uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const xlen);
+                           uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const xlen);
 
     uint8_t vfslide1down_vf(void *const vector_field, void *pF, uint16_t const vtype,
                             uint8_t const masked_instruction_bit, uint8_t const vd, uint8_t const vs2, uint8_t pRs1,
-                            uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const flen);
+                            uint16_t const vstart, uint16_t const vlen, uint16_t const vl, uint8_t const flen);
 
     // 16.4. Vector Register Gather Instructions
     VV_OP_DECL(vrgather_vv)
@@ -828,11 +828,11 @@ extern "C"
 
     // 16.5. Vector Compress Instruction
     uint8_t vcompress_vm(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs1,
-                         uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                         uint8_t const vs2, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     // 16.6. Whole Vector Register Move
     uint8_t vmvr_v(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs2,
-                   uint8_t const imm, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
+                   uint8_t const imm, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
