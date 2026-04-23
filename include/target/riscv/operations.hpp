@@ -9,14 +9,8 @@
 #include "base/base.hpp"
 #include "arithmetic/softfloat-extension.hpp"
 
-#ifdef ETISS_SOFTFLOAT
-extern "C"
-{
-#include "softfloat_orig.h"
-}
-#else
 #include "softfloat.h"
-#endif
+
 
 enum class SewType : uint8_t
 {

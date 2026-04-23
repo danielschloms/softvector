@@ -11,15 +11,6 @@ Copyright (c) 2022-2023 Intitute for Complex Systems, Johannes Kepler University
 
 #include "arithmetic/softfloat-extension.hpp"
 
-#ifdef ETISS_SOFTFLOAT
-extern "C"
-{
-#include "softfloat_orig.h"
-}
-#else
-#include "softfloat.hpp"
-#endif
-
 extern "C"
 {
 #include "internals.h"

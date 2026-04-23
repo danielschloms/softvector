@@ -1,3 +1,1 @@
-IF(NO_ETISS)
-    ADD_SUBDIRECTORY(softfloat)
-ENDIF()
+add_subdirectory(softfloat-spike)

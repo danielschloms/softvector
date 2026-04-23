@@ -9,14 +9,8 @@ Copyright (c) 2022-2023 Intitute for Complex Systems, Johannes Kepler University
 
 #pragma once
 
-#ifdef ETISS_SOFTFLOAT
-extern "C"
-{
-#include "softfloat_orig.h"
-}
-#else
-#include "softfloat.hpp"
-#endif
+#include <cstdint>
+#include "softfloat_types.h"
 
 constexpr uint16_t F16_SIGN_BIT = 1 << 15;
 constexpr uint32_t F32_SIGN_BIT = 1 << 31;
@@ -90,48 +84,48 @@ float64_t f64_sgnjn(float64_t f1, float64_t f2);
 
 float64_t f64_sgnjx(float64_t f1, float64_t f2);
 
-uint_fast16_t f16_classify(float16_t a);
+// uint_fast16_t f16_classify(float16_t a);
 
-uint_fast16_t f32_classify(float32_t a);
+// uint_fast16_t f32_classify(float32_t a);
 
-uint_fast16_t f64_classify(float64_t a);
+// uint_fast16_t f64_classify(float64_t a);
 
-float16_t f16_max(float16_t a, float16_t b);
+// float16_t f16_max(float16_t a, float16_t b);
 
-float32_t f32_max(float32_t a, float32_t b);
+// float32_t f32_max(float32_t a, float32_t b);
 
-float64_t f64_max(float64_t a, float64_t b);
+// float64_t f64_max(float64_t a, float64_t b);
 
-float16_t f16_min(float16_t a, float16_t b);
+// float16_t f16_min(float16_t a, float16_t b);
 
-float32_t f32_min(float32_t a, float32_t b);
+// float32_t f32_min(float32_t a, float32_t b);
 
-float64_t f64_min(float64_t a, float64_t b);
+// float64_t f64_min(float64_t a, float64_t b);
 
-float16_t f16_rsqrte7(float16_t in);
+// float16_t f16_rsqrte7(float16_t in);
 
-float16_t f16_recip7(float16_t in);
+// float16_t f16_recip7(float16_t in);
 
-float32_t f32_rsqrte7(float32_t in);
+// float32_t f32_rsqrte7(float32_t in);
 
-float32_t f32_recip7(float32_t in);
+// float32_t f32_recip7(float32_t in);
 
-float64_t f64_rsqrte7(float64_t in);
+// float64_t f64_rsqrte7(float64_t in);
 
-float64_t f64_recip7(float64_t in);
+// float64_t f64_recip7(float64_t in);
 
-int_fast8_t f16_to_i8(float16_t a, uint_fast8_t roundingMode, bool exact);
+// int_fast8_t f16_to_i8(float16_t a, uint_fast8_t roundingMode, bool exact);
 
-int_fast16_t f32_to_i16(float32_t a, uint_fast8_t roundingMode, bool exact);
+// int_fast16_t f32_to_i16(float32_t a, uint_fast8_t roundingMode, bool exact);
 
-int_fast32_t f64_to_i32(float64_t a, uint_fast8_t roundingMode, bool exact);
+// int_fast32_t f64_to_i32(float64_t a, uint_fast8_t roundingMode, bool exact);
 
-uint_fast8_t f16_to_ui8(float16_t a, uint_fast8_t roundingMode, bool exact);
+// uint_fast8_t f16_to_ui8(float16_t a, uint_fast8_t roundingMode, bool exact);
 
-uint_fast16_t f32_to_ui16(float32_t a, uint_fast8_t roundingMode, bool exact);
+// uint_fast16_t f32_to_ui16(float32_t a, uint_fast8_t roundingMode, bool exact);
 
-uint_fast32_t f64_to_ui32(float64_t a, uint_fast8_t roundingMode, bool exact);
+// uint_fast32_t f64_to_ui32(float64_t a, uint_fast8_t roundingMode, bool exact);
 
-int_fast16_t f16_to_i16(float16_t a, uint_fast8_t roundingMode, bool exact);
+// int_fast16_t f16_to_i16(float16_t a, uint_fast8_t roundingMode, bool exact);
 
-uint_fast16_t f16_to_ui16(float16_t a, uint_fast8_t roundingMode, bool exact);
+// uint_fast16_t f16_to_ui16(float16_t a, uint_fast8_t roundingMode, bool exact);

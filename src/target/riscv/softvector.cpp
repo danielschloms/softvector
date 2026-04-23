@@ -49,14 +49,7 @@
 #include "base/base.hpp"
 #include "lsu/lsu.hpp"
 
-#ifdef ETISS_SOFTFLOAT
-extern "C"
-{
-#include "softfloat_orig.h"
-}
-#else
 #include "softfloat.h"
-#endif
 
 #define GO_FAST __attribute__((always_inline))
 
@@ -3874,9 +3867,13 @@ std::uint16_t vcfg_concatEEW(std::uint8_t mew, std::uint8_t width)
     return (VTYPE::concatEEW(mew, width));
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 std::uint8_t vload_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                      std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint16_t pVLEN,
-                                      std::uint16_t pVL, std::uint64_t pMSTART)
+                                      std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
+                                      std::uint32_t pVL, std::uint64_t pMSTART)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -3903,8 +3900,8 @@ std::uint8_t vload_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t 
 }
 
 std::uint8_t vload_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                  std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint16_t pVLEN,
-                                  std::uint16_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
+                                  std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
+                                  std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -3934,7 +3931,7 @@ std::uint8_t vload_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTY
 
 std::uint8_t vload_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
                                       std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                      std::uint16_t pVLEN, std::uint16_t pVL, std::uint64_t pMSTART)
+                                      std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -3974,7 +3971,7 @@ std::uint8_t vload_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t 
 
 std::uint8_t vload_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
                                   std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                  std::uint16_t pVLEN, std::uint16_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
+                                  std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -4013,8 +4010,8 @@ std::uint8_t vload_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTY
 }
 
 std::uint8_t vstore_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                       std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint16_t pVLEN,
-                                       std::uint16_t pVL, std::uint64_t pMSTART)
+                                       std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
+                                       std::uint32_t pVL, std::uint64_t pMSTART)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -4041,8 +4038,8 @@ std::uint8_t vstore_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t
 }
 
 std::uint8_t vstore_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                   std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint16_t pVLEN,
-                                   std::uint16_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
+                                   std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
+                                   std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -4069,7 +4066,7 @@ std::uint8_t vstore_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVT
 
 std::uint8_t vstore_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
                                        std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                       std::uint16_t pVLEN, std::uint16_t pVL, std::uint64_t pMSTART)
+                                       std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -4109,7 +4106,7 @@ std::uint8_t vstore_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t
 
 std::uint8_t vstore_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
                                    std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                   std::uint16_t pVLEN, std::uint16_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
+                                   std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
 {
     VTYPE::VTYPE _vt(pVTYPE);
     std::uint64_t _z_emul = pEEW * _vt._z_lmul;
@@ -4147,4 +4144,6 @@ std::uint8_t vstore_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVT
     return (0);
 }
 
-//} // extern "C"
+#ifdef __cplusplus
+} // extern "C"
+#endif
