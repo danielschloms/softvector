@@ -1607,7 +1607,7 @@ uint8_t viota_m(void *const vector_field, uint16_t const vtype, uint8_t const in
 
 // 15.9. Vector Element Index Instruction
 uint8_t vid_v(void *const vector_field, uint16_t const vtype, uint8_t const instruction_mask_bit, uint8_t const vd,
-              uint16_t const vstart, uint16_t const vlen, uint16_t const vl)
+              uint16_t const vstart, uint32_t const vlen, uint32_t const vl)
 {
     auto const sew = decode_sew(vtype);
     auto const sew_bytes = sew >> 3;
