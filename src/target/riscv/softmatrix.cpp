@@ -1,0 +1,127 @@
+/*
+ * Copyright [2020] [Technical University of Munich]
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <cstdint>
+#include <cstddef>
+#include <type_traits>
+
+#include "softfloat_types.h"
+#include "softvector.h"
+#include "softfloat.h"
+
+struct MatrixVtype
+{
+    unsigned lmul = 0;
+    unsigned sew = 0;
+    unsigned lambda = 0;
+    bool altfmt_A = false;
+    bool altfmt_B = false;
+    bool bs = false;
+};
+
+inline constexpr MatrixVtype decode_matrix_vtype(uint32_t vtype)
+{
+    return {
+        .lmul = 1U << (vtype & 0b11),
+        .sew = 8U << ((vtype >> 3) & 0b11),
+        .lambda = 1U << (((vtype >> 28) & 0b111) - 1),
+        .altfmt_A = static_cast<bool>((vtype >> 27) & 1),
+        .altfmt_B = static_cast<bool>((vtype >> 26) & 1),
+        .bs = static_cast<bool>((vtype >> 25) & 1),
+    };
+}
+
+template <typename T>
+inline constexpr void mmacc_float(T *const input_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen,
+                                  unsigned lambda, unsigned lmul, unsigned sew, unsigned widening)
+{
+    auto const elements_per_register = vlen / sew;
+    auto const K_eff = lambda * widening * lmul;
+    auto const dim_C = elements_per_register / lambda;
+
+    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    {
+        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        {
+            auto const vd_offset = (col_C / lambda) * elements_per_register;
+            auto const vd_element = (row_C * lambda) + (col_C % lambda);
+            auto const vd_index = vd * elements_per_register + vd_offset + vd_element;
+
+            T accumulator = input_elements[vd_index];
+
+            for (size_t i_input = 0; i_input < K_eff; ++i_input)
+            {
+                auto const vs_offset = (i_input / (lambda * widening)) * (elements_per_register * widening);
+                auto const vs_A_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
+                auto const vs_B_element = (col_C * lambda * widening) + (i_input % (lambda * widening));
+
+                auto const vs1_index = vs1 * elements_per_register * widening + vs_offset + vs_A_element;
+                auto const vs2_index = vs2 * elements_per_register * widening + vs_offset + vs_B_element;
+
+                T const a = input_elements[vs1_index];
+                T const b = input_elements[vs2_index];
+
+                if constexpr (std::is_same_v<T, float16_t>)
+                {
+                    accumulator = f16_mulAdd(a, b, accumulator);
+                }
+                else if constexpr (std::is_same_v<T, float32_t>)
+                {
+                    accumulator = f32_mulAdd(a, b, accumulator);
+                }
+                else if constexpr (std::is_same_v<T, float64_t>)
+                {
+                    accumulator = f64_mulAdd(a, b, accumulator);
+                }
+            }
+
+            input_elements[vd_index] = accumulator;
+        }
+    }
+}
+
+uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
+                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint8_t const rounding_mode)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    auto const sew = vtype_decoded.sew;
+    auto const lambda = vtype_decoded.lambda;
+    auto const lmul = vtype_decoded.lmul;
+    auto const widening = 1;
+
+    softfloat_exceptionFlags = 0;
+    softfloat_roundingMode = rounding_mode;
+
+    switch (sew)
+    {
+    case 16:
+        mmacc_float<float16_t>(reinterpret_cast<float16_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+                               widening);
+        break;
+    case 32:
+        mmacc_float<float32_t>(reinterpret_cast<float32_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+                               widening);
+        break;
+    case 64:
+        mmacc_float<float64_t>(reinterpret_cast<float64_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+                               widening);
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}

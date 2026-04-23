@@ -20,6 +20,7 @@ ENDIF()
 
 ADD_LIBRARY(${PROJECT_NAME} SHARED
     src/target/${TARGET_PLATFORM_NAME}/softvector.cpp
+    src/target/${TARGET_PLATFORM_NAME}/softmatrix.cpp
     src/vpu/softvector-element.cpp
     src/vpu/softvector-vector.cpp
     src/vpu/softvector-register.cpp
