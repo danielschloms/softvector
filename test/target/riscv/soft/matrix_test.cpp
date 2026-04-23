@@ -56,7 +56,6 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
 
     // MMACC
     vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen);
-    std::printf("AS %lu, BS %lu, CS %lu\n", A.size(), B.size(), C.size());
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, 1);
 
     std::vector<T> C_from_RV;
