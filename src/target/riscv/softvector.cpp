@@ -3830,320 +3830,310 @@ inline constexpr GO_FAST void dispatch_iterate_v_unary(void *const vector_field,
     }
 }
 
-std::int8_t vtype_decode(std::uint16_t const vtype, std::uint8_t *ta, std::uint8_t *ma, std::uint32_t *sew,
-                         std::uint8_t *z_lmul, std::uint8_t *n_lmul)
+int8_t vtype_decode(uint16_t const vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul)
 {
     return (VTYPE::decode(vtype, ta, ma, sew, z_lmul, n_lmul));
 }
 
-std::uint16_t vtype_encode(std::uint16_t sew, std::uint8_t z_lmul, std::uint8_t n_lmul, std::uint8_t ta,
-                           std::uint8_t ma)
+uint16_t vtype_encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma)
 {
     return VTYPE::encode(sew, z_lmul, n_lmul, ta, ma);
 }
 
-std::uint8_t vtype_extractSEW(std::uint16_t pVTYPE)
+uint8_t vtype_extractSEW(uint16_t const vtype)
 {
-    return VTYPE::extractSEW(pVTYPE);
+    return VTYPE::extractSEW(vtype);
 }
 
-std::uint8_t vtype_extractLMUL(std::uint16_t pVTYPE)
+uint8_t vtype_extractLMUL(uint16_t const vtype)
 {
-    return VTYPE::extractLMUL(pVTYPE);
+    return VTYPE::extractLMUL(vtype);
 }
 
-std::uint8_t vtype_extractTA(std::uint16_t pVTYPE)
+uint8_t vtype_extractTA(uint16_t const vtype)
 {
-    return VTYPE::extractTA(pVTYPE);
+    return VTYPE::extractTA(vtype);
 }
 
-std::uint8_t vtype_extractMA(std::uint16_t pVTYPE)
+uint8_t vtype_extractMA(uint16_t const vtype)
 {
-    return VTYPE::extractMA(pVTYPE);
+    return VTYPE::extractMA(vtype);
 }
 
-std::uint16_t vcfg_concatEEW(std::uint8_t mew, std::uint8_t width)
+uint16_t vcfg_concatEEW(uint8_t const mew, uint8_t const width)
 {
     return (VTYPE::concatEEW(mew, width));
 }
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-std::uint8_t vload_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                      std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
-                                      std::uint32_t pVL, std::uint64_t pMSTART)
+uint8_t vload_encoded_unitstride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                                 uint16_t const eew, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
+                                 uint32_t const vl, uint64_t const mem_offset)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * 8) || (_z_emul > _n_emul * 8))
         return 1;
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_readMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_readMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            buff[i] = pM[addr + i];
+            buff[i] = memory[addr + i];
     };
 
-    VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8, pVd, pMSTART, pVSTART, pVm,
-                   pEEW / 8);
+    VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd, mem_offset, vstart, pVm,
+                   eew / 8);
 
     return (0);
 }
 
-std::uint8_t vload_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                  std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
-                                  std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
+uint8_t vload_encoded_stride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                             uint16_t const eew, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
+                             uint32_t const vl, uint64_t const mem_offset, int16_t const stride)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * 8) || (_z_emul > _n_emul * 8))
     {
         return 1;
     }
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_readMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_readMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            buff[i] = pM[addr + i];
+            buff[i] = memory[addr + i];
     };
 
-    VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8, pVd, pMSTART, pVSTART, pVm,
-                   pSTRIDE);
+    VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd, mem_offset, vstart, pVm,
+                   stride);
 
     return (0);
 }
 
-std::uint8_t vload_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                      std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                      std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART)
+uint8_t vload_segment_unitstride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                                 uint16_t const eew, uint8_t pNF, uint8_t const vd, uint16_t const vstart,
+                                 uint32_t const vlen, uint32_t const vl, uint64_t const mem_offset)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * pNF * 8) || (_z_emul * pNF > _n_emul * 8))
         return 1;
-    if ((pVd + pNF * _z_emul / _n_emul) > 32)
+    if ((vd + pNF * _z_emul / _n_emul) > 32)
         return 1;
-    if (pVSTART >= pVL)
+    if (vstart >= vl)
         return (0);
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_readMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_readMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            buff[i] = pM[addr + i];
+            buff[i] = memory[addr + i];
     };
 
-    std::uint16_t _vstart = pVSTART;
-    std::uint64_t _moffset = pMSTART;
+    uint16_t _vstart = vstart;
+    uint64_t _moffset = mem_offset;
 
     for (int i = 0; i < pNF; ++i)
     {
-        VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8,
-                       pVd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, pEEW / 8);
-        _moffset += (pVL - _vstart) * pEEW / 8;
+        VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd + (i * _z_emul / _n_emul),
+                       _moffset, _vstart, pVm, eew / 8);
+        _moffset += (vl - _vstart) * eew / 8;
         _vstart = 0;
     }
 
     return (0);
 }
 
-std::uint8_t vload_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                  std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                  std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pSTRIDE)
+uint8_t vload_segment_stride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                             uint16_t const eew, uint8_t pNF, uint8_t const vd, uint16_t const vstart,
+                             uint32_t const vlen, uint32_t const vl, uint64_t const mem_offset, int16_t const stride)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * pNF * 8) || (_z_emul * pNF > _n_emul * 8))
         return 1;
-    if ((pVd + pNF * _z_emul / _n_emul) > 32)
+    if ((vd + pNF * _z_emul / _n_emul) > 32)
         return 1;
-    if (pVSTART >= pVL)
+    if (vstart >= vl)
         return (0);
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_readMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_readMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            buff[i] = pM[addr + i];
+            buff[i] = memory[addr + i];
     };
 
-    std::uint16_t _vstart = pVSTART;
-    std::uint64_t _moffset = pMSTART;
+    uint16_t _vstart = vstart;
+    uint64_t _moffset = mem_offset;
 
     for (int i = 0; i < pNF; ++i)
     {
-        _moffset = pMSTART + i * pEEW / 8;
-        VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8,
-                       pVd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, pSTRIDE);
+        _moffset = mem_offset + i * eew / 8;
+        VLSU::load_eew(f_readMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd + (i * _z_emul / _n_emul),
+                       _moffset, _vstart, pVm, stride);
         _vstart = 0;
     }
 
     return (0);
 }
 
-std::uint8_t vstore_encoded_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                       std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
-                                       std::uint32_t pVL, std::uint64_t pMSTART)
+uint8_t vstore_encoded_unitstride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                                  uint16_t const eew, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
+                                  uint32_t const vl, uint64_t const mem_offset)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * 8) || (_z_emul > _n_emul * 8))
         return 1;
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_writeMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            pM[addr + i] = buff[i];
+            memory[addr + i] = buff[i];
     };
 
-    VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8, pVd, pMSTART, pVSTART, pVm,
-                    pEEW / 8);
+    VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd, mem_offset, vstart, pVm,
+                    eew / 8);
 
     return (0);
 }
 
-std::uint8_t vstore_encoded_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                   std::uint16_t pEEW, std::uint8_t pVd, std::uint16_t pVSTART, std::uint32_t pVLEN,
-                                   std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
+uint8_t vstore_encoded_stride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                              uint16_t const eew, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
+                              uint32_t const vl, uint64_t const mem_offset, int16_t const stride)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * 8) || (_z_emul > _n_emul * 8))
         return 1;
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_writeMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            pM[addr + i] = buff[i];
+            memory[addr + i] = buff[i];
     };
-    VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8, pVd, pMSTART, pVSTART, pVm,
-                    pStride);
+    VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8, vd, mem_offset, vstart, pVm,
+                    stride);
 
     return (0);
 }
 
-std::uint8_t vstore_segment_unitstride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                       std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                       std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART)
+uint8_t vstore_segment_unitstride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                                  uint16_t const eew, uint8_t pNF, uint8_t const vd, uint16_t const vstart,
+                                  uint32_t const vlen, uint32_t const vl, uint64_t const mem_offset)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * pNF * 8) || (_z_emul * pNF > _n_emul * 8))
         return 1;
-    if ((pVd + pNF * _z_emul / _n_emul) > 32)
+    if ((vd + pNF * _z_emul / _n_emul) > 32)
         return 1;
-    if (pVSTART >= pVL)
+    if (vstart >= vl)
         return (0);
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_writeMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            pM[addr + i] = buff[i];
+            memory[addr + i] = buff[i];
     };
 
-    std::uint16_t _vstart = pVSTART;
-    std::uint64_t _moffset = pMSTART;
+    uint16_t _vstart = vstart;
+    uint64_t _moffset = mem_offset;
 
     for (int i = 0; i < pNF; ++i)
     {
-        VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8,
-                        pVd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, pEEW / 8);
-        _moffset += (pVL - _vstart) * pEEW / 8;
+        VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8,
+                        vd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, eew / 8);
+        _moffset += (vl - _vstart) * eew / 8;
         _vstart = 0;
     }
 
     return (0);
 }
 
-std::uint8_t vstore_segment_stride(void *pV, std::uint8_t *pM, std::uint16_t pVTYPE, std::uint8_t pVm,
-                                   std::uint16_t pEEW, std::uint8_t pNF, std::uint8_t pVd, std::uint16_t pVSTART,
-                                   std::uint32_t pVLEN, std::uint32_t pVL, std::uint64_t pMSTART, std::int16_t pStride)
+uint8_t vstore_segment_stride(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm,
+                              uint16_t const eew, uint8_t pNF, uint8_t const vd, uint16_t const vstart,
+                              uint32_t const vlen, uint32_t const vl, uint64_t const mem_offset, int16_t const stride)
 {
-    VTYPE::VTYPE _vt(pVTYPE);
-    std::uint64_t _z_emul = pEEW * _vt._z_lmul;
-    std::uint64_t _n_emul = _vt._sew * _vt._n_lmul;
+    VTYPE::VTYPE _vt(vtype);
+    uint64_t _z_emul = eew * _vt._z_lmul;
+    uint64_t _n_emul = _vt._sew * _vt._n_lmul;
 
     if ((_n_emul > _z_emul * pNF * 8) || (_z_emul * pNF > _n_emul * 8))
         return 1;
-    if ((pVd + pNF * _z_emul / _n_emul) > 32)
+    if ((vd + pNF * _z_emul / _n_emul) > 32)
         return 1;
-    if (pVSTART >= pVL)
+    if (vstart >= vl)
         return (0);
 
-    std::uint8_t *VectorRegField;
+    uint8_t *VectorRegField;
 
-    VectorRegField = static_cast<std::uint8_t *>(pV);
+    VectorRegField = static_cast<uint8_t *>(vector_field);
 
-    std::function<void(std::size_t, std::uint8_t *, std::size_t)> f_writeMem =
-        [pM](std::size_t addr, std::uint8_t *buff, std::size_t len)
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory](std::size_t addr, uint8_t *buff, std::size_t len)
     {
         for (std::size_t i = 0; i < len; ++i)
-            pM[addr + i] = buff[i];
+            memory[addr + i] = buff[i];
     };
 
-    std::uint16_t _vstart = pVSTART;
-    std::uint64_t _moffset = pMSTART;
+    uint16_t _vstart = vstart;
+    uint64_t _moffset = mem_offset;
     for (int i = 0; i < pNF; ++i)
     {
-        _moffset = pMSTART + i * pEEW / 8;
-        VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, pEEW / 8, pVL, pVLEN / 8,
-                        pVd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, pStride);
-        _moffset += (pVL - _vstart) * pEEW / 8;
+        _moffset = mem_offset + i * eew / 8;
+        VLSU::store_eew(f_writeMem, VectorRegField, _z_emul, _n_emul, eew / 8, vl, vlen / 8,
+                        vd + (i * _z_emul / _n_emul), _moffset, _vstart, pVm, stride);
+        _moffset += (vl - _vstart) * eew / 8;
         _vstart = 0;
     }
 
     return (0);
 }
-
-#ifdef __cplusplus
-} // extern "C"
-#endif

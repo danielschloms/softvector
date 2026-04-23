@@ -78,8 +78,8 @@ extern "C"
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Concatenate MEW and WIDTH to EEW and return number of bits for EEW
     /// \return Decoded EEW [bits]
-    uint16_t vcfg_concatEEW(uint8_t mew,  //!<[in] MEW bit
-                            uint8_t width //!<[in] WIDTH bits
+    uint16_t vcfg_concatEEW(uint8_t const mew,  //!<[in] MEW bit
+                            uint8_t const width //!<[in] WIDTH bits
     );
 
     /* Vector Loads/Stores Helpers*/
@@ -87,73 +87,73 @@ extern "C"
     /// \brief Load encoded (unitstride) from memory to target vector (-group)
     /// \return 0 if no exception triggered, else 1
     uint8_t vload_encoded_unitstride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                     uint8_t *pM,              //!<[inout] Local memory
-                                     uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                     uint8_t *const memory,    //!<[inout] Local memory
+                                     uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                      uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
-                                     uint64_t pMSTART);
+                                     uint64_t const mem_offset);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Load encoded (strided) from memory to target vector (-group)
     /// \return 0 if no exception triggered, else 1
     uint8_t vload_encoded_stride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                 uint8_t *pM,              //!<[inout] Local memory
-                                 uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                 uint8_t *const memory,    //!<[inout] Local memory
+                                 uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                  uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
-                                 uint64_t pMSTART, int16_t pSTRIDE);
+                                 uint64_t const mem_offset, int16_t const stride);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Load seqgmented (unitstride) from memory to target vector (-group)
     /// \return 0 if no exception triggered, else 1
     uint8_t vload_segment_unitstride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                     uint8_t *pM,              //!<[inout] Local memory
-                                     uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                     uint8_t *const memory,    //!<[inout] Local memory
+                                     uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                      uint8_t pNF, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
-                                     uint32_t const vl, uint64_t pMSTART);
+                                     uint32_t const vl, uint64_t const mem_offset);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Load encoded (strided) from memory to target vector (-group)
     /// \return 0 if no exception triggered, else 1
     uint8_t vload_segment_stride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                 uint8_t *pM,              //!<[inout] Local memory
-                                 uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW, uint8_t pNF,
-                                 uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
-                                 uint64_t pMSTART, int16_t pSTRIDE);
+                                 uint8_t *const memory,    //!<[inout] Local memory
+                                 uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
+                                 uint8_t pNF, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
+                                 uint32_t const vl, uint64_t const mem_offset, int16_t const stride);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Store encoded (unitstride) source vector (-group) to memory
     /// \return 0 if no exception triggered, else 1
     uint8_t vstore_encoded_unitstride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                      uint8_t *pM,              //!<[inout] Local memory
-                                      uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                      uint8_t *const memory,    //!<[inout] Local memory
+                                      uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                       uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
-                                      uint64_t pMSTART);
+                                      uint64_t const mem_offset);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Store encoded (strided) source vector (-group) to memory
     /// \return 0 if no exception triggered, else 1
     uint8_t vstore_encoded_stride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                  uint8_t *pM,              //!<[inout] Local memory
-                                  uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                  uint8_t *const memory,    //!<[inout] Local memory
+                                  uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                   uint8_t const vd, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
-                                  uint64_t pMSTART, int16_t pStride);
+                                  uint64_t const mem_offset, int16_t const stride);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Store segmented (unitstride) source vector (-group) to memory
     /// \return 0 if no exception triggered, else 1
     uint8_t vstore_segment_unitstride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                      uint8_t *pM,              //!<[inout] Local memory
-                                      uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                      uint8_t *const memory,    //!<[inout] Local memory
+                                      uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                       uint8_t pNF, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
-                                      uint32_t const vl, uint64_t pMSTART);
+                                      uint32_t const vl, uint64_t const mem_offset);
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Store segmented (strided) source vector (-group) to memory
     /// \return 0 if no exception triggered, else 1
     uint8_t vstore_segment_stride(void *const vector_field, //!<[inout] Vector register field as local memory
-                                  uint8_t *pM,              //!<[inout] Local memory
-                                  uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t pEEW,
+                                  uint8_t *const memory,    //!<[inout] Local memory
+                                  uint16_t const vtype, uint8_t const masked_instruction_bit, uint16_t const eew,
                                   uint8_t pNF, uint8_t const vd, uint16_t const vstart, uint32_t const vlen,
-                                  uint32_t const vl, uint64_t pMSTART, int16_t pStride);
+                                  uint32_t const vl, uint64_t const mem_offset, int16_t const stride);
 
 #define VV_OP_DECL(name)                                                                                             \
     uint8_t name(void *const vector_field, uint16_t const vtype, uint8_t const masked_instruction_bit,               \
