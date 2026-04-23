@@ -15,12 +15,13 @@
  */
 
 #include <cstdint>
-#include <cstddef>
 #include <type_traits>
-
-#include "softfloat_types.h"
 #include "softvector.h"
-#include "softfloat.h"
+#include "softfloat_types.h"
+#include "operations.hpp"
+
+template <typename T>
+concept ValidFloatType = std::is_same_v<T, float16_t> or std::is_same_v<T, float32_t> or std::is_same_v<T, float64_t>;
 
 struct MatrixVtype
 {
@@ -45,7 +46,80 @@ inline constexpr MatrixVtype decode_matrix_vtype(uint32_t vtype)
 }
 
 template <typename T>
-inline constexpr void mmacc_float(T *const input_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen,
+    requires ValidVectorElementType<T>
+inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen, unsigned lambda,
+                            unsigned lmul, unsigned sew, unsigned widening)
+{
+    // Accumulator is always signed
+    using ResultType = std::make_signed_t<T>;
+    auto *output_elements = reinterpret_cast<ResultType *>(vector_elements);
+    auto const elements_per_register = vlen / sew;
+    // std::printf("SV VLEN %u, SEW %u\n", vlen, sew);
+
+    // Accumulator C has a register group multiplier of MUL_C = (VLEN / SEW) / (Lambda^2)
+    // std::printf("LAMBDA %u\n", lambda);
+    // auto const mul_C = elements_per_register / (lambda * lambda);
+    // MUL_C in {1, 2, 4, 8, 16}
+    // assert(mul_C == 1 || mul_C == 2 || mul_C == 4 || mul_C == 8 || mul_C == 16);
+    // The register group start is MUL_C aligned (e.g. MUL_C = 16 -> vd = [0, 16])
+    // assert((vd % mul_C) == 0);
+
+    // Multiplication dimension for inputs, i.e. a result element is the sum of K_eff multiplications
+    auto const K_eff = lambda * widening * lmul;
+
+    // vs1 marks the start of A
+    auto *const A_elements = vector_elements + (vs1 * elements_per_register * widening);
+    // vs2 marks the start of B
+    auto *const B_elements = vector_elements + (vs2 * elements_per_register * widening);
+    // vd marks the start of C
+    auto *const C_elements = output_elements + (vd * elements_per_register);
+
+    // Rows & columns of C
+    // Dimensions of C, M = N,
+    // = ((LMUL * VLEN) / (SEW / W)) / K_eff                | Move W to numerator
+    // = ((LMUL * VLEN * W) / SEW) / K_eff                  | Replace K_eff with definition
+    // = ((LMUL * VLEN * W) / SEW) / (Lambda * W * LMUL)    | Cross out LMUL & W
+    // = (VLEN / SEW) / Lambda
+    auto const dim_C = elements_per_register / lambda;
+    // std::printf("E per R %u, dim C %u, lambda %u\n", elements_per_register, dim_C, lambda);
+
+    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    {
+        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        {
+            int64_t accumulator = 0;
+            // std::printf("C[%lu][%lu] =", row_C, col_C);
+            for (size_t i_input = 0; i_input < K_eff; ++i_input)
+            {
+                auto const vs_offset = (i_input / (lambda * widening)) * (elements_per_register * widening);
+                auto const vs_A_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
+                auto const vs_B_element = (col_C * lambda * widening) + (i_input % (lambda * widening));
+                // auto const a = A_elements[vs_offset + vs_A_element];
+                // auto const b = B_elements[vs_offset + vs_B_element];
+                // std::printf("+ (v%lu[%lu] * v%lu[%lu]) ", vs1 + vs_offset, vs_A_element, vs2 + vs_offset,
+                // vs_B_element);
+
+                // std::printf("+ ([%u @ v%lu[%lu]] * [%u @ v%lu[%lu]]) ", a,
+                //             vs1 + (vs_offset / ((elements_per_register * widening))), vs_A_element, b,
+                //             vs2 + (vs_offset / ((elements_per_register * widening))), vs_B_element);
+
+                // std::printf("+ (%u * %u) ", a, b);
+                accumulator += A_elements[vs_offset + vs_A_element] * B_elements[vs_offset + vs_B_element];
+            }
+
+            auto const vd_offset = (col_C / lambda) * elements_per_register;
+            auto const vd_element = (row_C * lambda) + (col_C % lambda);
+            // std::printf("= %lu @ v%lu[%lu] \n", accumulator, vd + (vd_offset / elements_per_register), vd_element);
+            // std::printf("%lu | ", accumulator);
+            C_elements[vd_offset + vd_element] += accumulator;
+        }
+        // std::printf("\n\n");
+    }
+}
+
+template <typename T>
+    requires ValidFloatType<T>
+inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen,
                                   unsigned lambda, unsigned lmul, unsigned sew, unsigned widening)
 {
     auto const elements_per_register = vlen / sew;
@@ -60,7 +134,7 @@ inline constexpr void mmacc_float(T *const input_elements, unsigned vd, unsigned
             auto const vd_element = (row_C * lambda) + (col_C % lambda);
             auto const vd_index = vd * elements_per_register + vd_offset + vd_element;
 
-            T accumulator = input_elements[vd_index];
+            T accumulator = vector_elements[vd_index];
 
             for (size_t i_input = 0; i_input < K_eff; ++i_input)
             {
@@ -71,8 +145,8 @@ inline constexpr void mmacc_float(T *const input_elements, unsigned vd, unsigned
                 auto const vs1_index = vs1 * elements_per_register * widening + vs_offset + vs_A_element;
                 auto const vs2_index = vs2 * elements_per_register * widening + vs_offset + vs_B_element;
 
-                T const a = input_elements[vs1_index];
-                T const b = input_elements[vs2_index];
+                T const a = vector_elements[vs1_index];
+                T const b = vector_elements[vs2_index];
 
                 if constexpr (std::is_same_v<T, float16_t>)
                 {
@@ -88,9 +162,46 @@ inline constexpr void mmacc_float(T *const input_elements, unsigned vd, unsigned
                 }
             }
 
-            input_elements[vd_index] = accumulator;
+            vector_elements[vd_index] = accumulator;
         }
     }
+}
+
+uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
+                  uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    // auto punner = PointerPunner(vector_field);
+
+    // Accumulator is always signed
+    // auto *const output_elements = punner.i8;
+
+    // For now just try uint8_t * uint8_t = uint8_t (fixed SEW and Widening, ignore altfmt fields)
+    // Also ignore bs, as this encodes the block size for microscaling operations (vm = 0)
+    // For future reference: bs == 0 -> block size = 32, 16 otherwise
+    auto const sew = vtype_decoded.sew;
+    auto const lambda = vtype_decoded.lambda;
+
+    auto const lmul = vtype_decoded.lmul;
+    auto const widening = 1;
+
+    switch (sew)
+    {
+    case 8:
+        mmacc<uint8_t>(reinterpret_cast<uint8_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening);
+        break;
+    case 16:
+        mmacc<uint16_t>(reinterpret_cast<uint16_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening);
+        break;
+    case 32:
+        mmacc<uint32_t>(reinterpret_cast<uint32_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening);
+        break;
+    case 64:
+        mmacc<uint64_t>(reinterpret_cast<uint64_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening);
+        break;
+    }
+
+    return 0;
 }
 
 uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,

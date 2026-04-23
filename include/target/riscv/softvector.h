@@ -834,6 +834,7 @@ extern "C"
     uint8_t vmvr_v(void *const vector_field, uint16_t const vtype, uint8_t const vd, uint8_t const vs2,
                    uint8_t const imm, uint16_t const vstart, uint16_t const vlen, uint16_t const vl);
 
+    // Matrix
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
 
