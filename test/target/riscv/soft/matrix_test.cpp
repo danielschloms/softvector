@@ -10,6 +10,51 @@
 #include <type_traits>
 #include <vector>
 
+template <typename BaseType>
+struct ResultWidener;
+
+template <>
+struct ResultWidener<uint8_t>
+{
+    using doublewide = int16_t;
+    using quadwide = int32_t;
+    using octwide = int64_t;
+};
+
+template <>
+struct ResultWidener<int8_t>
+{
+    using doublewide = int16_t;
+    using quadwide = int32_t;
+    using octwide = int64_t;
+};
+
+template <>
+struct ResultWidener<uint16_t>
+{
+    using doublewide = int32_t;
+    using quadwide = int64_t;
+};
+
+template <>
+struct ResultWidener<int16_t>
+{
+    using doublewide = int32_t;
+    using quadwide = int64_t;
+};
+
+template <>
+struct ResultWidener<uint32_t>
+{
+    using doublewide = int64_t;
+};
+
+template <>
+struct ResultWidener<int32_t>
+{
+    using doublewide = int64_t;
+};
+
 static constexpr auto max_vlen = 1U << 16;
 static constexpr auto max_vlen_bytes = max_vlen >> 3;
 static constexpr auto n_vector_registers = 32;
@@ -81,7 +126,91 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
     }
     else
     {
-        std::printf("Test success\n");
+        std::printf("\t%sSINGLE WIDTH: Test success%s\n", GREEN, RESET);
+    }
+    zero_vectors(vector_field.data(), vector_field.size());
+    return is_ok;
+}
+
+template <typename T>
+    requires std::is_integral_v<T>
+bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsigned vs1, unsigned vs2,
+                            unsigned vlen)
+{
+    auto const vtype_qwmmacc = encode_matrix_vtype(sew, lmul, lambda, false, false, false);
+    auto const vtype_vid = encode_matrix_vtype(sew - 2, lmul, lambda, false, false, false);
+    auto const decoded_vtype = decode_matrix_vtype(vtype_qwmmacc);
+    auto const elements_per_register = vlen / decoded_vtype.sew;
+    auto const mul_C = elements_per_register / (decoded_vtype.lambda * decoded_vtype.lambda);
+    if (!check_mul_C(mul_C))
+    {
+        std::printf("Illegal MUL_C\n");
+        return false;
+    }
+    auto const lambda_val = 1U << (lambda - 1);
+    // std::printf("QUAD: SEW: %u, LMUL: %u, LAMBDA: %u, VLEN: %u\n", 8u << sew, 1U << lmul, lambda_val, vlen);
+
+    using ResultType = ResultWidener<T>::quadwide;
+    static constexpr auto widening = 4;
+    std::vector<T> A;
+    A.reserve(elements_per_register * lmul * widening);
+
+    std::vector<T> B;
+    B.reserve(elements_per_register * lmul * widening);
+
+    std::vector<ResultType> C;
+    // C.reserve(elements_per_register * mul_C);
+    C.resize(elements_per_register * mul_C);
+    zero_vec(C);
+
+    // Fill vectors sequentially
+    // RISC-V
+    vid_v(vector_field.data(), static_cast<uint16_t>(vtype_vid), 1, vs1, 0, vlen,
+          elements_per_register * decoded_vtype.lmul * widening);
+    vid_v(vector_field.data(), static_cast<uint16_t>(vtype_vid), 1, vs2, 0, vlen,
+          elements_per_register * decoded_vtype.lmul * widening);
+
+    // Golden
+    seq_fill(A, decoded_vtype.lmul, decoded_vtype.lambda, widening,
+             elements_per_register * decoded_vtype.lmul * widening);
+    seq_fill(B, decoded_vtype.lmul, decoded_vtype.lambda, widening,
+             elements_per_register * decoded_vtype.lmul * widening);
+
+    // MMACC
+    vqwmmacc_vv(vector_field.data(), vtype_qwmmacc, vd, vs1, vs2, 0, vlen);
+    mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, widening);
+
+    std::vector<ResultType> C_from_RV;
+
+    convert(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, mul_C, false,
+            C_from_RV, true);
+    auto is_ok = is_equal(C, C_from_RV);
+    if (!is_ok)
+    {
+        std::printf("QUAD: Result not equal to golden result!\n");
+
+        std::printf("A\n");
+        print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, widening);
+        std::printf("ARV\n");
+        print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, widening, decoded_vtype.lmul, false);
+        std::printf("B\n");
+        print_matrix(B, decoded_vtype.lambda, decoded_vtype.lmul, widening);
+        std::printf("C\n");
+        print_matrix(C, decoded_vtype.lambda, mul_C, 1);
+        std::printf("C from RV\n");
+        print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
+        std::printf("RV\n");
+        print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, mul_C,
+                        false);
+        // for (int i = 0; i < 16; i++)
+        // {
+        //     std::printf("%i\n", reinterpret_cast<ResultType *>(vector_field.data())[16 * 4 + i]);
+        // }
+        std::exit(EXIT_FAILURE);
+    }
+    else
+    {
+        std::printf("\t%sQUAD:         Test success%s\n", GREEN, RESET);
     }
     zero_vectors(vector_field.data(), vector_field.size());
     return is_ok;
@@ -94,6 +223,8 @@ int main()
     auto const sews = std::to_array({ SEW_E8, SEW_E16, SEW_E32, SEW_E64 });
 
     auto vlen = 64;
+    // seq_increase_test_quad<uint8_t>(SEW_E32, LMUL_M1, LAMBDA_1, 16, 0, 8, vlen);
+    // return 0;
     while (vlen <= max_vlen)
     {
         for (auto &&lmul : lmuls)
@@ -121,9 +252,13 @@ int main()
                         break;
                     case 32:
                         seq_increase_test<uint32_t>(sew, lmul, lambda, 16, 0, 8, vlen);
+                        seq_increase_test_quad<uint8_t>(sew, lmul, lambda, 16, 0, 8, vlen);
                         break;
                     case 64:
                         seq_increase_test<uint64_t>(sew, lmul, lambda, 16, 0, 8, vlen);
+                        seq_increase_test_quad<uint16_t>(sew, lmul, lambda, 16, 0, 8, vlen);
+                        break;
+                    default:
                         break;
                     }
                 }

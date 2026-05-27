@@ -15,6 +15,7 @@
  */
 
 #include <cstdint>
+#include <cstdio>
 #include <type_traits>
 #include "softvector.h"
 #include "softfloat_types.h"
@@ -117,6 +118,101 @@ inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsig
     }
 }
 
+template <typename BaseType>
+struct ResultWidener;
+
+template <>
+struct ResultWidener<uint8_t>
+{
+    using doublewide = int16_t;
+    using quadwide = int32_t;
+    using octwide = int64_t;
+};
+
+template <>
+struct ResultWidener<int8_t>
+{
+    using doublewide = int16_t;
+    using quadwide = int32_t;
+    using octwide = int64_t;
+};
+
+template <>
+struct ResultWidener<uint16_t>
+{
+    using doublewide = int32_t;
+    using quadwide = int64_t;
+};
+
+template <>
+struct ResultWidener<int16_t>
+{
+    using doublewide = int32_t;
+    using quadwide = int64_t;
+};
+
+template <>
+struct ResultWidener<uint32_t>
+{
+    using doublewide = int64_t;
+};
+
+template <>
+struct ResultWidener<int32_t>
+{
+    using doublewide = int64_t;
+};
+
+template <typename T_I, typename T_O>
+    requires ValidVectorElementType<T_I>
+inline constexpr void wmmacc(T_I *input_elements, T_O *output_elements, unsigned vd, unsigned vs1, unsigned vs2,
+                             unsigned vlen, unsigned lambda, unsigned lmul, unsigned sew)
+{
+    static constexpr auto widening = sizeof(T_O) / sizeof(T_I);
+    static_assert(sizeof(T_O) >= sizeof(T_I), "Illegal narrowing");
+    auto const elements_per_register = vlen / sew;
+
+    // Multiplication dimension for inputs, i.e. a result element is the sum of K_eff multiplications
+    auto const K_eff = lambda * widening * lmul;
+
+    // vs1 marks the start of A
+    auto *const A_elements = input_elements + (vs1 * elements_per_register * widening);
+    // vs2 marks the start of B
+    auto *const B_elements = input_elements + (vs2 * elements_per_register * widening);
+    // vd marks the start of C
+    auto *const C_elements = output_elements + (vd * elements_per_register);
+
+    // Rows & columns of C
+    auto const dim_C = elements_per_register / lambda;
+
+    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    {
+        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        {
+            // std::printf("C[%lu][%lu] =", row_C, col_C);
+            int64_t accumulator = 0;
+            for (size_t i_input = 0; i_input < K_eff; ++i_input)
+            {
+                auto const vs_offset = (i_input / (lambda * widening)) * (elements_per_register * widening);
+                auto const vs_A_element = (row_C * lambda * widening) + (i_input % (lambda * widening));
+                auto const vs_B_element = (col_C * lambda * widening) + (i_input % (lambda * widening));
+                // auto const a = A_elements[vs_offset + vs_A_element];
+                // auto const b = B_elements[vs_offset + vs_B_element];
+                // std::printf("+ ([%u @ v%lu[%lu]] * [%u @ v%lu[%lu]]) ", a,
+                //             vs1 + (vs_offset / ((elements_per_register * widening))), vs_A_element, b,
+                //             vs2 + (vs_offset / ((elements_per_register * widening))), vs_B_element);
+                accumulator += A_elements[vs_offset + vs_A_element] * B_elements[vs_offset + vs_B_element];
+            }
+
+            auto const vd_offset = (col_C / lambda) * elements_per_register;
+            auto const vd_element = (row_C * lambda) + (col_C % lambda);
+            C_elements[vd_offset + vd_element] += accumulator;
+            // std::printf("= %lu @ v%lu[%lu] \n", accumulator, vd + (vd_offset / elements_per_register), vd_element);
+        }
+        // std::printf("\n");
+    }
+}
+
 template <typename T>
     requires ValidFloatType<T>
 inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen,
@@ -167,6 +263,7 @@ inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigne
     }
 }
 
+// Single width MMACC
 uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
 {
@@ -198,6 +295,39 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t co
         break;
     case 64:
         mmacc<uint64_t>(reinterpret_cast<uint64_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening);
+        break;
+    }
+
+    return 0;
+}
+
+// Quad-widening MMACC
+uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
+                    uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    // auto punner = PointerPunner(vector_field);
+
+    // Accumulator is always signed
+    // auto *const output_elements = punner.i8;
+
+    // For now just try uint8_t * uint8_t = uint8_t (fixed SEW and Widening, ignore altfmt fields)
+    // Also ignore bs, as this encodes the block size for microscaling operations (vm = 0)
+    // For future reference: bs == 0 -> block size = 32, 16 otherwise
+    auto const sew = vtype_decoded.sew;
+    auto const lambda = vtype_decoded.lambda;
+
+    auto const lmul = vtype_decoded.lmul;
+
+    switch (sew)
+    {
+    case 32:
+        wmmacc(reinterpret_cast<uint8_t *>(vector_field), reinterpret_cast<int32_t *>(vector_field), vd, vs1, vs2, vlen,
+               lambda, lmul, sew);
+        break;
+    case 64:
+        wmmacc(reinterpret_cast<uint16_t *>(vector_field), reinterpret_cast<int64_t *>(vector_field), vd, vs1, vs2,
+               vlen, lambda, lmul, sew);
         break;
     }
 

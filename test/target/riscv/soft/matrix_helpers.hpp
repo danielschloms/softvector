@@ -29,6 +29,24 @@ inline constexpr auto LAMBDA_16 = 0b101;
 inline constexpr auto LAMBDA_32 = 0b110;
 inline constexpr auto LAMBDA_64 = 0b111;
 
+#define RESET "\033[0m"
+#define BLACK "\033[30m"              /* Black */
+#define RED "\033[31m"                /* Red */
+#define GREEN "\033[32m"              /* Green */
+#define YELLOW "\033[33m"             /* Yellow */
+#define BLUE "\033[34m"               /* Blue */
+#define MAGENTA "\033[35m"            /* Magenta */
+#define CYAN "\033[36m"               /* Cyan */
+#define WHITE "\033[37m"              /* White */
+#define BOLDBLACK "\033[1m\033[30m"   /* Bold Black */
+#define BOLDRED "\033[1m\033[31m"     /* Bold Red */
+#define BOLDGREEN "\033[1m\033[32m"   /* Bold Green */
+#define BOLDYELLOW "\033[1m\033[33m"  /* Bold Yellow */
+#define BOLDBLUE "\033[1m\033[34m"    /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m" /* Bold Magenta */
+#define BOLDCYAN "\033[1m\033[36m"    /* Bold Cyan */
+#define BOLDWHITE "\033[1m\033[37m"   /* Bold White */
+
 struct MatrixVtype
 {
     unsigned lmul = 0;
@@ -74,6 +92,7 @@ void convert(T *const vector_elements, unsigned const lambda, unsigned const vle
     auto const sew = sizeof(T) * 8;
     auto const elements_per_register = vlen / sew;
     auto const v_base = v_register * elements_per_register;
+    auto const row_elems_per_register = lambda * widening;
     auto const cols = lambda * lmul * widening;
     auto const rows = (vlen / sew) / lambda;
 
@@ -83,15 +102,15 @@ void convert(T *const vector_elements, unsigned const lambda, unsigned const vle
         {
             auto const used_col = trans ? row : col;
             auto const used_row = trans ? col : row;
-            auto const v_offset = (used_col / lambda) * elements_per_register;
-            auto const v_element = (used_row * lambda) + (used_col % lambda);
+            auto const vreg = used_col / row_elems_per_register;
+            auto const velem = (used_row * row_elems_per_register) + used_col % row_elems_per_register;
             if (to_serial)
             {
-                serial.push_back(vector_elements[v_base + v_offset + v_element]);
+                serial.push_back(vector_elements[v_base + (vreg * elements_per_register) + velem]);
             }
             else
             {
-                vector_elements[v_base + v_offset + v_element] = serial[row * col];
+                vector_elements[v_base + (vreg * elements_per_register) + velem] = serial[row * col];
             }
         }
     }
@@ -141,12 +160,16 @@ void print_rv_matrix(T *const vector_elements, unsigned const lambda, unsigned c
 {
     auto const sew = sizeof(T) * 8;
     auto const elements_per_register = vlen / sew;
+    auto const total_elements = (vlen / sew) * lmul;
     auto const v_base = v_register * elements_per_register;
+    auto const row_elems_per_register = lambda * widening;
 
+    std::printf("SEW %u EpR %u Total %u RElmspR %u\n", sew, elements_per_register, total_elements,
+                row_elems_per_register);
     std::printf("v%u: ", v_register);
 
-    auto const cols = lambda * lmul * widening;
-    auto const rows = (vlen / sew) / lambda;
+    auto const cols = lmul * row_elems_per_register;
+    auto const rows = total_elements / cols;
     std::printf("%u cols, %lu rows\n", cols, rows);
     for (size_t row = 0; row < rows; ++row)
     {
@@ -154,15 +177,19 @@ void print_rv_matrix(T *const vector_elements, unsigned const lambda, unsigned c
         {
             auto const used_col = trans ? row : col;
             auto const used_row = trans ? col : row;
-            auto const v_offset = (used_col / lambda) * elements_per_register;
-            auto const v_element = (used_row * lambda) + (used_col % lambda);
+            auto const vreg = used_col / row_elems_per_register;
+            auto const velem = (used_row * row_elems_per_register) + (used_col % row_elems_per_register);
+            // auto const v_offset = (used_col / (lambda * widening)) * elements_per_register;
+            // auto const v_element = (used_row * (lambda * widening)) + (used_col % (lambda * widening));
             if constexpr (std::is_signed_v<T>)
             {
-                std::printf("| %-*i ", max_decimal_width<T>() + 1, vector_elements[v_base + v_offset + v_element]);
+                std::printf("| v%u[%u] %-*i ", v_register + vreg, velem, max_decimal_width<T>() + 1,
+                            vector_elements[v_base + (vreg * elements_per_register) + velem]);
             }
             else
             {
-                std::printf("| %-*u ", max_decimal_width<T>(), vector_elements[v_base + v_offset + v_element]);
+                std::printf("| v%u[%u] %-*u ", v_register + vreg, velem, max_decimal_width<T>(),
+                            vector_elements[v_base + (vreg * elements_per_register) + velem]);
             }
         }
         std::printf("|\n\n");
@@ -194,9 +221,9 @@ inline constexpr bool check(unsigned mul_C, unsigned sew)
     return valid_mul_C && valid_sew;
 }
 
-template <typename T>
-    requires std::is_integral_v<T>
-void mmacc(std::vector<T> const &A, std::vector<T> const &B, std::vector<T> &C, unsigned lmul, unsigned lambda,
+template <typename T_I, typename T_O>
+    requires std::is_integral_v<T_I>
+void mmacc(std::vector<T_I> const &A, std::vector<T_I> const &B, std::vector<T_O> &C, unsigned lmul, unsigned lambda,
            unsigned widening)
 {
     auto const inner_dim = lmul * lambda * widening;
@@ -211,15 +238,15 @@ void mmacc(std::vector<T> const &A, std::vector<T> const &B, std::vector<T> &C, 
             for (size_t i = 0; i < inner_dim; ++i)
             {
                 // std::printf("at %lu\n", row * inner_dim + i);
-                // auto const a_v = A.at(row * inner_dim + i);
-                // auto const b_v = B.at(col * inner_dim + i);
+                auto const a_v = A.at(row * inner_dim + i);
+                auto const b_v = B.at(col * inner_dim + i);
                 // std::printf("+ (%lu * %lu) ", a_v, b_v);
                 accumulator += A.at(row * inner_dim + i) * B.at(col * inner_dim + i);
             }
             // std::printf("acc %u\n", accumulator);
             C.at(row * C_dim + col) += accumulator;
-            // std::printf("\n");
         }
+        // std::printf("\n");
     }
 }
 
@@ -234,15 +261,20 @@ template <typename T>
     requires std::is_integral_v<T>
 void seq_fill(std::vector<T> &vec, unsigned lmul, unsigned lambda, unsigned widening, unsigned total_elements)
 {
-    auto const cols = lmul * lambda * widening;
+    auto const row_elms_per_register = lambda * widening;
+    auto const cols = lmul * row_elms_per_register;
     auto const rows = total_elements / cols;
+    auto const elms_per_register = row_elms_per_register * rows;
     // std::printf("seqfill rows %u cols %u\n", rows, cols);
     for (size_t row = 0; row < rows; ++row)
     {
         for (size_t col = 0; col < cols; ++col)
         {
-            auto const fill_val = (col % (lambda * widening)) + (row * lambda * widening) +
-                                  (((col / (lambda * widening)) * rows) * lambda);
+            auto const vreg = col / row_elms_per_register;
+            auto const velem = (row * row_elms_per_register) + (col % row_elms_per_register);
+            auto const fill_val = vreg * elms_per_register + velem;
+            // auto const fill_val = (col % (lambda * widening)) + (row * lambda * widening) +
+            //                       (((col / (lambda * widening)) * rows) * lambda);
             // std::printf("col %u, row %u, Fill %u,\n", col, row, fval);
             vec.push_back(static_cast<T>(fill_val));
         }
