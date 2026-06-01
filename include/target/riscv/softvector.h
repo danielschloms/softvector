@@ -838,6 +838,9 @@ extern "C"
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
 
+    uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
+                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+
     uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                         uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
 

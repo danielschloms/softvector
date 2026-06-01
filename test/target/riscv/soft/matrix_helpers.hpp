@@ -47,6 +47,15 @@ inline constexpr auto LAMBDA_64 = 0b111;
 #define BOLDCYAN "\033[1m\033[36m"    /* Bold Cyan */
 #define BOLDWHITE "\033[1m\033[37m"   /* Bold White */
 
+template <typename T>
+inline constexpr auto sign_zero_extend(T value, bool is_signed) -> uint64_t
+{
+    static constexpr auto width = sizeof(T) * 8;
+    static_assert(width <= 64);
+    return static_cast<uint64_t>(((static_cast<int64_t>(value) << (64 - width)) >> (64 - width)) * is_signed) |
+           (static_cast<uint64_t>(value) * !is_signed);
+}
+
 struct MatrixVtype
 {
     unsigned lmul = 0;
@@ -224,7 +233,7 @@ inline constexpr bool check(unsigned mul_C, unsigned sew)
 template <typename T_I, typename T_O>
     requires std::is_integral_v<T_I>
 void mmacc(std::vector<T_I> const &A, std::vector<T_I> const &B, std::vector<T_O> &C, unsigned lmul, unsigned lambda,
-           unsigned widening)
+           unsigned widening, bool signed_A, bool signed_B)
 {
     auto const inner_dim = lmul * lambda * widening;
     auto const C_dim = A.size() / inner_dim;
@@ -241,7 +250,8 @@ void mmacc(std::vector<T_I> const &A, std::vector<T_I> const &B, std::vector<T_O
                 auto const a_v = A.at(row * inner_dim + i);
                 auto const b_v = B.at(col * inner_dim + i);
                 // std::printf("+ (%lu * %lu) ", a_v, b_v);
-                accumulator += A.at(row * inner_dim + i) * B.at(col * inner_dim + i);
+                // accumulator += A.at(row * inner_dim + i) * B.at(col * inner_dim + i);
+                accumulator += sign_zero_extend(a_v, signed_A) * sign_zero_extend(b_v, signed_B);
             }
             // std::printf("acc %u\n", accumulator);
             C.at(row * C_dim + col) += accumulator;
