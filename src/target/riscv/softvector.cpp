@@ -2557,20 +2557,23 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
         }
         else if constexpr (std::is_same_v<OpType, BitResultOp>)
         {
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], vector_elements[vs1_base + i]) << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], vector_elements[vs1_base + i])
-                                                    << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewData>)
         {
+            // Compute result
+            auto const result =
+                op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew))
+                << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |=
-                op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew))
-                << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewMaskData>)
         {
@@ -2578,12 +2581,14 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], vector_elements[vs1_base + i],
+                                   static_cast<SewType>(sew), mask_data_bit)
+                                << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], vector_elements[vs1_base + i],
-                                                       static_cast<SewType>(sew), mask_data_bit)
-                                                    << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, AccumulatorOp>)
         {
@@ -2825,18 +2830,21 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
         }
         else if constexpr (std::is_same_v<OpType, BitResultOp>)
         {
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], scalar) << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], scalar) << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewData>)
         {
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew)) << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew))
-                                                    << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpMaskData>)
         {
@@ -2844,11 +2852,12 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], scalar, mask_data_bit) << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= op(vector_elements[vs2_base + i], scalar, mask_data_bit)
-                                                    << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewMaskData>)
         {
@@ -2856,11 +2865,13 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
+            // Compute result
+            auto const result = op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew), mask_data_bit)
+                                << (i % sew);
             // Clear bit
             vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
             // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |=
-                op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew), mask_data_bit) << (i % sew);
+            vector_elements[vd_base + (i / sew)] |= result;
         }
         else if constexpr (std::is_same_v<OpType, AccumulatorOp>)
         {
