@@ -11,6 +11,16 @@
 
 #include "softfloat.h"
 
+#if __cplusplus >= 202302L
+using std::to_underlying;
+#else
+template <typename T>
+inline constexpr auto to_underlying(T val) -> std::underlying_type_t<T>
+{
+    return static_cast<std::underlying_type_t<T>>(val);
+}
+#endif
+
 enum class SewType : uint8_t
 {
     sew_8 = 8,
@@ -128,9 +138,9 @@ inline constexpr Bit madc(uint64_t const lhs, uint64_t const rhs, SewType const 
 {
     auto const result = lhs + rhs + carry;
 
-    auto const msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto const msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto const msb_result = msb_is_set(result, std::to_underlying(sew));
+    auto const msb_lhs = msb_is_set(lhs, to_underlying(sew));
+    auto const msb_rhs = msb_is_set(rhs, to_underlying(sew));
+    auto const msb_result = msb_is_set(result, to_underlying(sew));
 
     // Carry out if:
     // - MSB of both operands are set
@@ -142,9 +152,9 @@ inline constexpr Bit msbc(uint64_t const lhs, uint64_t const rhs, SewType const 
 {
     auto const result = lhs - rhs - borrow;
 
-    auto const msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto const msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto const msb_result = msb_is_set(result, std::to_underlying(sew));
+    auto const msb_lhs = msb_is_set(lhs, to_underlying(sew));
+    auto const msb_rhs = msb_is_set(rhs, to_underlying(sew));
+    auto const msb_result = msb_is_set(result, to_underlying(sew));
 
     // Borrow out if:
     // - MSB of rhs is set and MSB of lhs is not set
@@ -169,17 +179,17 @@ inline constexpr uint64_t xor_int(uint64_t const lhs, uint64_t const rhs)
 
 inline constexpr uint64_t sll_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    return lhs << (rhs & (std::to_underlying(sew) - 1));
+    return lhs << (rhs & (to_underlying(sew) - 1));
 }
 
 inline constexpr uint64_t srl_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    return lhs >> (rhs & (std::to_underlying(sew) - 1));
+    return lhs >> (rhs & (to_underlying(sew) - 1));
 }
 
 inline constexpr uint64_t sra_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    return static_cast<int64_t>(lhs) >> (rhs & (std::to_underlying(sew) - 1));
+    return static_cast<int64_t>(lhs) >> (rhs & (to_underlying(sew) - 1));
 }
 
 inline constexpr Bit eq_int(uint64_t const lhs, uint64_t const rhs)
@@ -258,26 +268,26 @@ inline constexpr uint64_t mulu_int(uint64_t const lhs, uint64_t const rhs)
 
 inline constexpr uint64_t mulsu_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    auto const sew_mask = (1_u64 << to_underlying(sew)) - 1;
     // rhs is sign extended when read from the vector register, so mask it off again
     return (static_cast<int64_t>(lhs) * (rhs & sew_mask));
 };
 
 inline constexpr uint64_t mulh_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    return (static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs)) >> std::to_underlying(sew);
+    return (static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs)) >> to_underlying(sew);
 };
 
 inline constexpr uint64_t mulhu_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    return (lhs * rhs) >> std::to_underlying(sew);
+    return (lhs * rhs) >> to_underlying(sew);
 };
 
 inline constexpr uint64_t mulhsu_int(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    auto const sew_mask = (1_u64 << to_underlying(sew)) - 1;
     // rhs is sign extended when read from the vector register, so mask it off again
-    return (static_cast<int64_t>(lhs) * (rhs & sew_mask)) >> std::to_underlying(sew);
+    return (static_cast<int64_t>(lhs) * (rhs & sew_mask)) >> to_underlying(sew);
 };
 
 /* 11.11. Vector Integer Divide Instructions */
@@ -339,14 +349,14 @@ inline constexpr uint64_t macc(uint64_t const lhs, uint64_t const rhs, uint64_t 
 
 inline constexpr uint64_t maccsu(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator, SewType const sew)
 {
-    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    auto const sew_mask = (1_u64 << to_underlying(sew)) - 1;
     // rhs is sign extended when read from the vector register, so mask it off again
     return accumulator + (lhs * (rhs & sew_mask));
 }
 
 inline constexpr uint64_t maccus(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator, SewType const sew)
 {
-    auto const sew_mask = (1_u64 << std::to_underlying(sew)) - 1;
+    auto const sew_mask = (1_u64 << to_underlying(sew)) - 1;
     // rhs is sign extended when read from the vector register, so mask it off again
     return accumulator + ((lhs & sew_mask) * rhs);
 }
@@ -397,20 +407,20 @@ inline constexpr SatResult sadd(uint64_t const lhs, uint64_t const rhs, SewType 
 {
 
     uint64_t const res = lhs + rhs;
-    auto msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto msb_res = msb_is_set(res, std::to_underlying(sew));
+    auto msb_lhs = msb_is_set(lhs, to_underlying(sew));
+    auto msb_rhs = msb_is_set(rhs, to_underlying(sew));
+    auto msb_res = msb_is_set(res, to_underlying(sew));
 
     if (msb_lhs && msb_rhs && !msb_res)
     {
         // Negative overflow
-        return { get_min_signed(std::to_underlying(sew)), true };
+        return { get_min_signed(to_underlying(sew)), true };
     }
 
     if (!msb_lhs && !msb_rhs && msb_res)
     {
         // Positive overflow
-        return { get_n_bit_mask(std::to_underlying(sew) - 1), true };
+        return { get_n_bit_mask(to_underlying(sew) - 1), true };
     }
 
     return { res, false };
@@ -419,7 +429,7 @@ inline constexpr SatResult sadd(uint64_t const lhs, uint64_t const rhs, SewType 
 inline constexpr SatResult saddu(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
 
-    auto const sew_mask = get_n_bit_mask(std::to_underlying(sew));
+    auto const sew_mask = get_n_bit_mask(to_underlying(sew));
     uint64_t const res = (lhs + rhs) & sew_mask;
     auto const sat = res < lhs;
     // If saturating, OR result with sew mask, otherwise with 0
@@ -429,20 +439,20 @@ inline constexpr SatResult saddu(uint64_t const lhs, uint64_t const rhs, SewType
 inline constexpr SatResult ssub(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
     uint64_t const res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
-    auto msb_lhs = msb_is_set(lhs, std::to_underlying(sew));
-    auto msb_rhs = msb_is_set(rhs, std::to_underlying(sew));
-    auto msb_res = msb_is_set(res, std::to_underlying(sew));
+    auto msb_lhs = msb_is_set(lhs, to_underlying(sew));
+    auto msb_rhs = msb_is_set(rhs, to_underlying(sew));
+    auto msb_res = msb_is_set(res, to_underlying(sew));
 
     if (msb_lhs && !msb_rhs && !msb_res)
     {
         // Negative overflow
-        return { get_min_signed(std::to_underlying(sew)), true };
+        return { get_min_signed(to_underlying(sew)), true };
     }
 
     if (!msb_lhs && msb_rhs && msb_res)
     {
         // Positive overflow
-        return { get_n_bit_mask(std::to_underlying(sew) - 1), true };
+        return { get_n_bit_mask(to_underlying(sew) - 1), true };
     }
 
     return { res, false };
@@ -450,7 +460,7 @@ inline constexpr SatResult ssub(uint64_t const lhs, uint64_t const rhs, SewType 
 
 inline constexpr SatResult ssubu(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    auto const sew_mask = get_n_bit_mask(std::to_underlying(sew));
+    auto const sew_mask = get_n_bit_mask(to_underlying(sew));
     auto const res = (lhs - rhs) & sew_mask;
     auto const sat = res > lhs;
     // If saturating, sat - 1 is 0, so result is clamped to 0
@@ -609,8 +619,8 @@ inline constexpr SatResult smul(uint64_t const lhs, uint64_t const rhs, SewType 
                                 FPRoundingMode const rounding_mode)
 {
     auto res = (static_cast<int64_t>(lhs) * static_cast<int64_t>(rhs));
-    res = roundoff_signed(res, std::to_underlying(sew) - 1, rounding_mode);
-    auto const clamped_res = saturate_boundary_signed(res, std::to_underlying(sew));
+    res = roundoff_signed(res, to_underlying(sew) - 1, rounding_mode);
+    auto const clamped_res = saturate_boundary_signed(res, to_underlying(sew));
     return { static_cast<uint64_t>(clamped_res), clamped_res != res };
 };
 
@@ -619,7 +629,7 @@ inline constexpr uint64_t ssrl(uint64_t const lhs, uint64_t const rhs, SewType c
                                FPRoundingMode const rounding_mode)
 {
     // Masking with sew - 1 will provide a bitmask that only uses the lower lg2(SEW) bits.
-    auto shiftamount = rhs & (std::to_underlying(sew) - 1);
+    auto shiftamount = rhs & (to_underlying(sew) - 1);
     return roundoff_unsigned(lhs, shiftamount, rounding_mode);
 };
 
@@ -627,7 +637,7 @@ inline constexpr uint64_t ssra(uint64_t const lhs, uint64_t const rhs, SewType c
                                FPRoundingMode const rounding_mode)
 {
     // Masking with sew - 1 will provide a bitmask that only uses the lower lg2(SEW) bits.
-    auto shiftamount = rhs & (std::to_underlying(sew) - 1);
+    auto shiftamount = rhs & (to_underlying(sew) - 1);
     return roundoff_signed(lhs, shiftamount, rounding_mode);
 };
 
@@ -637,18 +647,18 @@ inline constexpr SatResult clip(uint64_t const lhs, uint64_t const rhs, SewType 
                                 FPRoundingMode const rounding_mode)
 {
     // SEW is already doubled in the iterator (narrowing_sat_..._iterate())
-    auto shiftamount = rhs & (std::to_underlying(sew) - 1);
+    auto shiftamount = rhs & (to_underlying(sew) - 1);
     auto res = roundoff_signed(lhs, shiftamount, rounding_mode);
-    auto clamped_res = saturate_boundary_signed(res, std::to_underlying(sew) >> 1);
+    auto clamped_res = saturate_boundary_signed(res, to_underlying(sew) >> 1);
     return { static_cast<uint64_t>(clamped_res), clamped_res != res };
 };
 
 inline constexpr SatResult clipu(uint64_t const lhs, uint64_t const rhs, SewType const sew,
                                  FPRoundingMode const rounding_mode)
 {
-    auto shiftamount = rhs & (std::to_underlying(sew) - 1);
+    auto shiftamount = rhs & (to_underlying(sew) - 1);
     auto res = roundoff_unsigned(lhs, shiftamount, rounding_mode);
-    auto clamped_res = saturate_boundary_unsigned(res, std::to_underlying(sew) >> 1);
+    auto clamped_res = saturate_boundary_unsigned(res, to_underlying(sew) >> 1);
     return { clamped_res, clamped_res != res };
 };
 
@@ -704,7 +714,7 @@ Copyright (c) 2022-2023 Intitute for Complex Systems, Johannes Kepler University
 */
 inline constexpr uint64_t add_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_add(f16(lhs), f16(rhs)).v;
@@ -724,7 +734,7 @@ inline constexpr uint64_t add_float(uint64_t const lhs, uint64_t const rhs, SewT
 
 inline constexpr uint64_t sub_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sub(f16(lhs), f16(rhs)).v;
@@ -744,7 +754,7 @@ inline constexpr uint64_t sub_float(uint64_t const lhs, uint64_t const rhs, SewT
 
 inline constexpr uint64_t rsub_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sub(f16(rhs), f16(lhs)).v;
@@ -764,7 +774,7 @@ inline constexpr uint64_t rsub_float(uint64_t const lhs, uint64_t const rhs, Sew
 
 inline constexpr uint64_t wadd_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_add(f16_to_f32(f16(lhs)), f16_to_f32(f16(rhs))).v;
@@ -781,7 +791,7 @@ inline constexpr uint64_t wadd_float(uint64_t const lhs, uint64_t const rhs, Sew
 
 inline constexpr uint64_t wsub_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_sub(f16_to_f32(f16(lhs)), f16_to_f32(f16(rhs))).v;
@@ -798,7 +808,7 @@ inline constexpr uint64_t wsub_float(uint64_t const lhs, uint64_t const rhs, Sew
 
 inline constexpr uint64_t wadd_w_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_add(f32(lhs), f16_to_f32(f16(rhs))).v;
@@ -815,7 +825,7 @@ inline constexpr uint64_t wadd_w_float(uint64_t const lhs, uint64_t const rhs, S
 
 inline constexpr uint64_t wsub_w_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_sub(f32(lhs), f16_to_f32(f16(rhs))).v;
@@ -833,7 +843,7 @@ inline constexpr uint64_t wsub_w_float(uint64_t const lhs, uint64_t const rhs, S
 /* 13.4. Vector Single-Width Floating-Point Multiply/Divide Instructions */
 inline constexpr uint64_t mul_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mul(f16(lhs), f16(rhs)).v;
@@ -853,7 +863,7 @@ inline constexpr uint64_t mul_float(uint64_t const lhs, uint64_t const rhs, SewT
 
 inline constexpr uint64_t div_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_div(f16(lhs), f16(rhs)).v;
@@ -873,7 +883,7 @@ inline constexpr uint64_t div_float(uint64_t const lhs, uint64_t const rhs, SewT
 
 inline constexpr uint64_t rdiv_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_div(f16(rhs), f16(lhs)).v;
@@ -894,7 +904,7 @@ inline constexpr uint64_t rdiv_float(uint64_t const lhs, uint64_t const rhs, Sew
 /* 13.5. Vector Widening Floating-Point Multiply */
 inline constexpr uint64_t wmul_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_mul(f16_to_f32(f16(lhs)), f16_to_f32(f16(rhs))).v;
@@ -913,7 +923,7 @@ inline constexpr uint64_t wmul_float(uint64_t const lhs, uint64_t const rhs, Sew
 inline constexpr uint64_t macc_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                      SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(lhs), f16(rhs), f16(accumulator)).v;
@@ -934,7 +944,7 @@ inline constexpr uint64_t macc_float(uint64_t const lhs, uint64_t const rhs, uin
 inline constexpr uint64_t nmacc_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(lhs), f16_neg(f16(rhs)), f16_neg(f16(accumulator))).v;
@@ -955,7 +965,7 @@ inline constexpr uint64_t nmacc_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t msac_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                      SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(lhs), f16(rhs), f16_neg(f16(accumulator))).v;
@@ -976,7 +986,7 @@ inline constexpr uint64_t msac_float(uint64_t const lhs, uint64_t const rhs, uin
 inline constexpr uint64_t nmsac_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(lhs), f16_neg(f16(rhs)), f16(accumulator)).v;
@@ -997,7 +1007,7 @@ inline constexpr uint64_t nmsac_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t madd_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                      SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(accumulator), f16(lhs), f16(rhs)).v;
@@ -1018,7 +1028,7 @@ inline constexpr uint64_t madd_float(uint64_t const lhs, uint64_t const rhs, uin
 inline constexpr uint64_t nmadd_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(accumulator), f16_neg(f16(lhs)), f16_neg(f16(rhs))).v;
@@ -1039,7 +1049,7 @@ inline constexpr uint64_t nmadd_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t msub_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                      SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(accumulator), f16(lhs), f16_neg(f16(rhs))).v;
@@ -1060,7 +1070,7 @@ inline constexpr uint64_t msub_float(uint64_t const lhs, uint64_t const rhs, uin
 inline constexpr uint64_t nmsub_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_mulAdd(f16(accumulator), f16_neg(f16(lhs)), f16(rhs)).v;
@@ -1082,7 +1092,7 @@ inline constexpr uint64_t nmsub_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t wmacc_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_mulAdd(f16_to_f32(f16(lhs)), f16_to_f32(f16(rhs)), f32(accumulator)).v;
@@ -1100,7 +1110,7 @@ inline constexpr uint64_t wmacc_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t wnmacc_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                        SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_mulAdd(f16_to_f32(f16(lhs)), f16_to_f32(f16_neg(f16(rhs))), f32_neg(f32(accumulator))).v;
@@ -1118,7 +1128,7 @@ inline constexpr uint64_t wnmacc_float(uint64_t const lhs, uint64_t const rhs, u
 inline constexpr uint64_t wmsac_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                       SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_mulAdd(f16_to_f32(f16(lhs)), f16_to_f32(f16(rhs)), f32_neg(f32(accumulator))).v;
@@ -1136,7 +1146,7 @@ inline constexpr uint64_t wmsac_float(uint64_t const lhs, uint64_t const rhs, ui
 inline constexpr uint64_t wnmsac_float(uint64_t const lhs, uint64_t const rhs, uint64_t const accumulator,
                                        SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_mulAdd(f16_to_f32(f16(lhs)), f16_to_f32(f16_neg(f16(rhs))), f32(accumulator)).v;
@@ -1154,7 +1164,7 @@ inline constexpr uint64_t wnmsac_float(uint64_t const lhs, uint64_t const rhs, u
 /* 13.8. Vector Floating-Point Square-Root Instruction */
 inline constexpr uint64_t sqrt_float(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sqrt(f16(lhs)).v;
@@ -1175,7 +1185,7 @@ inline constexpr uint64_t sqrt_float(uint64_t const lhs, SewType const sew)
 /* 13.9. Vector Floating-Point Reciprocal Square-Root Estimate Instruction */
 inline constexpr uint64_t rsqrt7_float(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_rsqrte7(f16(lhs)).v;
@@ -1196,7 +1206,7 @@ inline constexpr uint64_t rsqrt7_float(uint64_t const lhs, SewType const sew)
 /* 13.10. Vector Floating-Point Reciprocal Estimate Instruction */
 inline constexpr uint64_t rec7_float(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_recip7(f16(lhs)).v;
@@ -1217,7 +1227,7 @@ inline constexpr uint64_t rec7_float(uint64_t const lhs, SewType const sew)
 /* 13.11. Vector Floating-Point MIN/MAX Instructions */
 inline constexpr uint64_t min_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_min(f16(lhs), f16(rhs)).v;
@@ -1237,7 +1247,7 @@ inline constexpr uint64_t min_float(uint64_t const lhs, uint64_t const rhs, SewT
 
 inline constexpr uint64_t max_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_max(f16(lhs), f16(rhs)).v;
@@ -1259,7 +1269,7 @@ inline constexpr uint64_t max_float(uint64_t const lhs, uint64_t const rhs, SewT
 /* 13.12. Vector Floating-Point Sign-Injection Instructions */
 inline constexpr uint64_t sgnj_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sgnj(f16(lhs), f16(rhs)).v;
@@ -1279,7 +1289,7 @@ inline constexpr uint64_t sgnj_float(uint64_t const lhs, uint64_t const rhs, Sew
 
 inline constexpr uint64_t sgnjn_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sgnjn(f16(lhs), f16(rhs)).v;
@@ -1299,7 +1309,7 @@ inline constexpr uint64_t sgnjn_float(uint64_t const lhs, uint64_t const rhs, Se
 
 inline constexpr uint64_t sgnjx_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_sgnjx(f16(lhs), f16(rhs)).v;
@@ -1321,7 +1331,7 @@ inline constexpr uint64_t sgnjx_float(uint64_t const lhs, uint64_t const rhs, Se
 /* 13.13. Vector Floating-Point Compare Instructions */
 inline constexpr Bit eq_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_eq(f16(lhs), f16(rhs));
@@ -1337,7 +1347,7 @@ inline constexpr Bit eq_float(uint64_t const lhs, uint64_t const rhs, SewType co
 
 inline constexpr Bit ne_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return !f16_eq(f16(lhs), f16(rhs));
@@ -1353,7 +1363,7 @@ inline constexpr Bit ne_float(uint64_t const lhs, uint64_t const rhs, SewType co
 
 inline constexpr Bit lt_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_lt(f16(lhs), f16(rhs));
@@ -1369,7 +1379,7 @@ inline constexpr Bit lt_float(uint64_t const lhs, uint64_t const rhs, SewType co
 
 inline constexpr Bit le_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_le(f16(lhs), f16(rhs));
@@ -1385,7 +1395,7 @@ inline constexpr Bit le_float(uint64_t const lhs, uint64_t const rhs, SewType co
 
 inline constexpr Bit gt_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_lt(f16(rhs), f16(lhs));
@@ -1401,7 +1411,7 @@ inline constexpr Bit gt_float(uint64_t const lhs, uint64_t const rhs, SewType co
 
 inline constexpr Bit ge_float(uint64_t const lhs, uint64_t const rhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_le(f16(rhs), f16(lhs));
@@ -1419,7 +1429,7 @@ inline constexpr Bit ge_float(uint64_t const lhs, uint64_t const rhs, SewType co
 /* 13.14. Vector Floating-Point Classify Instruction */
 inline constexpr uint64_t classify_float(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return 0 | f16_classify(f16(lhs));
@@ -1441,7 +1451,7 @@ inline constexpr uint64_t classify_float(uint64_t const lhs, SewType const sew)
 // Float to (un)signed int, same width
 inline constexpr uint64_t convert_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_ui16(f16(lhs), softfloat_roundingMode, true);
@@ -1457,7 +1467,7 @@ inline constexpr uint64_t convert_xu_f(uint64_t const lhs, SewType const sew)
 
 inline constexpr uint64_t convert_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_i16(f16(lhs), softfloat_roundingMode, true);
@@ -1473,7 +1483,7 @@ inline constexpr uint64_t convert_x_f(uint64_t const lhs, SewType const sew)
 
 inline constexpr uint64_t convert_rtz_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_ui16(f16(lhs), softfloat_round_minMag, true);
@@ -1489,7 +1499,7 @@ inline constexpr uint64_t convert_rtz_xu_f(uint64_t const lhs, SewType const sew
 
 inline constexpr uint64_t convert_rtz_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_i16(f16(lhs), softfloat_round_minMag, true);
@@ -1506,7 +1516,7 @@ inline constexpr uint64_t convert_rtz_x_f(uint64_t const lhs, SewType const sew)
 // (Un)signed int to float, same width
 inline constexpr uint64_t convert_f_xu(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return ui32_to_f16(lhs).v;
@@ -1522,7 +1532,7 @@ inline constexpr uint64_t convert_f_xu(uint64_t const lhs, SewType const sew)
 
 inline constexpr uint64_t convert_f_x(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return i32_to_f16(lhs).v;
@@ -1541,7 +1551,7 @@ inline constexpr uint64_t convert_f_x(uint64_t const lhs, SewType const sew)
 // Float to (un)signed int, widening
 inline constexpr uint64_t convert_widening_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_ui32(f16(lhs), softfloat_roundingMode, true);
@@ -1555,7 +1565,7 @@ inline constexpr uint64_t convert_widening_xu_f(uint64_t const lhs, SewType cons
 
 inline constexpr uint64_t convert_widening_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_i32(f16(lhs), softfloat_roundingMode, true);
@@ -1569,7 +1579,7 @@ inline constexpr uint64_t convert_widening_x_f(uint64_t const lhs, SewType const
 
 inline constexpr uint64_t convert_widening_rtz_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_ui32(f16(lhs), softfloat_round_minMag, true);
@@ -1583,7 +1593,7 @@ inline constexpr uint64_t convert_widening_rtz_xu_f(uint64_t const lhs, SewType 
 
 inline constexpr uint64_t convert_widening_rtz_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_i32(f16(lhs), softfloat_round_minMag, true);
@@ -1598,7 +1608,7 @@ inline constexpr uint64_t convert_widening_rtz_x_f(uint64_t const lhs, SewType c
 // (Un)signed int to float, widening
 inline constexpr uint64_t convert_widening_f_xu(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return ui32_to_f32(lhs).v;
@@ -1612,7 +1622,7 @@ inline constexpr uint64_t convert_widening_f_xu(uint64_t const lhs, SewType cons
 
 inline constexpr uint64_t convert_widening_f_x(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return i32_to_f32(lhs).v;
@@ -1627,7 +1637,7 @@ inline constexpr uint64_t convert_widening_f_x(uint64_t const lhs, SewType const
 // Float to float, widening
 inline constexpr uint64_t convert_widening_f_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f16_to_f32(f16(lhs)).v;
@@ -1644,7 +1654,7 @@ inline constexpr uint64_t convert_widening_f_f(uint64_t const lhs, SewType const
 // Float to (un)signed int, narrowing
 inline constexpr uint64_t convert_narrowing_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_to_ui16(f32(lhs), softfloat_roundingMode, true);
@@ -1658,7 +1668,7 @@ inline constexpr uint64_t convert_narrowing_xu_f(uint64_t const lhs, SewType con
 
 inline constexpr uint64_t convert_narrowing_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_to_i16(f32(lhs), softfloat_roundingMode, true);
@@ -1672,7 +1682,7 @@ inline constexpr uint64_t convert_narrowing_x_f(uint64_t const lhs, SewType cons
 
 inline constexpr uint64_t convert_narrowing_rtz_xu_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_to_ui16(f32(lhs), softfloat_round_minMag, true);
@@ -1686,7 +1696,7 @@ inline constexpr uint64_t convert_narrowing_rtz_xu_f(uint64_t const lhs, SewType
 
 inline constexpr uint64_t convert_narrowing_rtz_x_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_to_i16(f32(lhs), softfloat_round_minMag, true);
@@ -1701,7 +1711,7 @@ inline constexpr uint64_t convert_narrowing_rtz_x_f(uint64_t const lhs, SewType 
 // (Un)signed int to float, narrowing
 inline constexpr uint64_t convert_narrowing_f_xu(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return ui32_to_f16(lhs).v;
@@ -1715,7 +1725,7 @@ inline constexpr uint64_t convert_narrowing_f_xu(uint64_t const lhs, SewType con
 
 inline constexpr uint64_t convert_narrowing_f_x(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return i32_to_f16(lhs).v;
@@ -1730,7 +1740,7 @@ inline constexpr uint64_t convert_narrowing_f_x(uint64_t const lhs, SewType cons
 // Float to float, narrowing
 inline constexpr uint64_t convert_narrowing_f_f(uint64_t const lhs, SewType const sew)
 {
-    switch (std::to_underlying(sew))
+    switch (to_underlying(sew))
     {
     case 16:
         return f32_to_f16(f32(lhs)).v;

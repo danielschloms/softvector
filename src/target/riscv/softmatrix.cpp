@@ -37,7 +37,7 @@ struct MatrixVtype
 template <typename T>
 inline constexpr auto sign_zero_extend(T value, bool is_signed) -> uint64_t
 {
-    static constexpr auto width = sizeof(T) * 8;
+    constexpr auto width = sizeof(T) * 8;
     static_assert(width <= 64);
     return static_cast<uint64_t>(((static_cast<int64_t>(value) << (64 - width)) >> (64 - width)) * is_signed) |
            (static_cast<uint64_t>(value) * !is_signed);
@@ -133,7 +133,7 @@ template <typename T_I, typename T_O>
 inline constexpr void wmmacc(T_I *input_elements, T_O *output_elements, unsigned vd, unsigned vs1, unsigned vs2,
                              unsigned vlen, unsigned lambda, unsigned lmul, unsigned sew, bool signed_A, bool signed_B)
 {
-    static constexpr auto widening = sizeof(T_O) / sizeof(T_I);
+    constexpr auto widening = sizeof(T_O) / sizeof(T_I);
     static_assert(sizeof(T_O) >= sizeof(T_I), "Illegal narrowing");
     auto const elements_per_register = vlen / sew;
 
