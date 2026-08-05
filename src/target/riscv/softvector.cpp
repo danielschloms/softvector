@@ -51,11 +51,6 @@
 
 #include "softfloat.h"
 
-#define GO_FAST __attribute__((always_inline))
-
-// extern "C"
-// {
-
 /* --- Private enums --- */
 
 enum class SignType
@@ -338,16 +333,16 @@ inline constexpr uint64_t get_float_scalar(void *const float_scalar_field, unsig
 
 // Dispatcher declarations
 
-#define VV_DISPATCHER_DECL(iterator)                                                                               \
-    template <SignType Sign, typename OpType>                                                                      \
-    inline constexpr GO_FAST void iterator##_dispatch(void *const vector_field, uint16_t const vtype,              \
-                                                      uint8_t const instruction_mask_bit, uint8_t const vd,        \
-                                                      uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, \
-                                                      uint32_t const vlen, uint32_t const vl, OpType const op);
+#define VV_DISPATCHER_DECL(iterator)                                                                                   \
+    template <SignType Sign, typename OpType>                                                                          \
+    inline constexpr void iterator##_dispatch(void *const vector_field, uint16_t const vtype,                          \
+                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1, \
+                                              uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,           \
+                                              uint32_t const vl, OpType const op);
 
 #define VX_DISPATCHER_DECL(iterator)                                                                                  \
     template <SignType Sign, typename OpType>                                                                         \
-    inline constexpr GO_FAST void iterator##_dispatch(                                                                \
+    inline constexpr void iterator##_dispatch(                                                                        \
         void *const vector_field, void *const scalar_field, uint16_t const vtype, uint8_t const instruction_mask_bit, \
         uint8_t const vd, uint8_t const vs2, uint8_t const rs1, uint16_t const vstart, uint32_t const vlen,           \
         uint16_t xlen, uint32_t const vl, OpType const op);
@@ -365,84 +360,83 @@ VX_DISPATCHER_DECL(widening_wx)
 VX_DISPATCHER_DECL(narrowing_wx)
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST void vi_dispatch(void *const vector_field, uint16_t const vtype,
-                                          uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                          uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
-                                          uint32_t const vl, OpType const op);
+inline constexpr void vi_dispatch(void *const vector_field, uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                  uint8_t const vd, uint8_t const vs2, uint8_t immediate, uint16_t const vstart,
+                                  uint32_t const vlen, uint32_t const vl, OpType const op);
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST void narrowing_wi_dispatch(void *const vector_field, uint16_t const vtype,
-                                                    uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                    uint8_t const vs2, uint8_t const immediate, uint16_t const vstart,
-                                                    uint32_t const vlen, uint32_t const vl, OpType const op);
+inline constexpr void narrowing_wi_dispatch(void *const vector_field, uint16_t const vtype,
+                                            uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                            uint8_t const immediate, uint16_t const vstart, uint32_t const vlen,
+                                            uint32_t const vl, OpType const op);
 
 template <unsigned Sew, unsigned Factor>
-inline constexpr GO_FAST void dispatch_iterate_vext(void *const vector_field, bool const is_masked, uint8_t const vd,
-                                                    uint8_t const vs2, bool const is_signed, uint16_t const vstart,
-                                                    uint32_t const vlen, uint32_t const vl);
+inline constexpr void dispatch_iterate_vext(void *const vector_field, bool const is_masked, uint8_t const vd,
+                                            uint8_t const vs2, bool const is_signed, uint16_t const vstart,
+                                            uint32_t const vlen, uint32_t const vl);
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_v_unary(void *const vector_field, uint16_t const vtype,
-                                                       uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                       uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                                                       uint32_t const vl, OpType const op);
+inline constexpr void dispatch_iterate_v_unary(void *const vector_field, uint16_t const vtype,
+                                               uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                               uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                               OpType const op);
 
 template <typename OpType, SignType Sign = SignType::Unsigned>
-inline constexpr GO_FAST void vf_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
-                                          uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                          uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                          uint32_t const vl, OpType const op);
+inline constexpr void vf_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                  uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                  uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                  uint32_t const vl, OpType const op);
 
 template <typename OpType, SignType Sign = SignType::Unsigned>
-inline constexpr GO_FAST void dispatch_iterate_widening_vf(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                                           uint32_t const vl, OpType const op);
+inline constexpr void dispatch_iterate_widening_vf(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                   uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                                   uint32_t const vl, OpType const op);
 
 template <typename OpType, SignType Sign = SignType::Unsigned>
-inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                                           uint32_t const vl, OpType const op);
+inline constexpr void dispatch_iterate_widening_wf(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                   uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                                   uint32_t const vl, OpType const op);
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool sat_vv_dispatch(void *const vector_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
-                                              uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                                              uint32_t const vl, OpType const op);
+inline constexpr bool sat_vv_dispatch(void *const vector_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                      uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                      OpType const op);
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST bool sat_vi_dispatch(void *const vector_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                              uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
-                                              uint32_t const vl, OpType const op);
+inline constexpr bool sat_vi_dispatch(void *const vector_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                      uint8_t immediate, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                      OpType const op);
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool sat_vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                              uint8_t const rs1, uint16_t const vstart, uint32_t const vlen,
-                                              uint16_t xlen, uint32_t const vl, OpType const op);
+inline constexpr bool sat_vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                      uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                      uint32_t const vl, OpType const op);
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wv_dispatch(void *const vector_field, uint16_t const vtype,
-                                                        uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                        uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                        uint32_t const vlen, uint32_t const vl, OpType const op);
+inline constexpr bool narrowing_sat_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                                uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                                uint32_t const vl, OpType const op);
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wi_dispatch(void *const vector_field, uint16_t const vtype,
-                                                        uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                        uint8_t const vs2, uint8_t immediate, uint16_t const vstart,
-                                                        uint32_t const vlen, uint32_t const vl, OpType const op);
+inline constexpr bool narrowing_sat_wi_dispatch(void *const vector_field, uint16_t const vtype,
+                                                uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                                uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
+                                                uint32_t const vl, OpType const op);
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wx_dispatch(void *const vector_field, void *const scalar_field,
-                                                        uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                        uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                        uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                                        uint32_t const vl, OpType const op);
+inline constexpr bool narrowing_sat_wx_dispatch(void *const vector_field, void *const scalar_field,
+                                                uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                                uint32_t const vl, OpType const op);
 
 // Iterator declarations
 #define VV_ITERATOR_DECL(name)                                                                                     \
@@ -2822,8 +2816,8 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
                 // Can't static assert false this condition since this is actually instantiated
                 // Also all masked instructions of this type are just reserved currently, so this case might
                 // exist in the future anyway
-                std::printf("Illegal instruction\n");
-                exit(EXIT_FAILURE);
+                std::printf("(Softvector) Illegal instruction\n");
+                return;
             }
             auto const mask_data_bit = static_cast<Bit>((vector_elements[i / sew] >> (i % sew)) & 1);
             vector_elements[vd_base + i] = op(vector_elements[vs2_base + i], scalar, mask_data_bit);
@@ -2943,7 +2937,7 @@ inline constexpr void widening_vx_iterate(void *const vector_field, uint16_t con
         }
         else
         {
-            static_assert(false, "This operation is not supported");
+            static_assert(false, "Invalid operation for widening vx");
         }
     }
 }
@@ -3478,10 +3472,10 @@ inline constexpr bool narrowing_sat_wxi_iterate(void *const vector_field, uint16
     }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool sat_vv_dispatch(void *const vector_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
-                                              uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                                              uint32_t const vl, OpType const op)
+inline constexpr bool sat_vv_dispatch(void *const vector_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                      uint8_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                      OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3494,10 +3488,10 @@ inline constexpr GO_FAST bool sat_vv_dispatch(void *const vector_field, uint16_t
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wv_dispatch(void *const vector_field, uint16_t const vtype,
-                                                        uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                        uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                        uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr bool narrowing_sat_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                                uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                                uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                                uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3510,10 +3504,10 @@ inline constexpr GO_FAST bool narrowing_sat_wv_dispatch(void *const vector_field
 }
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST bool sat_vi_dispatch(void *const vector_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                              uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
-                                              uint32_t const vl, OpType const op)
+inline constexpr bool sat_vi_dispatch(void *const vector_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                      uint8_t immediate, uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                      OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3531,10 +3525,10 @@ inline constexpr GO_FAST bool sat_vi_dispatch(void *const vector_field, uint16_t
 }
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wi_dispatch(void *const vector_field, uint16_t const vtype,
-                                                        uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                        uint8_t const vs2, uint8_t immediate, uint16_t const vstart,
-                                                        uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr bool narrowing_sat_wi_dispatch(void *const vector_field, uint16_t const vtype,
+                                                uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                                uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
+                                                uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3552,10 +3546,10 @@ inline constexpr GO_FAST bool narrowing_sat_wi_dispatch(void *const vector_field
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool sat_vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
-                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                              uint8_t const rs1, uint16_t const vstart, uint32_t const vlen,
-                                              uint16_t xlen, uint32_t const vl, OpType const op)
+inline constexpr bool sat_vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                      uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                      uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                      uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3569,11 +3563,11 @@ inline constexpr GO_FAST bool sat_vx_dispatch(void *const vector_field, void *co
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST bool narrowing_sat_wx_dispatch(void *const vector_field, void *const scalar_field,
-                                                        uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                        uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                        uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                                        uint32_t const vl, OpType const op)
+inline constexpr bool narrowing_sat_wx_dispatch(void *const vector_field, void *const scalar_field,
+                                                uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                                uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3586,30 +3580,30 @@ inline constexpr GO_FAST bool narrowing_sat_wx_dispatch(void *const vector_field
     return 0;
 }
 
-#define VV_DISPATCHER(iterator)                                                                                    \
-    template <SignType Sign, typename OpType>                                                                      \
-    inline constexpr GO_FAST void iterator##_dispatch(void *const vector_field, uint16_t const vtype,              \
-                                                      uint8_t const instruction_mask_bit, uint8_t const vd,        \
-                                                      uint8_t const vs1, uint8_t const vs2, uint16_t const vstart, \
-                                                      uint32_t const vlen, uint32_t const vl, OpType const op)     \
-    {                                                                                                              \
-        auto const sew = decode_sew(vtype);                                                                        \
-        auto const elements_per_register = vlen / sew;                                                             \
-        auto const vd_base = vd * elements_per_register;                                                           \
-        auto const vs1_base_or_scalar = vs1 * elements_per_register;                                               \
-        auto const vs2_base = vs2 * elements_per_register;                                                         \
-                                                                                                                   \
-        ITERATOR_SWITCH(iterator)                                                                                  \
+#define VV_DISPATCHER(iterator)                                                                                        \
+    template <SignType Sign, typename OpType>                                                                          \
+    inline constexpr void iterator##_dispatch(void *const vector_field, uint16_t const vtype,                          \
+                                              uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1, \
+                                              uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,           \
+                                              uint32_t const vl, OpType const op)                                      \
+    {                                                                                                                  \
+        auto const sew = decode_sew(vtype);                                                                            \
+        auto const elements_per_register = vlen / sew;                                                                 \
+        auto const vd_base = vd * elements_per_register;                                                               \
+        auto const vs1_base_or_scalar = vs1 * elements_per_register;                                                   \
+        auto const vs2_base = vs2 * elements_per_register;                                                             \
+                                                                                                                       \
+        ITERATOR_SWITCH(iterator)                                                                                      \
     }
 
 VV_DISPATCHER(vv)
 VV_DISPATCHER(reduce)
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void widening_vv_dispatch(void *const vector_field, uint16_t const vtype,
-                                                   uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                   uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                   uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr void widening_vv_dispatch(void *const vector_field, uint16_t const vtype,
+                                           uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                           uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                           uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3621,10 +3615,10 @@ inline constexpr GO_FAST void widening_vv_dispatch(void *const vector_field, uin
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void widening_reduce_dispatch(void *const vector_field, uint16_t const vtype,
-                                                       uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                       uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                       uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr void widening_reduce_dispatch(void *const vector_field, uint16_t const vtype,
+                                               uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                               uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                               uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3636,10 +3630,10 @@ inline constexpr GO_FAST void widening_reduce_dispatch(void *const vector_field,
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void widening_wv_dispatch(void *const vector_field, uint16_t const vtype,
-                                                   uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                   uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                   uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr void widening_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                           uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                           uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                           uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3651,10 +3645,10 @@ inline constexpr GO_FAST void widening_wv_dispatch(void *const vector_field, uin
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void narrowing_wv_dispatch(void *const vector_field, uint16_t const vtype,
-                                                    uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                    uint8_t const vs1, uint8_t const vs2, uint16_t const vstart,
-                                                    uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr void narrowing_wv_dispatch(void *const vector_field, uint16_t const vtype,
+                                            uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs1,
+                                            uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
+                                            uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3666,10 +3660,9 @@ inline constexpr GO_FAST void narrowing_wv_dispatch(void *const vector_field, ui
 }
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST void vi_dispatch(void *const vector_field, uint16_t const vtype,
-                                          uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                          uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
-                                          uint32_t const vl, OpType const op)
+inline constexpr void vi_dispatch(void *const vector_field, uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                  uint8_t const vd, uint8_t const vs2, uint8_t immediate, uint16_t const vstart,
+                                  uint32_t const vlen, uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3686,10 +3679,10 @@ inline constexpr GO_FAST void vi_dispatch(void *const vector_field, uint16_t con
 }
 
 template <SignType Sign, ImmExtensionType ImmExtension, typename OpType>
-inline constexpr GO_FAST void narrowing_wi_dispatch(void *const vector_field, uint16_t const vtype,
-                                                    uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                    uint8_t const vs2, uint8_t immediate, uint16_t const vstart,
-                                                    uint32_t const vlen, uint32_t const vl, OpType const op)
+inline constexpr void narrowing_wi_dispatch(void *const vector_field, uint16_t const vtype,
+                                            uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                            uint8_t immediate, uint16_t const vstart, uint32_t const vlen,
+                                            uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3706,10 +3699,10 @@ inline constexpr GO_FAST void narrowing_wi_dispatch(void *const vector_field, ui
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
-                                          uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                          uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                          uint32_t const vl, OpType const op)
+inline constexpr void vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                  uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                  uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                  uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3722,10 +3715,10 @@ inline constexpr GO_FAST void vx_dispatch(void *const vector_field, void *const 
 }
 
 template <typename OpType, SignType Sign>
-inline constexpr GO_FAST void vf_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
-                                          uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
-                                          uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                          uint32_t const vl, OpType const op)
+inline constexpr void vf_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                  uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                  uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                  uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3738,11 +3731,11 @@ inline constexpr GO_FAST void vf_dispatch(void *const vector_field, void *const 
 }
 
 template <typename OpType, SignType Sign>
-inline constexpr GO_FAST void dispatch_iterate_widening_vf(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                                           uint32_t const vl, OpType const op)
+inline constexpr void dispatch_iterate_widening_vf(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                   uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                                   uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3755,11 +3748,11 @@ inline constexpr GO_FAST void dispatch_iterate_widening_vf(void *const vector_fi
 }
 
 template <typename OpType, SignType Sign>
-inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_field, void *const scalar_field,
-                                                           uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                           uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                           uint16_t const vstart, uint32_t const vlen, uint16_t flen,
-                                                           uint32_t const vl, OpType const op)
+inline constexpr void dispatch_iterate_widening_wf(void *const vector_field, void *const scalar_field,
+                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
+                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
+                                                   uint16_t const vstart, uint32_t const vlen, uint16_t flen,
+                                                   uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3772,11 +3765,10 @@ inline constexpr GO_FAST void dispatch_iterate_widening_wf(void *const vector_fi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void widening_vx_dispatch(void *const vector_field, void *const scalar_field,
-                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                   uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                                   uint32_t const vl, OpType const op)
+inline constexpr void widening_vx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                           uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                           uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                           uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3789,11 +3781,10 @@ inline constexpr GO_FAST void widening_vx_dispatch(void *const vector_field, voi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void widening_wx_dispatch(void *const vector_field, void *const scalar_field,
-                                                   uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                   uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                   uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                                   uint32_t const vl, OpType const op)
+inline constexpr void widening_wx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                           uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                           uint8_t const rs1, uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
+                                           uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3806,11 +3797,10 @@ inline constexpr GO_FAST void widening_wx_dispatch(void *const vector_field, voi
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void narrowing_wx_dispatch(void *const vector_field, void *const scalar_field,
-                                                    uint16_t const vtype, uint8_t const instruction_mask_bit,
-                                                    uint8_t const vd, uint8_t const vs2, uint8_t const rs1,
-                                                    uint16_t const vstart, uint32_t const vlen, uint16_t xlen,
-                                                    uint32_t const vl, OpType const op)
+inline constexpr void narrowing_wx_dispatch(void *const vector_field, void *const scalar_field, uint16_t const vtype,
+                                            uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                            uint8_t const rs1, uint16_t const vstart, uint32_t const vlen,
+                                            uint16_t xlen, uint32_t const vl, OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
@@ -3823,9 +3813,9 @@ inline constexpr GO_FAST void narrowing_wx_dispatch(void *const vector_field, vo
 }
 
 template <unsigned Sew, unsigned Factor>
-inline constexpr GO_FAST void dispatch_iterate_vext(void *const vector_field, bool const is_masked, uint8_t const vd,
-                                                    uint8_t const vs2, bool const is_signed, uint16_t const vstart,
-                                                    uint32_t const vlen, uint32_t const vl)
+inline constexpr void dispatch_iterate_vext(void *const vector_field, bool const is_masked, uint8_t const vd,
+                                            uint8_t const vs2, bool const is_signed, uint16_t const vstart,
+                                            uint32_t const vlen, uint32_t const vl)
 {
     auto const src_elements_per_register = (Factor * vlen) / Sew;
     auto const dest_elements_per_register = vlen / Sew;
@@ -3866,10 +3856,10 @@ inline constexpr GO_FAST void dispatch_iterate_vext(void *const vector_field, bo
 }
 
 template <SignType Sign, typename OpType>
-inline constexpr GO_FAST void dispatch_iterate_v_unary(void *const vector_field, uint16_t const vtype,
-                                                       uint8_t const instruction_mask_bit, uint8_t const vd,
-                                                       uint8_t const vs2, uint16_t const vstart, uint32_t const vlen,
-                                                       uint32_t const vl, OpType const op)
+inline constexpr void dispatch_iterate_v_unary(void *const vector_field, uint16_t const vtype,
+                                               uint8_t const instruction_mask_bit, uint8_t const vd, uint8_t const vs2,
+                                               uint16_t const vstart, uint32_t const vlen, uint32_t const vl,
+                                               OpType const op)
 {
     auto const sew = decode_sew(vtype);
     auto const elements_per_register = vlen / sew;
