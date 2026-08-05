@@ -52,7 +52,7 @@ VILL::vpu_return_t load_eew(
 );
 
 template <bool Masked>
-VILL::vpu_return_t __attribute__((always_inline)) load_unitstride(
+VILL::vpu_return_t load_unitstride(
     MemoryAccessFunction func_read_mem, //!< Function for memory read access
     uint8_t *const vector_field, //!< Vector register file memory space. One dimensional [0..32*VLEN-1] byte array
     uint16_t const eew_bytes,    //!< Effective element width [bytes]
@@ -93,7 +93,7 @@ VILL::vpu_return_t __attribute__((always_inline)) load_unitstride(
 }
 
 template <bool Masked>
-VILL::vpu_return_t __attribute__((always_inline)) load_eew_v2(
+VILL::vpu_return_t load_eew_v2(
     MemoryAccessFunction func_read_mem, //!< Function for memory read access
     uint8_t *const vector_field, //!< Vector register file memory space. One dimensional [0..32*VLEN-1] byte array
     uint16_t const eew_bytes,    //!< Effective element width [bytes]
@@ -155,7 +155,7 @@ VILL::vpu_return_t store_eew(
 );
 
 template <bool Masked>
-VILL::vpu_return_t __attribute__((always_inline)) store_eew_v2(
+VILL::vpu_return_t store_eew_v2(
     MemoryAccessFunction func_write_mem, //!< Function for memory read access
     uint8_t *const vector_field, //!< Vector register file memory space. One dimensional [0..32*VLEN-1] byte array
     uint16_t const eew_bytes,    //!< Effective element width [bytes]
@@ -227,11 +227,9 @@ auto store_indices(
     ) -> VILL::vpu_return_t;
 
 template <bool Masked>
-VILL::vpu_return_t __attribute__((always_inline)) load_indices_v2(MemoryAccessFunction func_read_mem,
-                                                                  uint8_t *const vector_field,
-                                                                  VInstrInfo const &v_instr_info, uint16_t const vd,
-                                                                  uint16_t const vs2, uint64_t const src_mem_start,
-                                                                  uint16_t const eew)
+VILL::vpu_return_t load_indices_v2(MemoryAccessFunction func_read_mem, uint8_t *const vector_field,
+                                   VInstrInfo const &v_instr_info, uint16_t const vd, uint16_t const vs2,
+                                   uint64_t const src_mem_start, uint16_t const eew)
 {
     auto const sew = v_instr_info.sew;
     auto const sew_bytes = v_instr_info.sew >> 3;
@@ -262,11 +260,9 @@ VILL::vpu_return_t __attribute__((always_inline)) load_indices_v2(MemoryAccessFu
 }
 
 template <bool Masked>
-VILL::vpu_return_t __attribute__((always_inline)) store_indices_v2(MemoryAccessFunction func_write_mem,
-                                                                   uint8_t *const vector_field,
-                                                                   VInstrInfo const &v_instr_info, uint16_t const vs3,
-                                                                   uint16_t const vs2, uint64_t const dest_mem_start,
-                                                                   uint16_t const eew, uint8_t const nf)
+VILL::vpu_return_t store_indices_v2(MemoryAccessFunction func_write_mem, uint8_t *const vector_field,
+                                    VInstrInfo const &v_instr_info, uint16_t const vs3, uint16_t const vs2,
+                                    uint64_t const dest_mem_start, uint16_t const eew, uint8_t const nf)
 {
     auto const sew = v_instr_info.sew;
     auto const sew_bytes = v_instr_info.sew >> 3;
