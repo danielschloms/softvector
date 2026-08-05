@@ -782,9 +782,9 @@ uint8_t vext_vf(void *const vector_field, uint16_t const vtype, uint8_t const vm
 {
     auto const sew = decode_sew(vtype);
 
-    static constexpr auto f8 = 0b1;
-    static constexpr auto f4 = 0b10;
-    static constexpr auto f2 = 0b11;
+    constexpr auto f8 = 0b1;
+    constexpr auto f4 = 0b10;
+    constexpr auto f2 = 0b11;
 
     switch (extension_encoding >> 1)
     {
@@ -1711,7 +1711,7 @@ template <typename VectorElementType>
 constexpr void slideup_masked_iterate(void *const vector_field, unsigned const vd_base, unsigned const vs2_base,
                                       unsigned const offset, unsigned const start, unsigned const vl)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *const>(vector_field);
     for (size_t i = start; i < vl; ++i)
     {
@@ -1806,7 +1806,7 @@ constexpr void slidedown_masked_iterate(void *const vector_field, unsigned const
                                         unsigned const offset, unsigned const start, unsigned const vl,
                                         unsigned const vlmax)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *const>(vector_field);
     size_t i = start;
     for (; i < vl && (i + offset) < vlmax; ++i)
@@ -2086,8 +2086,8 @@ uint8_t vrgatherei16_vv(void *const vector_field, uint16_t const vtype, uint8_t 
     VTYPE::VTYPE const vt(vtype);
     auto const vlmax = (vt._z_lmul * vlen) / (vt._n_lmul * sew);
 
-    static constexpr auto vs1_sew = 16;
-    static constexpr auto vs1_sew_bytes = vs1_sew >> 3;
+    constexpr auto vs1_sew = 16;
+    constexpr auto vs1_sew_bytes = vs1_sew >> 3;
 
     for (size_t i = vstart; i < vl; ++i)
     {
@@ -2423,7 +2423,7 @@ inline constexpr void reduce_iterate(void *const vector_field, uint16_t const vs
                                      unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                      OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     uint64_t reduction_accumulator = vector_elements[vs1_base];
     if (vl == 0)
@@ -2464,7 +2464,7 @@ inline constexpr void widening_reduce_iterate(void *const vector_field, uint16_t
                                               unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                               OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     using WideType = TypeWidener<VectorElementType>::wide_type;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     auto *const wide_elements = static_cast<WideType *>(vector_field);
@@ -2507,7 +2507,7 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
                                  unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                  OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
 
     for (size_t i = vstart; i < vl; ++i)
@@ -2630,7 +2630,7 @@ inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t con
                                           unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                           OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -2682,7 +2682,7 @@ inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t con
                                           unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                           OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -2720,7 +2720,7 @@ inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t co
                                            unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                            OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -2754,7 +2754,7 @@ inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t c
                                             unsigned const vd_base, uint64_t const scalar, unsigned const vs2_base,
                                             OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -2787,7 +2787,7 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
                                   unsigned const vd_base, uint64_t const scalar, unsigned const vs2_base,
                                   OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
 
     for (size_t i = vstart; i < vl; ++i)
@@ -2902,7 +2902,7 @@ inline constexpr void widening_vx_iterate(void *const vector_field, uint16_t con
                                           unsigned const vd_base, uint64_t const scalar, unsigned const vs2_base,
                                           OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -3006,7 +3006,7 @@ template <typename VectorElementType, MaskType Mask, typename OpType>
 inline constexpr void unary_iterate(void *const vector_field, uint16_t const vstart, uint32_t const vl,
                                     unsigned const vd_base, unsigned const vs2_base, OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
 
     for (size_t i = vstart; i < vl; ++i)
@@ -3089,7 +3089,7 @@ inline constexpr bool sat_vv_iterate(void *const vector_field, uint16_t const vs
                                      unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                      OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     auto sat = false;
 
@@ -3137,7 +3137,7 @@ inline constexpr bool narrowing_sat_wv_iterate(void *const vector_field, uint16_
                                                unsigned const vd_base, unsigned const vs1_base, unsigned const vs2_base,
                                                OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
@@ -3176,7 +3176,7 @@ inline constexpr bool sat_vxi_iterate(void *const vector_field, uint16_t const v
                                       unsigned const vd_base, uint64_t const scalar, unsigned const vs2_base,
                                       OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     auto sat = false;
 
@@ -3223,7 +3223,7 @@ inline constexpr bool narrowing_sat_wxi_iterate(void *const vector_field, uint16
                                                 unsigned const vd_base, uint64_t const scalar, unsigned const vs2_base,
                                                 OpType const op)
 {
-    static constexpr auto sew = sizeof(VectorElementType) * 8;
+    constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);

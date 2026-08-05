@@ -11,7 +11,6 @@
 
 #include "softfloat.h"
 
-
 enum class SewType : uint8_t
 {
     sew_8 = 8,
@@ -583,30 +582,26 @@ inline constexpr int64_t roundoff_signed(int64_t const value, uint8_t const roun
 
 inline constexpr uint64_t aadd(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
 {
-    static constexpr auto rounding_bits = 1;
     auto res = static_cast<int64_t>(lhs) + static_cast<int64_t>(rhs);
-    return roundoff_signed(res, rounding_bits, rounding_mode);
+    return roundoff_signed(res, 1, rounding_mode);
 };
 
 inline constexpr uint64_t aaddu(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
 {
-    static constexpr auto rounding_bits = 1;
     auto res = lhs + rhs;
-    return roundoff_unsigned(res, rounding_bits, rounding_mode);
+    return roundoff_unsigned(res, 1, rounding_mode);
 };
 
 inline constexpr uint64_t asub(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
 {
-    static constexpr auto rounding_bits = 1;
     auto res = static_cast<int64_t>(lhs) - static_cast<int64_t>(rhs);
-    return roundoff_signed(res, rounding_bits, rounding_mode);
+    return roundoff_signed(res, 1, rounding_mode);
 };
 
 inline constexpr uint64_t asubu(uint64_t const lhs, uint64_t const rhs, FPRoundingMode const rounding_mode)
 {
-    static constexpr auto rounding_bits = 1;
     auto res = lhs - rhs;
-    return roundoff_unsigned(res, rounding_bits, rounding_mode);
+    return roundoff_unsigned(res, 1, rounding_mode);
 };
 
 /* 12.3. Vector Single-Width Fractional Multiply with Rounding and Saturation */

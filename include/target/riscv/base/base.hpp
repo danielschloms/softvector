@@ -244,24 +244,25 @@ inline constexpr auto get_n_bit_mask(size_t const n_bits) -> uint64_t
     return (1_u64 << (n_bits)) - 1;
 }
 
-inline constexpr auto get_min_signed(size_t sew) -> uint64_t
+inline constexpr auto get_min_signed(size_t const sew) -> uint64_t
 {
     return -1_i64 & (~get_n_bit_mask(sew - 1));
 }
 
-inline auto msb_is_set(uint64_t value, size_t sew) -> bool
+inline constexpr auto msb_is_set(uint64_t const value, size_t const sew) -> bool
 {
     return value & (1_u64 << (sew - 1));
 }
 
-inline auto sign_extend(uint64_t value, size_t sew) -> uint64_t
+inline constexpr auto sign_extend(uint64_t const value, size_t const sew) -> uint64_t
 {
-    uint64_t sew_mask = (1_u64 << sew) - 1;
-    uint64_t ext_mask = msb_is_set(value, sew) * (~sew_mask);
+    uint64_t const sew_mask = (1_u64 << sew) - 1;
+    uint64_t const ext_mask = msb_is_set(value, sew) * (~sew_mask);
     return value | ext_mask;
 }
 
-inline auto mask_and_sign_extend_scalar(uint64_t value, std::size_t sew, bool signed_scalar) -> uint64_t
+inline constexpr auto mask_and_sign_extend_scalar(uint64_t value, size_t const sew,
+                                                  bool const signed_scalar) -> uint64_t
 {
     if (sew == 64)
     {
@@ -269,10 +270,10 @@ inline auto mask_and_sign_extend_scalar(uint64_t value, std::size_t sew, bool si
     }
 
     // Use least significant SEW bits
-    uint64_t sew_mask = (1_u64 << sew) - 1;
+    uint64_t const sew_mask = (1_u64 << sew) - 1;
     value &= sew_mask;
 
-    bool sign_extend = signed_scalar && msb_is_set(value, sew);
+    bool const sign_extend = signed_scalar && msb_is_set(value, sew);
     return value | (sign_extend * (~sew_mask));
 };
 
