@@ -75,6 +75,7 @@ extern "C"
     uint8_t vtype_extractMA(uint16_t const vtype //!<[in] vtype bitfield
     );
 
+
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Concatenate MEW and WIDTH to EEW and return number of bits for EEW
     /// \return Decoded EEW [bits]
@@ -836,16 +837,16 @@ extern "C"
 
     // Matrix
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                        uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                        uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint8_t const rounding_mode);
+                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const rounding_mode);
 
 #ifdef __cplusplus
 } // extern "C"

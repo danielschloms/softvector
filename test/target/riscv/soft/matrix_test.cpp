@@ -102,7 +102,7 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
     seq_fill(B, decoded_vtype.lmul, decoded_vtype.lambda, 1, elements_per_register * decoded_vtype.lmul);
 
     // MMACC
-    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen);
+    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen, elements_per_register * decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, 1, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
@@ -179,7 +179,7 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
              elements_per_register * decoded_vtype.lmul * widening);
 
     // MMACC
-    vwmmacc_vv(vector_field.data(), vtype_wmmacc, vd, vs1, vs2, 0, vlen);
+    vwmmacc_vv(vector_field.data(), vtype_wmmacc, vd, vs1, vs2, 0, vlen, elements_per_register * decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, widening, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
@@ -263,7 +263,7 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
              elements_per_register * decoded_vtype.lmul * widening);
 
     // MMACC
-    vqwmmacc_vv(vector_field.data(), vtype_qwmmacc, vd, vs1, vs2, 0, vlen);
+    vqwmmacc_vv(vector_field.data(), vtype_qwmmacc, vd, vs1, vs2, 0, vlen, elements_per_register* decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, widening, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
