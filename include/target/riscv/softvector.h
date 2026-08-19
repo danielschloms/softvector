@@ -847,6 +847,8 @@ extern "C"
 
     uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
                        uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const rounding_mode);
+    uint8_t vmtl_v(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm, uint16_t const vd, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl);
 
 #ifdef __cplusplus
 } // extern "C"

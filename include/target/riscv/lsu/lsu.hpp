@@ -42,7 +42,7 @@ VILL::vpu_return_t load_eew(
     [[maybe_unused]] uint64_t const emul_num,   //!< Effective register multiplicity numerator
     [[maybe_unused]] uint64_t const emul_denom, //!< Effective register multiplicity denominator
     uint16_t const eew_bytes,                   //!< Effective element width [bytes]
-    uint16_t const vec_len,                     //!< Vector length [elements]
+    uint32_t const vec_len,                     //!< Vector length [elements]
     uint16_t const vec_reg_len_bytes,           //!< Vector register length [bytes]
     uint16_t const vd,                          //!< Destination vector [index]
     uint64_t const src_mem_start,               //!< Source memory start address

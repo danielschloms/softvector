@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include <cstdio>
 
 #include "base/base.hpp"
 #include "base/softvector-platform-types.hpp"
@@ -31,7 +32,7 @@
 // TODO: Read/Write exceptions are currently ignored
 VILL::vpu_return_t VLSU::load_eew(VLSU::MemoryAccessFunction func_read_mem, uint8_t *const vector_field,
                                   uint64_t const emul_num, uint64_t const emul_denom, uint16_t const eew_bytes,
-                                  uint16_t const vec_len, uint16_t const vec_reg_len_bytes, uint16_t const vd,
+                                  uint32_t const vec_len, uint16_t const vec_reg_len_bytes, uint16_t const vd,
                                   uint64_t const src_mem_start, uint16_t const vstart, uint8_t const mask_f,
                                   int16_t const stride_bytes)
 {
