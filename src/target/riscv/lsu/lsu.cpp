@@ -60,7 +60,7 @@ VILL::vpu_return_t VLSU::load_eew(VLSU::MemoryAccessFunction func_read_mem, uint
 }
 
 VILL::vpu_return_t VLSU::store_eew(VLSU::MemoryAccessFunction func_write_mem, uint8_t *vec_reg_mem, uint64_t emul_num,
-                                   uint64_t emul_denom, uint16_t eew_bytes, uint16_t vec_len,
+                                   uint64_t emul_denom, uint16_t eew_bytes, uint32_t vec_len,
                                    uint16_t vec_reg_len_bytes, uint16_t src_vec_reg, uint64_t dst_mem_start,
                                    uint16_t vec_elem_start, uint8_t mask_f, int16_t stride_bytes)
 {

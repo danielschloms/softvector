@@ -145,7 +145,7 @@ VILL::vpu_return_t store_eew(
     uint64_t emul_num,          //!< Effective register multiplicity numerator
     uint64_t emul_denom,        //!< Effective register multiplicity denominator
     uint16_t eew_bytes,         //!< Effective element width [bytes]
-    uint16_t vec_len,           //!< Vector length [elements]
+    uint32_t vec_len,           //!< Vector length [elements]
     uint16_t vec_reg_len_bytes, //!< Vector register length [bytes]
     uint16_t src_vec_reg,       //!< Source vector register [index]
     uint64_t dst_mem_start,     //!< Destination memory start address

@@ -305,7 +305,7 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
 
 template <typename T>
     requires std::is_integral_v<T>
-bool load_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsigned vlen)
+bool load_store_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsigned vlen)
 {
     auto const vtype = encode_matrix_vtype(sew, lmul, lambda, 0, 0, false);
     auto const decoded_vtype = decode_matrix_vtype(vtype);
@@ -315,12 +315,17 @@ bool load_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsign
 
     // create array of memory to load from ( dont use vector!)
     std::vector<ResultType> C;
-    C.reserve(elements_per_register * lmul);
+    C.reserve(elements_per_register * decoded_vtype.lmul);
     seq_fill(C, decoded_vtype.lmul, decoded_vtype.lambda, 1,
              elements_per_register * decoded_vtype.lmul);
 
     auto const res = vmtl_v(
         vector_field.data(), reinterpret_cast<uint8_t *>(&C[0]), vtype, sizeof(T), vd, lambda,
+        decoded_vtype.lmul*decoded_vtype.lambda, 0, vlen, vlen/decoded_vtype.sew * decoded_vtype.lmul);
+
+    std::vector<ResultType> C_from_RV_store(elements_per_register * decoded_vtype.lmul, 0);
+    auto const res2 = vmts_v(
+        vector_field.data(), reinterpret_cast<uint8_t *>(&C_from_RV_store[0]), vtype, 1, vd, lambda,
         decoded_vtype.lmul*decoded_vtype.lambda, 0, vlen, vlen/decoded_vtype.sew * decoded_vtype.lmul);
 
     //print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, decoded_vtype.lmul, false);
@@ -338,6 +343,12 @@ bool load_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsign
         print_matrix(C, decoded_vtype.lambda, decoded_vtype.lmul, 1);
         std::printf("C from RV\n");
         print_matrix(C_from_RV, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        std::exit(EXIT_FAILURE);
+    } else if (!is_equal(C, C_from_RV_store)) {
+        std::printf("Stored Result not equal to golden result!\n");
+        print_matrix(C, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        printf("\n\n\n\n");
+        print_matrix(C_from_RV_store, decoded_vtype.lambda, decoded_vtype.lmul, 1);
         std::exit(EXIT_FAILURE);
     }
     else
@@ -380,16 +391,16 @@ int main()
                     switch (sew)
                     {
                     case SEW_E8:
-                        load_test<uint8_t>(sew, lmul, lambda , 0, vlen);
+                        load_store_test<uint8_t>(sew, lmul, lambda , 0, vlen);
                         break;
                     case SEW_E16:
-                        load_test<uint16_t>(sew, lmul, lambda , 0, vlen);
+                        load_store_test<uint16_t>(sew, lmul, lambda , 0, vlen);
                         break;
                     case SEW_E32:
-                        load_test<uint32_t>(sew, lmul, lambda , 0, vlen);
+                        load_store_test<uint32_t>(sew, lmul, lambda , 0, vlen);
                         break;
                     case SEW_E64:
-                        load_test<uint64_t>(sew, lmul, lambda , 0, vlen);
+                        load_store_test<uint64_t>(sew, lmul, lambda , 0, vlen);
                         break;
                     default:
                         break;

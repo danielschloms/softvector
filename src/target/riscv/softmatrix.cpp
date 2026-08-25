@@ -371,14 +371,42 @@ uint8_t vmtl_v(void *const vector_field, uint8_t *const memory, uint16_t const v
         const auto base_addr = (vtype_decoded.sew / 8) * ((addr / linesize) * effective_ld + addr % linesize);
         for (std::size_t i = 0; i < len; ++i){
             buff[i] = memory[base_addr + i];
-            if (vtype_decoded.sew == 8 && vtype_decoded.lmul == 8 && vlen == 65536)
-            {
-            }
         }
     };
 
     VLSU::load_eew(f_readMem, VectorRegField, vtype_decoded.lmul, 1, vtype_decoded.sew / 8, vl, vlen / 8, vd, 0, vstart, pVm,
                    1);
+
+    return (0);
+}
+
+uint8_t vmts_v(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm, uint16_t const vs, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    auto const effective_lambda = Llambda == 0 ? vtype_decoded.lambda : 1U << ((Llambda & 0b111) - 1);
+    auto const linesize = vtype_decoded.lmul * effective_lambda;
+    
+    auto const effective_ld = ld == 0 ? linesize : ld;
+    
+    if (effective_lambda == 0) return (1);
+    if (vl % linesize != 0) return (1);
+
+
+    uint8_t *VectorRegField;
+
+    VectorRegField = static_cast<uint8_t *>(vector_field);
+
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory, vtype_decoded, linesize, effective_ld, vlen](std::size_t addr, uint8_t *buff, std::size_t len)
+    {
+        const auto base_addr = (vtype_decoded.sew / 8) * ((addr / linesize) * effective_ld + addr % linesize);
+        for (std::size_t i = 0; i < len; ++i){
+            memory[base_addr + i] = buff[i];
+        }
+    };
+
+    VLSU::store_eew(f_writeMem, VectorRegField, vtype_decoded.lmul, 1, vtype_decoded.sew / 8, vl, vlen / 8, vs, 0, vstart, pVm, 1);
 
     return (0);
 }
