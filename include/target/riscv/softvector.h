@@ -33,22 +33,24 @@ extern "C"
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Decode a VTYPE bitfield and store retrieved fields to Output parameter set
     /// \return If field valid 1, else -1 (e.g. reserved LMUL code)
-    int8_t vtype_decode(uint16_t vtype,  //!<[in] vtype bitfield
+    int8_t vtype_decode(uint32_t vtype,  //!<[in] vtype bitfield
                         uint8_t *ta,     //!<[out] tail agnostic flag
                         uint8_t *ma,     //!<[out] mask agnostic flag
                         uint32_t *sew,   //!<[out] SEW (decoded) [bits]
                         uint8_t *z_lmul, //!<[out] LMUL nominator
-                        uint8_t *n_lmul  //!<[out] LMUL denominator
+                        uint8_t *n_lmul, //!<[out] LMUL denominator
+                        uint8_t *lambda  //!<[out] lambda bitfield
     );
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Encode Input parameter set of bitfields to a VTYPE bitfield
     /// \return Encoded VTYPE bitfield
-    uint16_t vtype_encode(uint16_t sew,   //!<[in] SEW (decoded) [bits]
+    uint32_t vtype_encode(uint16_t sew,   //!<[in] SEW (decoded) [bits]
                           uint8_t z_lmul, //!<[in] LMUL nominator
                           uint8_t n_lmul, //!<[in] LMUL denominator
                           uint8_t ta,     //!<[in] tail agnostic flag
-                          uint8_t ma      //!<[in] tail mask flag
+                          uint8_t ma,      //!<[in] tail mask flag
+                          uint8_t lambda   //!<[in] lambda bitfield
     );
 
     //////////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +76,7 @@ extern "C"
     /// \return Encoded MA bitfield
     uint8_t vtype_extractMA(uint16_t const vtype //!<[in] vtype bitfield
     );
+
 
     //////////////////////////////////////////////////////////////////////////////////////
     /// \brief Concatenate MEW and WIDTH to EEW and return number of bits for EEW
@@ -836,16 +839,22 @@ extern "C"
 
     // Matrix
     uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                      uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                        uint16_t const vs2, uint16_t const vstart, uint32_t const vlen);
+                        uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl);
 
     uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint8_t const rounding_mode);
+                       uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const rounding_mode);
+
+    uint8_t vmtl_v(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm, uint16_t const vd, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl);
+
+    uint8_t vmts_v(void *const vector_field, uint8_t *const memory, uint16_t const vtype, uint8_t pVm, uint16_t const vs, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl);
 
 #ifdef __cplusplus
 } // extern "C"

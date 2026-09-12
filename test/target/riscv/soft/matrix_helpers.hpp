@@ -50,7 +50,7 @@ inline constexpr auto LAMBDA_64 = 0b111;
 template <typename T>
 inline constexpr auto sign_zero_extend(T value, bool is_signed) -> uint64_t
 {
-    static constexpr auto width = sizeof(T) * 8;
+    constexpr auto width = sizeof(T) * 8;
     static_assert(width <= 64);
     return static_cast<uint64_t>(((static_cast<int64_t>(value) << (64 - width)) >> (64 - width)) * is_signed) |
            (static_cast<uint64_t>(value) * !is_signed);
@@ -110,9 +110,10 @@ void convert(T *const vector_elements, unsigned const lambda, unsigned const vle
         for (size_t col = 0; col < cols; ++col)
         {
             auto const used_col = trans ? row : col;
+            auto const used_cols = trans ? rows : cols;
             auto const used_row = trans ? col : row;
-            auto const vreg = used_col / row_elems_per_register;
-            auto const velem = (used_row * row_elems_per_register) + used_col % row_elems_per_register;
+            auto const vreg = (used_row * used_cols + used_col) / elements_per_register;
+            auto const velem = (used_row * used_cols + used_col) % elements_per_register;
             if (to_serial)
             {
                 serial.push_back(vector_elements[v_base + (vreg * elements_per_register) + velem]);
@@ -179,15 +180,15 @@ void print_rv_matrix(T *const vector_elements, unsigned const lambda, unsigned c
 
     auto const cols = lmul * row_elems_per_register;
     auto const rows = total_elements / cols;
-    std::printf("%u cols, %lu rows\n", cols, rows);
     for (size_t row = 0; row < rows; ++row)
     {
         for (size_t col = 0; col < cols; ++col)
         {
             auto const used_col = trans ? row : col;
+            auto const used_cols = trans ? rows : cols;
             auto const used_row = trans ? col : row;
-            auto const vreg = used_col / row_elems_per_register;
-            auto const velem = (used_row * row_elems_per_register) + (used_col % row_elems_per_register);
+            auto const vreg = (used_row * used_cols + used_col) / elements_per_register;
+            auto const velem = (used_row * used_cols + used_col) % elements_per_register;
             // auto const v_offset = (used_col / (lambda * widening)) * elements_per_register;
             // auto const v_element = (used_row * (lambda * widening)) + (used_col % (lambda * widening));
             if constexpr (std::is_signed_v<T>)
@@ -280,8 +281,8 @@ void seq_fill(std::vector<T> &vec, unsigned lmul, unsigned lambda, unsigned wide
     {
         for (size_t col = 0; col < cols; ++col)
         {
-            auto const vreg = col / row_elms_per_register;
-            auto const velem = (row * row_elms_per_register) + (col % row_elms_per_register);
+            auto const vreg = (row * cols + col) / elms_per_register;
+            auto const velem = (row * cols + col) % elms_per_register;
             auto const fill_val = vreg * elms_per_register + velem;
             // auto const fill_val = (col % (lambda * widening)) + (row * lambda * widening) +
             //                       (((col / (lambda * widening)) * rows) * lambda);

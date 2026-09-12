@@ -102,7 +102,7 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
     seq_fill(B, decoded_vtype.lmul, decoded_vtype.lambda, 1, elements_per_register * decoded_vtype.lmul);
 
     // MMACC
-    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen);
+    vmmacc_vv(vector_field.data(), vtype, vd, vs1, vs2, 0, vlen, elements_per_register * decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, 1, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
@@ -125,6 +125,7 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
         // print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
         // std::printf("RV\n");
         // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, mul_C, false);
+        std::exit(EXIT_FAILURE);
     }
     else
     {
@@ -172,6 +173,7 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
     vid_v(vector_field.data(), static_cast<uint16_t>(vtype_vid), 1, vs2, 0, vlen,
           elements_per_register * decoded_vtype.lmul * widening);
 
+
     // Golden
     seq_fill(A, decoded_vtype.lmul, decoded_vtype.lambda, widening,
              elements_per_register * decoded_vtype.lmul * widening);
@@ -179,7 +181,7 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
              elements_per_register * decoded_vtype.lmul * widening);
 
     // MMACC
-    vwmmacc_vv(vector_field.data(), vtype_wmmacc, vd, vs1, vs2, 0, vlen);
+    vwmmacc_vv(vector_field.data(), vtype_wmmacc, vd, vs1, vs2, 0, vlen, elements_per_register * decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, widening, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
@@ -189,8 +191,6 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
     auto is_ok = is_equal(C, C_from_RV);
     if (!is_ok)
     {
-        std::printf("DOUBLE: Result not equal to golden result!\n");
-
         std::printf("A\n");
         print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, widening);
         std::printf("ARV\n");
@@ -199,8 +199,8 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
         print_matrix(B, decoded_vtype.lambda, decoded_vtype.lmul, widening);
         std::printf("C\n");
         print_matrix(C, decoded_vtype.lambda, mul_C, 1);
-        std::printf("C from RV\n");
-        print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
+        //std::printf("C from RV\n");
+        //print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
         std::printf("RV\n");
         print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, mul_C,
                         false);
@@ -263,7 +263,7 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
              elements_per_register * decoded_vtype.lmul * widening);
 
     // MMACC
-    vqwmmacc_vv(vector_field.data(), vtype_qwmmacc, vd, vs1, vs2, 0, vlen);
+    vqwmmacc_vv(vector_field.data(), vtype_qwmmacc, vd, vs1, vs2, 0, vlen, elements_per_register* decoded_vtype.lmul);
     mmacc(A, B, C, decoded_vtype.lmul, decoded_vtype.lambda, widening, signed_A, signed_B);
 
     std::vector<ResultType> C_from_RV;
@@ -302,6 +302,61 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
     return is_ok;
 }
 
+
+template <typename T>
+    requires std::is_integral_v<T>
+bool load_store_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, unsigned vlen)
+{
+    auto const vtype = encode_matrix_vtype(sew, lmul, lambda, 0, 0, false);
+    auto const decoded_vtype = decode_matrix_vtype(vtype);
+    auto const elements_per_register = vlen / decoded_vtype.sew;
+    
+    using ResultType = std::make_signed_t<T>;
+
+    // create array of memory to load from ( dont use vector!)
+    std::vector<ResultType> C;
+    C.reserve(elements_per_register * decoded_vtype.lmul);
+    seq_fill(C, decoded_vtype.lmul, decoded_vtype.lambda, 1,
+             elements_per_register * decoded_vtype.lmul);
+
+    auto const res = vmtl_v(
+        vector_field.data(), reinterpret_cast<uint8_t *>(&C[0]), vtype, sizeof(T), vd, lambda,
+        decoded_vtype.lmul*decoded_vtype.lambda, 0, vlen, vlen/decoded_vtype.sew * decoded_vtype.lmul);
+
+    std::vector<ResultType> C_from_RV_store(elements_per_register * decoded_vtype.lmul, 0);
+    auto const res2 = vmts_v(
+        vector_field.data(), reinterpret_cast<uint8_t *>(&C_from_RV_store[0]), vtype, 1, vd, lambda,
+        decoded_vtype.lmul*decoded_vtype.lambda, 0, vlen, vlen/decoded_vtype.sew * decoded_vtype.lmul);
+
+    //print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, decoded_vtype.lmul, false);
+
+    std::vector<ResultType> C_from_RV;
+
+    convert(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, decoded_vtype.lmul, false,
+            C_from_RV, true);
+    
+    auto is_ok = is_equal(C, C_from_RV);
+    if (!is_ok)
+    {
+        std::printf("Loaded Result not equal to golden result!\n");
+        std::printf("C\n");
+        print_matrix(C, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        std::printf("C from RV\n");
+        print_matrix(C_from_RV, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        std::exit(EXIT_FAILURE);
+    } else if (!is_equal(C, C_from_RV_store)) {
+        std::printf("Stored Result not equal to golden result!\n");
+        print_matrix(C, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        printf("\n\n\n\n");
+        print_matrix(C_from_RV_store, decoded_vtype.lambda, decoded_vtype.lmul, 1);
+        std::exit(EXIT_FAILURE);
+    } else {
+        std::printf("\t%sLOAD : Test success%s\n", GREEN, RESET);
+    }
+    zero_vectors(vector_field.data(), vector_field.size());
+    return is_ok;
+}
+
 struct Signs
 {
     bool signed_A = false;
@@ -322,19 +377,36 @@ int main()
             for (auto &&lambda : lambdas)
             {
                 for (auto &&sew : sews)
-                {
+                {   
+                    auto const sew_val = 8U << sew;
+                    auto const elements_per_register = vlen / sew_val;
+                    auto const lambda_val = 1U << (lambda - 1);
+                    auto const mul_C = elements_per_register / (lambda_val * lambda_val);
+                    if (!check_mul_C(mul_C))
+                    {
+                        continue;
+                    }
+                    switch (sew)
+                    {
+                    case SEW_E8:
+                        load_store_test<uint8_t>(sew, lmul, lambda , 0, vlen);
+                        break;
+                    case SEW_E16:
+                        load_store_test<uint16_t>(sew, lmul, lambda , 0, vlen);
+                        break;
+                    case SEW_E32:
+                        load_store_test<uint32_t>(sew, lmul, lambda , 0, vlen);
+                        break;
+                    case SEW_E64:
+                        load_store_test<uint64_t>(sew, lmul, lambda , 0, vlen);
+                        break;
+                    default:
+                        break;
+                    }
                     for (int signed_A = 0; signed_A < 2; signed_A++)
                     {
                         for (int signed_B = 0; signed_B < 2; signed_B++)
                         {
-                            auto const sew_val = 8U << sew;
-                            auto const elements_per_register = vlen / sew_val;
-                            auto const lambda_val = 1U << (lambda - 1);
-                            auto const mul_C = elements_per_register / (lambda_val * lambda_val);
-                            if (!check_mul_C(mul_C))
-                            {
-                                continue;
-                            }
                             std::printf("SEW: %u, LMUL: %u, LAMBDA: %u, VLEN: %u, A %s, B %s\n", sew_val, 1U << lmul,
                                         lambda_val, vlen, signed_A ? "signed" : "unsigned",
                                         signed_B ? "signed" : "unsigned");
