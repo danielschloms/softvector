@@ -69,6 +69,7 @@ typedef enum MASK
     MSKFLMUL = 0x20, // ?
     MSKTA = 0x40,
     MSKMA = 0x80,
+    MSKLAMBDA = 0x70000000
 } mask_t;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -77,7 +78,8 @@ typedef enum OFFSETS
 {
     // OFFSEW = 2,
     OFFSEW = 3,
-    OFFFLMUL = 3
+    OFFFLMUL = 3,
+    OFFLAMBDA = 28,
 } offsets_t;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -138,35 +140,54 @@ typedef enum BITS_EEW
     EEW_1024 = 0xf
 } bits_eew_t;
 
+///////////////////////////////////////////////////////////////////////////////////////
+///\brief Bit coding for LAMBDA
+typedef enum BITS_LAMBDA
+{
+    LAMBDA_NONE = 0x0,
+    LAMBDA_1 = 0x1,
+    LAMBDA_2 = 0x2,
+    LAMBDA_4 = 0x3,
+    LAMBDA_8 = 0x4,
+    LAMBDA_16 = 0x5,
+    LAMBDA_32 = 0x6,
+    LAMBDA_64 = 0x7
+} bits_lambda_t;
+
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Decode a VTYPE bitfield and store retrieved fields to Output parameter set
 /// \return If field valid 1, else -1 (e.g. reserved LMUL code)
-int8_t decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul);
+int8_t decode(uint32_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul, uint8_t *lambda);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Encode Input parameter set of bitfields to a VTYPE bitfield
 /// \return Encoded VTYPE bitfield
-uint16_t encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma);
+uint32_t encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma, uint8_t lambda);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Extract SEW bitfield from VTYPE bitfield
 /// \return Encoded SEW bitfield
-uint8_t extractSEW(uint16_t pVTYPE);
+uint8_t extractSEW(uint32_t pVTYPE);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Extract LMUL bitfield from VTYPE bitfield
 /// \return Encoded LMUL bitfield
-uint8_t extractLMUL(uint16_t pVTYPE);
+uint8_t extractLMUL(uint32_t pVTYPE);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Extract TA bitfield from VTYPE bitfield
 /// \return Encoded TA bitfield
-uint8_t extractTA(uint16_t pVTYPE);
+uint8_t extractTA(uint32_t pVTYPE);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Extract MA bitfield from VTYPE bitfield
 /// \return Encoded MA bitfield
-uint8_t extractMA(uint16_t pVTYPE);
+uint8_t extractMA(uint32_t pVTYPE);
+
+//////////////////////////////////////////////////////////////////////////////////////
+/// \brief Extract Lambda bitfield from VTYPE bitfield
+/// \return Encoded Lambda bitfield
+uint8_t extractLAMBDA(uint32_t pVTYPE);
 
 //////////////////////////////////////////////////////////////////////////////////////
 /// \brief Concatenate MEW and WIDTH to EEW and return number of bits for EEW
@@ -182,14 +203,15 @@ class VTYPE
     uint16_t _bitfield{};
     uint8_t _z_lmul{}, _n_lmul{}, _ta{}, _ma{};
     uint32_t _sew{};
+    uint8_t _lambda{};
     VTYPE(uint16_t _vtype_bitfield) : _bitfield(_vtype_bitfield)
     {
-        decode(_bitfield, &_ta, &_ma, &_sew, &_z_lmul, &_n_lmul);
+        decode(_bitfield, &_ta, &_ma, &_sew, &_z_lmul, &_n_lmul, &_lambda);
     }
-    VTYPE(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma)
-        : _z_lmul(z_lmul), _n_lmul(n_lmul), _ta(ta), _ma(ma), _sew(sew)
+    VTYPE(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma, uint8_t lambda)
+        : _z_lmul(z_lmul), _n_lmul(n_lmul), _ta(ta), _ma(ma), _sew(sew), _lambda(lambda)
     {
-        _bitfield = encode(_sew, _z_lmul, _n_lmul, _ta, _ma);
+        _bitfield = encode(_sew, _z_lmul, _n_lmul, _ta, _ma, _lambda);
     }
 };
 } // namespace VTYPE

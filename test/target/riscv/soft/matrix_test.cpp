@@ -350,9 +350,7 @@ bool load_store_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd, 
         printf("\n\n\n\n");
         print_matrix(C_from_RV_store, decoded_vtype.lambda, decoded_vtype.lmul, 1);
         std::exit(EXIT_FAILURE);
-    }
-    else
-    {
+    } else {
         std::printf("\t%sLOAD : Test success%s\n", GREEN, RESET);
     }
     zero_vectors(vector_field.data(), vector_field.size());
