@@ -131,6 +131,11 @@ IF(CMAKE_TESTING_ENABLED AND TEST_BUILD)
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 	)
 
+    ADD_TEST(NAME matrix_test
+        COMMAND ./matrix-test
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
+
 	# Add manual matrix test for now
 	ADD_EXECUTABLE(matrix-test test/target/${TARGET_PLATFORM_NAME}/${TARGET_NAME}/matrix_test.cpp)
 	TARGET_INCLUDE_DIRECTORIES(matrix-test PRIVATE

@@ -50,7 +50,7 @@ inline constexpr auto LAMBDA_64 = 0b111;
 template <typename T>
 inline constexpr auto sign_zero_extend(T value, bool is_signed) -> uint64_t
 {
-    static constexpr auto width = sizeof(T) * 8;
+    constexpr auto width = sizeof(T) * 8;
     static_assert(width <= 64);
     return static_cast<uint64_t>(((static_cast<int64_t>(value) << (64 - width)) >> (64 - width)) * is_signed) |
            (static_cast<uint64_t>(value) * !is_signed);

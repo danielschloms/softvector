@@ -471,7 +471,7 @@ class Cvadd_vv final : public VCase
     bool run(void)
     {
 
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vadd_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -502,7 +502,7 @@ class Cvadd_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vadd_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -533,7 +533,7 @@ class Cvadd_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -572,7 +572,7 @@ class Cvsub_vv final : public VCase
     bool run(void)
     {
 
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsub_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -603,7 +603,7 @@ class Cvsub_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -642,7 +642,7 @@ class Cvand_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vand_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -673,7 +673,7 @@ class Cvand_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vand_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -704,7 +704,7 @@ class Cvand_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -742,7 +742,7 @@ class Cvor_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vor_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -773,7 +773,7 @@ class Cvor_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vor_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -804,7 +804,7 @@ class Cvor_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -842,7 +842,7 @@ class Cvxor_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vxor_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -873,7 +873,7 @@ class Cvxor_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vxor_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -904,7 +904,7 @@ class Cvxor_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -942,7 +942,7 @@ class Cvsll_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsll_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -973,7 +973,7 @@ class Cvsll_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsll_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -1004,7 +1004,7 @@ class Cvsll_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1042,7 +1042,7 @@ class Cvsrl_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsrl_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1073,7 +1073,7 @@ class Cvsrl_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsrl_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -1104,7 +1104,7 @@ class Cvsrl_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1142,7 +1142,7 @@ class Cvsra_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsra_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1173,7 +1173,7 @@ class Cvsra_vi final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vsra_vi(_V, vtype, _vm, _vd, _vs2, _vimm, _vstart, _vlen, _vl);
@@ -1204,7 +1204,7 @@ class Cvsra_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1241,7 +1241,7 @@ class Cvload_encoded_unitstride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vload_encoded_unitstride(_V, _M, vtype, _vm, _eew, _vd, _vstart, _vlen, _vl, _mstart);
@@ -1271,7 +1271,7 @@ class Cvstore_encoded_unitstride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vstore_encoded_unitstride(_V, _M, vtype, _vm, _eew, _vd, _vstart, _vlen, _vl, _mstart);
@@ -1304,7 +1304,7 @@ class Cvload_encoded_stride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vload_encoded_stride(_V, _M, vtype, _vm, _eew, _vd, _vstart, _vlen, _vl, _mstart, _vstride);
@@ -1337,7 +1337,7 @@ class Cvstore_encoded_stride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vstore_encoded_stride(_V, _M, vtype, _vm, _eew, _vd, _vstart, _vlen, _vl, _mstart, _vstride);
@@ -1370,7 +1370,7 @@ class Cvload_segment_unitstride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vload_segment_unitstride(_V, _M, vtype, _vm, _eew, _vnf, _vd, _vstart, _vlen, _vl, _mstart);
@@ -1403,7 +1403,7 @@ class Cvstore_segment_unitstride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vstore_segment_unitstride(_V, _M, vtype, _vm, _eew, _vnf, _vd, _vstart, _vlen, _vl, _mstart);
@@ -1438,7 +1438,7 @@ class Cvload_segment_stride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vload_segment_stride(_V, _M, vtype, _vm, _eew, _vnf, _vd, _vstart, _vlen, _vl, _mstart, _vstride);
@@ -1473,7 +1473,7 @@ class Cvstore_segment_stride final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vstore_segment_stride(_V, _M, vtype, _vm, _eew, _vnf, _vd, _vstart, _vlen, _vl, _mstart, _vstride);
@@ -1504,7 +1504,7 @@ class Cvmul_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vmul_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1534,7 +1534,7 @@ class Cvmul_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1571,7 +1571,7 @@ class Cvmulh_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vmulh_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1601,7 +1601,7 @@ class Cvmulh_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1638,7 +1638,7 @@ class Cvmulhu_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vmulhu_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1668,7 +1668,7 @@ class Cvmulhu_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];
@@ -1706,7 +1706,7 @@ class Cvmulhsu_vv final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         auto ret = vmulhsu_vv(_V, vtype, _vm, _vd, _vs1, _vs2, _vstart, _vlen, _vl);
@@ -1737,7 +1737,7 @@ class Cvmulhsu_vx final : public VCase
 
     bool run(void)
     {
-        uint16_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0);
+        uint32_t vtype = VTYPE::encode(_sew, _Zlmul, _Nlmul, 0, 0, 0);
         rep_ISET();
 
         uint8_t *r = new uint8_t[_xlen / 8];

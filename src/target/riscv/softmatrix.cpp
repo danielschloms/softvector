@@ -20,6 +20,7 @@
 #include "softvector.h"
 #include "softfloat_types.h"
 #include "operations.hpp"
+#include "lsu/lsu.hpp"
 
 template <typename T>
 concept ValidFloatType = std::is_same_v<T, float16_t> or std::is_same_v<T, float32_t> or std::is_same_v<T, float64_t>;
@@ -57,7 +58,7 @@ inline constexpr MatrixVtype decode_matrix_vtype(uint32_t vtype)
 
 template <typename T>
     requires ValidVectorElementType<T>
-inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen, unsigned lambda,
+inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen, unsigned vl, unsigned lambda,
                             unsigned lmul, unsigned sew, unsigned widening, bool signed_A, bool signed_B)
 {
     // Accumulator is always signed
@@ -84,18 +85,20 @@ inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsig
     // vd marks the start of C
     auto *const C_elements = output_elements + (vd * elements_per_register);
 
-    // Rows & columns of C
+    // Rows of C
     // Dimensions of C, M = N,
     // = ((LMUL * VLEN) / (SEW / W)) / K_eff                | Move W to numerator
     // = ((LMUL * VLEN * W) / SEW) / K_eff                  | Replace K_eff with definition
     // = ((LMUL * VLEN * W) / SEW) / (Lambda * W * LMUL)    | Cross out LMUL & W
     // = (VLEN / SEW) / Lambda
-    auto const dim_C = elements_per_register / lambda;
+    auto const rows_C = elements_per_register / lambda;
+    // cols of C
+    auto const cols_C = vl / (lambda * lmul);
     // std::printf("E per R %u, dim C %u, lambda %u\n", elements_per_register, dim_C, lambda);
 
-    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    for (size_t row_C = 0; row_C < rows_C; ++row_C)
     {
-        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        for (size_t col_C = 0; col_C < cols_C; ++col_C)
         {
             int64_t accumulator = 0;
             // std::printf("C[%lu][%lu] =", row_C, col_C);
@@ -121,7 +124,7 @@ inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsig
             auto const vd_offset = (col_C / lambda) * elements_per_register;
             auto const vd_element = (row_C * lambda) + (col_C % lambda);
             // std::printf("= %lu @ v%lu[%lu] \n", accumulator, vd + (vd_offset / elements_per_register), vd_element);
-            // std::printf("%lu | ", accumulator);
+            //std::printf("%lu | ", accumulator);
             C_elements[vd_offset + vd_element] += accumulator;
         }
         // std::printf("\n\n");
@@ -131,7 +134,7 @@ inline constexpr void mmacc(T *vector_elements, unsigned vd, unsigned vs1, unsig
 template <typename T_I, typename T_O>
     requires ValidVectorElementType<T_I>
 inline constexpr void wmmacc(T_I *input_elements, T_O *output_elements, unsigned vd, unsigned vs1, unsigned vs2,
-                             unsigned vlen, unsigned lambda, unsigned lmul, unsigned sew, bool signed_A, bool signed_B)
+                             unsigned vlen, unsigned vl, unsigned lambda, unsigned lmul, unsigned sew, bool signed_A, bool signed_B)
 {
     constexpr auto widening = sizeof(T_O) / sizeof(T_I);
     static_assert(sizeof(T_O) >= sizeof(T_I), "Illegal narrowing");
@@ -150,12 +153,13 @@ inline constexpr void wmmacc(T_I *input_elements, T_O *output_elements, unsigned
     // vd marks the start of C
     auto *const C_elements = output_elements + (vd * elements_per_register);
 
-    // Rows & columns of C
-    auto const dim_C = elements_per_register / lambda;
+    // Rows of C
+    auto const rows_C = elements_per_register / lambda;
+    auto const cols_C = vl / (lambda * lmul);
 
-    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    for (size_t row_C = 0; row_C < rows_C; ++row_C)
     {
-        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        for (size_t col_C = 0; col_C < cols_C; ++col_C)
         {
             // std::printf("C[%lu][%lu] =", row_C, col_C);
             int64_t accumulator = 0;
@@ -184,16 +188,18 @@ inline constexpr void wmmacc(T_I *input_elements, T_O *output_elements, unsigned
 
 template <typename T>
     requires ValidFloatType<T>
-inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen,
+inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigned vs1, unsigned vs2, unsigned vlen, unsigned vl,
                                   unsigned lambda, unsigned lmul, unsigned sew, unsigned widening)
 {
     auto const elements_per_register = vlen / sew;
     auto const K_eff = lambda * widening * lmul;
-    auto const dim_C = elements_per_register / lambda;
+    auto const rows_C = elements_per_register / lambda;
+    auto const cols_C = vl / (lambda * lmul);
+    
 
-    for (size_t row_C = 0; row_C < dim_C; ++row_C)
+    for (size_t row_C = 0; row_C < rows_C; ++row_C)
     {
-        for (size_t col_C = 0; col_C < dim_C; ++col_C)
+        for (size_t col_C = 0; col_C < cols_C; ++col_C)
         {
             auto const vd_offset = (col_C / lambda) * elements_per_register;
             auto const vd_element = (row_C * lambda) + (col_C % lambda);
@@ -232,9 +238,10 @@ inline constexpr void mmacc_float(T *const vector_elements, unsigned vd, unsigne
     }
 }
 
+
 // Single width MMACC
 uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                  uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
+                  uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl)
 {
     auto const vtype_decoded = decode_matrix_vtype(vtype);
     // auto punner = PointerPunner(vector_field);
@@ -253,19 +260,19 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t co
     switch (sew)
     {
     case 8:
-        mmacc<uint8_t>(reinterpret_cast<uint8_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening,
+        mmacc<uint8_t>(reinterpret_cast<uint8_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew, widening,
                        !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 16:
-        mmacc<uint16_t>(reinterpret_cast<uint16_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening,
+        mmacc<uint16_t>(reinterpret_cast<uint16_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew, widening,
                         !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 32:
-        mmacc<uint32_t>(reinterpret_cast<uint32_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening,
+        mmacc<uint32_t>(reinterpret_cast<uint32_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew, widening,
                         !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 64:
-        mmacc<uint64_t>(reinterpret_cast<uint64_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew, widening,
+        mmacc<uint64_t>(reinterpret_cast<uint64_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew, widening,
                         !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     default:
@@ -278,7 +285,7 @@ uint8_t vmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t co
 
 // Double-widening MMACC
 uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
+                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl)
 {
     auto const vtype_decoded = decode_matrix_vtype(vtype);
     auto const sew = vtype_decoded.sew;
@@ -288,16 +295,16 @@ uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t c
     switch (sew)
     {
     case 16:
-        wmmacc(reinterpret_cast<uint8_t *>(vector_field), reinterpret_cast<int16_t *>(vector_field), vd, vs1, vs2, vlen,
+        wmmacc(reinterpret_cast<uint8_t *>(vector_field), reinterpret_cast<int16_t *>(vector_field), vd, vs1, vs2, vlen, vl,
                lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 32:
         wmmacc(reinterpret_cast<uint16_t *>(vector_field), reinterpret_cast<int32_t *>(vector_field), vd, vs1, vs2,
-               vlen, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
+               vlen, vl, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 64:
         wmmacc(reinterpret_cast<uint32_t *>(vector_field), reinterpret_cast<int64_t *>(vector_field), vd, vs1, vs2,
-               vlen, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
+               vlen, vl, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     default:
         // Illegal SEW
@@ -309,7 +316,7 @@ uint8_t vwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t c
 
 // Quad-widening MMACC
 uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                    uint16_t const vs2, uint16_t const vstart, uint32_t const vlen)
+                    uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl)
 {
     auto const vtype_decoded = decode_matrix_vtype(vtype);
     auto const sew = vtype_decoded.sew;
@@ -319,12 +326,12 @@ uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t 
     switch (sew)
     {
     case 32:
-        wmmacc(reinterpret_cast<uint8_t *>(vector_field), reinterpret_cast<int32_t *>(vector_field), vd, vs1, vs2, vlen,
+        wmmacc(reinterpret_cast<uint8_t *>(vector_field), reinterpret_cast<int32_t *>(vector_field), vd, vs1, vs2, vlen, vl,
                lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     case 64:
         wmmacc(reinterpret_cast<uint16_t *>(vector_field), reinterpret_cast<int64_t *>(vector_field), vd, vs1, vs2,
-               vlen, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
+               vlen, vl, lambda, lmul, sew, !vtype_decoded.altfmt_A, !vtype_decoded.altfmt_B);
         break;
     default:
         // Illegal SEW
@@ -335,7 +342,7 @@ uint8_t vqwmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t 
 }
 
 uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t const vd, uint16_t const vs1,
-                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint8_t const rounding_mode)
+                   uint16_t const vs2, uint16_t const vstart, uint32_t const vlen, uint32_t const vl, uint8_t const rounding_mode)
 {
     auto const vtype_decoded = decode_matrix_vtype(vtype);
     auto const sew = vtype_decoded.sew;
@@ -349,15 +356,15 @@ uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t c
     switch (sew)
     {
     case 16:
-        mmacc_float<float16_t>(reinterpret_cast<float16_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+        mmacc_float<float16_t>(reinterpret_cast<float16_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew,
                                widening);
         break;
     case 32:
-        mmacc_float<float32_t>(reinterpret_cast<float32_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+        mmacc_float<float32_t>(reinterpret_cast<float32_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew,
                                widening);
         break;
     case 64:
-        mmacc_float<float64_t>(reinterpret_cast<float64_t *>(vector_field), vd, vs1, vs2, vlen, lambda, lmul, sew,
+        mmacc_float<float64_t>(reinterpret_cast<float64_t *>(vector_field), vd, vs1, vs2, vlen, vl, lambda, lmul, sew,
                                widening);
         break;
     default:
@@ -365,4 +372,95 @@ uint8_t vfmmacc_vv(uint8_t *const vector_field, uint32_t const vtype, uint16_t c
     }
 
     return 0;
+}
+
+uint32_t tile_reg_idx(uint32_t i, uint32_t LMUL, uint8_t lambda, uint32_t elems_per_reg){
+    uint32_t linesize = lambda * LMUL;
+    uint32_t line = i / linesize;
+    uint32_t elem_in_line = i % linesize;
+    uint32_t regoff = elem_in_line / lambda;
+    uint32_t elementoff = line * lambda + elem_in_line % lambda;
+    return regoff * elems_per_reg + elementoff;
+}
+
+uint8_t vmtl_v(void *const vector_field, uint8_t *const memory, uint32_t const vtype, uint8_t pVm, uint16_t const vd, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl)
+{
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    auto const effective_lambda = Llambda == 0 ? vtype_decoded.lambda : 1U << ((Llambda & 0b111) - 1);
+    auto const linesize = vtype_decoded.lmul * effective_lambda;
+    
+    auto const effective_ld = ld == 0 ? linesize : ld;
+    auto const elems_per_reg = vlen / vtype_decoded.sew;
+    
+    if (effective_lambda == 0) return (1);
+    if (vl % linesize != 0) return (1);
+
+
+    uint8_t *VectorRegField;
+
+    VectorRegField = static_cast<uint8_t *>(vector_field);
+
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_readMem =
+        [memory, vtype_decoded, linesize, effective_ld](std::size_t addr, uint8_t *buff, std::size_t len)
+    {
+        const auto base_addr = (vtype_decoded.sew / 8) * ((addr / linesize) * effective_ld + addr % linesize);
+        for (std::size_t i = 0; i < len; ++i){
+            buff[i] = memory[base_addr + i];
+        }
+    };
+
+    std::function<size_t(size_t)> f_indexcalc = [vtype_decoded, effective_lambda, elems_per_reg](size_t index)
+    {
+        return tile_reg_idx(index, vtype_decoded.lmul, effective_lambda, elems_per_reg);
+    };
+
+    VLSU::load_eew_indexcalc(f_readMem, f_indexcalc, VectorRegField, vtype_decoded.lmul, 1, vtype_decoded.sew / 8, vl, vlen / 8, vd, 0, vstart, pVm, 1);
+
+    return (0);
+}
+
+uint8_t vmts_v(void *const vector_field, uint8_t *const memory, uint32_t const vtype, uint8_t pVm, uint16_t const vs, uint8_t const Llambda,
+                            uint32_t const ld, uint32_t vstart, uint32_t const vlen, uint32_t const vl)
+{
+    /* This implementations is slightly cursed. 
+    It used the VLSU ONLY for masking calculations. The
+    actual buffer that the vlsu provides is not used.
+    Instead, the lambda function directly accesses the memory from this scope.
+    This is done to avoid indexing nightmares of the buffer ptr of the vlsu.
+    There probably exists a better implementation, for example,
+    by not using the vlsu at all. However, then the masking
+    operations would be duplicated.*/
+    auto const vtype_decoded = decode_matrix_vtype(vtype);
+    auto const effective_lambda = Llambda == 0 ? vtype_decoded.lambda : 1U << ((Llambda & 0b111) - 1);
+    auto const linesize = vtype_decoded.lmul * effective_lambda;
+    
+    auto const effective_ld = ld == 0 ? linesize : ld;
+    auto const elems_per_reg = vlen / vtype_decoded.sew;
+    
+    if (effective_lambda == 0) return (1);
+    if (vl % linesize != 0) return (1);
+
+
+    uint8_t *VectorRegField;
+
+    VectorRegField = static_cast<uint8_t *>(vector_field);
+
+    std::function<void(std::size_t, uint8_t *, std::size_t)> f_writeMem =
+        [memory, vtype_decoded, linesize, effective_ld](std::size_t addr, uint8_t *buff, std::size_t len)
+    {
+        const auto base_addr = (vtype_decoded.sew / 8) * ((addr / linesize) * effective_ld + addr % linesize);
+        for (std::size_t i = 0; i < len; ++i){
+            memory[base_addr + i] = buff[i];
+        }
+    };
+
+    std::function<size_t(size_t)> f_indexcalc = [vtype_decoded, effective_lambda, elems_per_reg](size_t index)
+    {
+        return tile_reg_idx(index, vtype_decoded.lmul, effective_lambda, elems_per_reg);
+    };
+
+    VLSU::store_eew_indexcalc(f_writeMem, f_indexcalc, VectorRegField, vtype_decoded.lmul, 1, vtype_decoded.sew / 8, vl, vlen / 8, vs, 0, vstart, pVm, 1);
+
+    return (0);
 }

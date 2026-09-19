@@ -3918,14 +3918,14 @@ inline constexpr void dispatch_iterate_v_unary(void *const vector_field, uint16_
     }
 }
 
-int8_t vtype_decode(uint16_t const vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul)
+int8_t vtype_decode(uint32_t const vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul, uint8_t *lambda)
 {
-    return (VTYPE::decode(vtype, ta, ma, sew, z_lmul, n_lmul));
+    return (VTYPE::decode(vtype, ta, ma, sew, z_lmul, n_lmul, lambda));
 }
 
-uint16_t vtype_encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma)
+uint32_t vtype_encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma, uint8_t lambda)
 {
-    return VTYPE::encode(sew, z_lmul, n_lmul, ta, ma);
+    return VTYPE::encode(sew, z_lmul, n_lmul, ta, ma, lambda);
 }
 
 uint8_t vtype_extractSEW(uint16_t const vtype)
