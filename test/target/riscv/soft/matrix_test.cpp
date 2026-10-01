@@ -2,11 +2,8 @@
 #include "matrix_helpers.hpp"
 
 #include <array>
-#include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <type_traits>
 #include <vector>
 
@@ -61,6 +58,8 @@ static constexpr auto n_vector_registers = 32;
 static constexpr auto vector_field_bytes = max_vlen_bytes * n_vector_registers;
 
 alignas(64) auto vector_field = std::array<uint8_t, vector_field_bytes>{ 0 };
+unsigned n_failed = 0;
+unsigned n_tests = 0;
 
 template <typename T>
     requires std::is_integral_v<T>
@@ -76,7 +75,7 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
         std::printf("Illegal MUL_C\n");
         return false;
     }
-
+    n_tests++;
     using ResultType = std::make_signed_t<T>;
 
     std::vector<T> A;
@@ -112,19 +111,8 @@ bool seq_increase_test(unsigned sew, unsigned lmul, unsigned lambda, unsigned vd
     auto is_ok = is_equal(C, C_from_RV);
     if (!is_ok)
     {
-        std::printf("Result not equal to golden result!\n");
-        // std::printf("A\n");
-        // print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, 1);
-        // std::printf("ARV\n");
-        // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, 1, decoded_vtype.lmul, false);
-        // std::printf("B\n");
-        // print_matrix(B, decoded_vtype.lambda, decoded_vtype.lmul, 1);
-        // std::printf("C\n");
-        // print_matrix(C, decoded_vtype.lambda, mul_C, 1);
-        // std::printf("C from RV\n");
-        // print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
-        // std::printf("RV\n");
-        // print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vd, 1, mul_C, false);
+        std::printf("SINGLE WIDTH: Result not equal to golden result!\n");
+        n_failed++;
     }
     else
     {
@@ -149,6 +137,7 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
         std::printf("Illegal MUL_C\n");
         return false;
     }
+    n_tests++;
     auto const lambda_val = 1U << (lambda - 1);
     // std::printf("QUAD: SEW: %u, LMUL: %u, LAMBDA: %u, VLEN: %u\n", 8u << sew, 1U << lmul, lambda_val, vlen);
 
@@ -190,25 +179,7 @@ bool seq_increase_test_double(unsigned sew, unsigned lmul, unsigned lambda, unsi
     if (!is_ok)
     {
         std::printf("DOUBLE: Result not equal to golden result!\n");
-
-        std::printf("A\n");
-        print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, widening);
-        std::printf("ARV\n");
-        print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, widening, decoded_vtype.lmul, false);
-        std::printf("B\n");
-        print_matrix(B, decoded_vtype.lambda, decoded_vtype.lmul, widening);
-        std::printf("C\n");
-        print_matrix(C, decoded_vtype.lambda, mul_C, 1);
-        std::printf("C from RV\n");
-        print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
-        std::printf("RV\n");
-        print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, mul_C,
-                        false);
-        // for (int i = 0; i < 16; i++)
-        // {
-        //     std::printf("%i\n", reinterpret_cast<ResultType *>(vector_field.data())[16 * 4 + i]);
-        // }
-        std::exit(EXIT_FAILURE);
+        n_failed++;
     }
     else
     {
@@ -233,6 +204,7 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
         std::printf("Illegal MUL_C\n");
         return false;
     }
+    n_tests++;
     auto const lambda_val = 1U << (lambda - 1);
     // std::printf("QUAD: SEW: %u, LMUL: %u, LAMBDA: %u, VLEN: %u\n", 8u << sew, 1U << lmul, lambda_val, vlen);
 
@@ -274,25 +246,7 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
     if (!is_ok)
     {
         std::printf("QUAD: Result not equal to golden result!\n");
-
-        std::printf("A\n");
-        print_matrix(A, decoded_vtype.lambda, decoded_vtype.lmul, widening);
-        std::printf("ARV\n");
-        print_rv_matrix(vector_field.data(), decoded_vtype.lambda, vlen, vs1, widening, decoded_vtype.lmul, false);
-        std::printf("B\n");
-        print_matrix(B, decoded_vtype.lambda, decoded_vtype.lmul, widening);
-        std::printf("C\n");
-        print_matrix(C, decoded_vtype.lambda, mul_C, 1);
-        std::printf("C from RV\n");
-        print_matrix(C_from_RV, decoded_vtype.lambda, mul_C, 1);
-        std::printf("RV\n");
-        print_rv_matrix(reinterpret_cast<ResultType *>(vector_field.data()), decoded_vtype.lambda, vlen, vd, 1, mul_C,
-                        false);
-        // for (int i = 0; i < 16; i++)
-        // {
-        //     std::printf("%i\n", reinterpret_cast<ResultType *>(vector_field.data())[16 * 4 + i]);
-        // }
-        std::exit(EXIT_FAILURE);
+        n_failed++;
     }
     else
     {
@@ -301,12 +255,6 @@ bool seq_increase_test_quad(unsigned sew, unsigned lmul, unsigned lambda, unsign
     zero_vectors(vector_field.data(), vector_field.size());
     return is_ok;
 }
-
-struct Signs
-{
-    bool signed_A = false;
-    bool signed_B = false;
-};
 
 int main()
 {
@@ -370,4 +318,7 @@ int main()
         }
         vlen <<= 1;
     }
+
+    std::printf("");
+    return n_failed;
 }

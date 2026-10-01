@@ -50,7 +50,7 @@ inline constexpr auto LAMBDA_64 = 0b111;
 template <typename T>
 inline constexpr auto sign_zero_extend(T value, bool is_signed) -> uint64_t
 {
-    static constexpr auto width = sizeof(T) * 8;
+    constexpr auto width = sizeof(T) * 8;
     static_assert(width <= 64);
     return static_cast<uint64_t>(((static_cast<int64_t>(value) << (64 - width)) >> (64 - width)) * is_signed) |
            (static_cast<uint64_t>(value) * !is_signed);
@@ -173,13 +173,13 @@ void print_rv_matrix(T *const vector_elements, unsigned const lambda, unsigned c
     auto const v_base = v_register * elements_per_register;
     auto const row_elems_per_register = lambda * widening;
 
-    std::printf("SEW %u EpR %u Total %u RElmspR %u\n", sew, elements_per_register, total_elements,
-                row_elems_per_register);
+    // std::printf("SEW %u EpR %u Total %u RElmspR %u\n", sew, elements_per_register, total_elements,
+    //             row_elems_per_register);
     std::printf("v%u: ", v_register);
 
     auto const cols = lmul * row_elems_per_register;
     auto const rows = total_elements / cols;
-    std::printf("%u cols, %lu rows\n", cols, rows);
+    // std::printf("%u cols, %lu rows\n", cols, rows);
     for (size_t row = 0; row < rows; ++row)
     {
         for (size_t col = 0; col < cols; ++col)
