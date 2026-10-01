@@ -51,7 +51,7 @@
 
 #include "softfloat.h"
 
-/* --- Private enums --- */
+/* --- Private structs & enums --- */
 
 enum class SignType
 {
@@ -245,17 +245,6 @@ struct ExtTypes<64, SignType::Unsigned, 8>
     using dest_type = uint64_t;
 };
 
-/* --- Private globals --- */
-
-constexpr auto sew_8 = 8;
-constexpr auto sew_16 = 16;
-constexpr auto sew_32 = 32;
-constexpr auto sew_64 = 64;
-
-// Questionable
-auto g_fp_rounding_mode = FPRoundingMode::rnu;
-
-// For testing purposes
 union PointerPunner
 {
     void *const field;
@@ -308,6 +297,15 @@ union PointerPunner
         }
     }
 };
+
+/* --- Private globals --- */
+
+constexpr auto sew_8 = 8;
+constexpr auto sew_16 = 16;
+constexpr auto sew_32 = 32;
+constexpr auto sew_64 = 64;
+
+auto g_fp_rounding_mode = FPRoundingMode::rnu;
 
 /* --- Private function declarations --- */
 
