@@ -50,10 +50,24 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include "softfloat_types.h"
 
-#if defined(__cplusplus) && !defined(__APPLE__)
-# define THREAD_LOCAL thread_local
+/*
+ * SoftVector note: SoftFloat's rounding mode / exception state are declared
+ * thread-local by upstream. In a shared library that reaches into dynamically
+ * loaded TLS state this generates a call to __tls_get_addr() on *every* FP
+ * element operation, which is one of the hottest costs in FP-heavy workloads.
+ * A vector simulator typically executes a single CPU thread per VPU, so we make
+ * the state a plain global by default (much faster). Define
+ * SOFTVECTOR_THREAD_LOCAL to reinstate the thread-local behaviour when a
+ * genuinely multi-threaded host is needed.
+ */
+#if defined(SOFTVECTOR_THREAD_LOCAL)
+# if defined(__cplusplus) && !defined(__APPLE__)
+#  define THREAD_LOCAL thread_local
+# else
+#  define THREAD_LOCAL _Thread_local
+# endif
 #else
-# define THREAD_LOCAL _Thread_local
+# define THREAD_LOCAL
 #endif
 
 #ifdef __cplusplus
