@@ -197,6 +197,37 @@ static constexpr uint8_t VS2_F = 6;
             return bench(#NAME "_sew64", f, g_field, g_field_bytes, vl); } });        \
     } while (0)
 
+// Number of bytes the packed 1-bit-per-lane mask occupies in register 0.
+static uint32_t mask_bytes(uint32_t vlen_bits, unsigned sew_bits)
+{
+    return (vlen_bits / sew_bits) / 8;
+}
+
+// Pack a per-lane mask into reg 0 (the flat bit array the simulator reads from
+// offset 0). `sparse` -> only lane 0 of group 0 active (everything else off);
+// otherwise every lane active.
+static void set_mask(uint32_t vlen_bits, unsigned sew_bits, bool sparse)
+{
+    uint32_t const n = mask_bytes(vlen_bits, sew_bits);
+    for (uint32_t i = 0; i < n; ++i) g_field[i] = (sparse ? (i == 0 ? 0x01 : 0x00) : 0xFF);
+}
+
+// Register a masked VV integer op with a controlled mask so the word-level mask
+// fast path is exercised: all-inactive words are skipped, all-active words run as
+// a straight-line (auto-vectorisable) body.
+#define DEF_INT_VV_MASKED_PATTERN(NAME, CALL, BITS, SPARSE)                              \
+    do                                                                                    \
+    {                                                                                     \
+        static constexpr const char *tag = SPARSE ? "_masked_sparse" : "_masked_dense";  \
+        uint16_t vt = vtype_for_sew(BITS == 8 ? 0 : (BITS == 16 ? 1 : (BITS == 32 ? 2 : 3))); \
+        g_cases.push_back({std::string(#NAME) + "_sew" #BITS + tag, [=]() -> Result {      \
+            const uint32_t vl = BITS == 8 ? g_vl_8 : (BITS == 16 ? g_vl_16 : (BITS == 32 ? g_vl_32 : g_vl_64)); \
+            set_mask(g_vlen, BITS, false);                                               \
+            if (SPARSE) set_mask(g_vlen, BITS, true);                                    \
+            auto f = [&]() { CALL(g_field, vt, 0, VD, VS1, VS2, 0, g_vlen, vl); };       \
+            return bench(std::string(#NAME) + "_sew" #BITS + tag, f, g_field, g_field_bytes, vl); } }); \
+    } while (0)
+
 static void register_cases()
 {
     DEF_INT_VV(vadd_vv, vadd_vv);
@@ -211,6 +242,32 @@ static void register_cases()
     DEF_INT_VV(vsll_vv, vsll_vv);
     DEF_INT_VV(vredsum_vs, vredsum_vs);
     DEF_INT_VV_MASKED(vxor_vv, vxor_vv);
+    // Controlled-mask cases exercise the word-level mask fast path.
+    DEF_INT_VV_MASKED_PATTERN(vxor_vv, vxor_vv, 8, 0);
+    DEF_INT_VV_MASKED_PATTERN(vxor_vv, vxor_vv, 8, 1);
+    DEF_INT_VV_MASKED_PATTERN(vxor_vv, vxor_vv, 32, 0);
+    DEF_INT_VV_MASKED_PATTERN(vxor_vv, vxor_vv, 32, 1);
+
+    // --- Widening (vwadd_vv) and saturating (vsadd_vv) masked vs unmasked to
+    //     demonstrate word-level masking applied to those iterate paths. -------
+    {
+        uint16_t vt8 = vtype_for_sew(0);
+        uint32_t wvl = g_vl_8 / 2; // wide result holds half as many elements
+        g_cases.push_back({"vwadd_vv_sew8", [=]() {
+            auto f = [&]() { vwadd_vv(g_field, vt8, 1, VD, VS1, VS2, 0, g_vlen, wvl); };
+            return bench("vwadd_vv_sew8", f, g_field, g_field_bytes, wvl); }});
+        g_cases.push_back({"vwadd_vv_sew8_masked_dense", [=]() {
+            set_mask(g_vlen, 8, false);
+            auto f = [&]() { vwadd_vv(g_field, vt8, 0, VD, VS1, VS2, 0, g_vlen, wvl); };
+            return bench("vwadd_vv_sew8_masked_dense", f, g_field, g_field_bytes, wvl); }});
+        g_cases.push_back({"vsadd_vv_sew8", [=]() {
+            auto f = [&]() { vsadd_vv(g_field, vt8, 1, VD, VS1, VS2, 0, g_vlen, g_vl_8); };
+            return bench("vsadd_vv_sew8", f, g_field, g_field_bytes, g_vl_8); }});
+        g_cases.push_back({"vsadd_vv_sew8_masked_dense", [=]() {
+            set_mask(g_vlen, 8, false);
+            auto f = [&]() { vsadd_vv(g_field, vt8, 0, VD, VS1, VS2, 0, g_vlen, g_vl_8); };
+            return bench("vsadd_vv_sew8_masked_dense", f, g_field, g_field_bytes, g_vl_8); }});
+    }
 
     // Float single-width VV (rounding mode 0 = rnu)
     DEF_FLOAT_VV(vfadd_vv, vfadd_vv);

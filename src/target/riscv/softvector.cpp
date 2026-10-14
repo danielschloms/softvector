@@ -2468,6 +2468,64 @@ inline constexpr auto is_masked_instruction(bool const instruction_mask_bit) -> 
     return !instruction_mask_bit;
 }
 
+// ---------------------------------------------------------------------------
+// Word-level masked iteration
+//
+// RVV masks are stored as a flat bit array over the vector register file: the
+// mask bit for element `i` lives at `vector_elements[i / sew]` bit `i % sew`.
+// Because the element type width equals `Sew`, a whole mask word of `Sew` lanes
+// is exactly one element `vector_elements[g]`. We exploit this to process a
+// group of `Sew` lanes at once:
+//   * word == 0        -> every lane is inactive, skip the whole group (free),
+//   * word == all ones -> every lane is active, run the body in a straight-line
+//                         (branch-free, auto-vectorisable) inner loop,
+//   * otherwise        -> per-lane fallback (identical to the old behaviour).
+//
+// `Grouped` is true only for masked (non-"mask-as-data") instructions, where an
+// inactive lane must be left untouched. Mask-as-data and unmasked instructions
+// use `Grouped == false` and simply run the body once per lane.
+template <typename Elm, unsigned Sew, bool Grouped, typename Cb>
+inline constexpr void mask_foreach(Elm const *const vf, std::size_t const lo, std::size_t const hi, Cb &&cb)
+{
+    if constexpr (!Grouped)
+    {
+        for (std::size_t i = lo; i < hi; ++i) cb(i);
+        return;
+    }
+
+    if (hi <= lo) return;
+    using U = std::make_unsigned_t<Elm>;
+    constexpr U full = static_cast<U>(~static_cast<U>(0));
+    std::size_t const g_first = lo / Sew;
+    std::size_t const g_last  = (hi - 1) / Sew;
+
+    // Tier 1: a fully-active mask (the ideal dense case) degrades cleanly to the
+    // flat unmasked loop, so the compiler auto-vectorises it exactly as well.
+    {
+        bool all = true;
+        for (std::size_t g = g_first; g <= g_last; ++g)
+            if (static_cast<U>(vf[g]) != full) { all = false; break; }
+        if (all)
+        {
+            for (std::size_t i = lo; i < hi; ++i) cb(i);
+            return;
+        }
+    }
+
+    // Tier 2: skip all-zero words wholesale; otherwise run the body for every
+    // active lane. Mixed words fall back to the per-lane behaviour.
+    for (std::size_t g = g_first; g <= g_last; ++g)
+    {
+        U const w = static_cast<U>(vf[g]);
+        if (w == 0) continue;
+        std::size_t const g0 = g * Sew;
+        std::size_t const b0 = g0 < lo ? lo : g0;
+        std::size_t const b1 = (g0 + Sew) < hi ? (g0 + Sew) : hi;
+        for (std::size_t i = b0; i < b1; ++i)
+            if (static_cast<bool>((w >> (i - g0)) & 1)) cb(i);
+    }
+}
+
 // Iterator definitions
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2483,16 +2541,8 @@ inline constexpr void reduce_iterate(void *const vector_field, uint16_t const vs
         return;
     }
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked);
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2506,7 +2556,7 @@ inline constexpr void reduce_iterate(void *const vector_field, uint16_t const vs
         {
             static_assert(false, "Invalid operation for reduce");
         }
-    }
+    });
     vector_elements[vd_base] = reduction_accumulator;
 }
 
@@ -2525,16 +2575,8 @@ inline constexpr void widening_reduce_iterate(void *const vector_field, uint16_t
         return;
     }
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked);
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2548,7 +2590,7 @@ inline constexpr void widening_reduce_iterate(void *const vector_field, uint16_t
         {
             static_assert(false, "Invalid operation for widening reduce");
         }
-    }
+    });
     wide_elements[vd_base] = reduction_accumulator;
 }
 
@@ -2559,19 +2601,9 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
 {
     constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-
-        // Only mask elements if mask is not data
-        if constexpr (Mask == MaskType::Masked && !MaskDataOp<OpType>)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2671,7 +2703,7 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
         {
             static_assert(false, "Invalid operation for vv");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2684,16 +2716,8 @@ inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t con
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2722,7 +2746,7 @@ inline constexpr void widening_vv_iterate(void *const vector_field, uint16_t con
         {
             static_assert(false, "Invalid operation for widening vv");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2735,16 +2759,8 @@ inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t con
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2759,7 +2775,7 @@ inline constexpr void widening_wv_iterate(void *const vector_field, uint16_t con
         {
             static_assert(false, "Invalid operation for widening wx (or not implemented)");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2772,16 +2788,9 @@ inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t co
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
+
         if constexpr (std::is_same_v<OpType, ValueResultOpSewData>)
         {
             // Narrowing Shifts need 2*SEW (to mask of log2(2*SEW) bits of the shift amount)
@@ -2792,7 +2801,7 @@ inline constexpr void narrowing_wv_iterate(void *const vector_field, uint16_t co
         {
             static_assert(false, "Invalid operation for narrowing wv (or not implemented)");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2805,16 +2814,9 @@ inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t c
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
+
         if constexpr (std::is_same_v<OpType, ValueResultOpSewData>)
         {
             // Narrowing Shifts need 2*SEW (to mask of log2(2*SEW) bits of the shift amount)
@@ -2824,7 +2826,7 @@ inline constexpr void narrowing_wxi_iterate(void *const vector_field, uint16_t c
         {
             static_assert(false, "Invalid operation for narrowing wxi (or not implemented)");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2834,17 +2836,9 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
 {
     constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked && !MaskDataOp<OpType>)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2938,7 +2932,7 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
         {
             static_assert(false, "Invalid operation for vxi (or not implemented)");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2951,16 +2945,8 @@ inline constexpr void widening_vx_iterate(void *const vector_field, uint16_t con
     using WideElementType = TypeWidener<VectorElementType>::wide_type;
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -2983,7 +2969,7 @@ inline constexpr void widening_vx_iterate(void *const vector_field, uint16_t con
         {
             static_assert(false, "Invalid operation for widening vx");
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -2995,16 +2981,8 @@ inline constexpr void widening_wx_iterate(void *const vector_field, uint16_t con
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
     constexpr auto wide_sew = sizeof(WideElementType) * 8;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((wide_elements[i / (wide_sew)] >> (i % wide_sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked);
+    mask_foreach<WideElementType, wide_sew, grouped>(wide_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, ValueResultOp>)
         {
@@ -3019,7 +2997,7 @@ inline constexpr void widening_wx_iterate(void *const vector_field, uint16_t con
         {
             static_assert(false, "Invalid operation for widening wx");
         }
-    }
+    });
 }
 
 template <typename SourceType, typename DestType, MaskType Masked>
@@ -3030,18 +3008,10 @@ inline constexpr void vext_iterate(void *const vector_field, uint16_t const vsta
     auto *const source_elements = static_cast<SourceType *>(vector_field);
     auto *const dest_elements = static_cast<DestType *>(vector_field);
     constexpr auto sew = sizeof(DestType) << 3;
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Masked == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((dest_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Masked == MaskType::Masked);
+    mask_foreach<DestType, sew, grouped>(dest_elements, vstart, vl, [&](size_t i) {
         dest_elements[vd_base + i] = static_cast<DestType>(source_elements[vs2_base + i]);
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -3052,16 +3022,8 @@ inline constexpr void unary_iterate(void *const vector_field, uint16_t const vst
     constexpr auto sew = sizeof(VectorElementType) * 8;
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, UnaryOpSewData>)
         {
@@ -3071,7 +3033,7 @@ inline constexpr void unary_iterate(void *const vector_field, uint16_t const vst
         {
             static_assert(false, "Invalid operation for unary");
         }
-    }
+    });
 }
 
 template <SxfType Sxf, MaskType Mask>
@@ -3087,16 +3049,8 @@ inline constexpr void sxf_iterate(void *const vector_field, unsigned const vd, u
     Bit write_bit = !(Sxf == SxfType::Sof);
     [[maybe_unused]] Bit first_found = false;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const mask_element_bit = (vector_elements[i / element_width] >> (i % element_width)) & 1;
-            if (is_masked_element(mask_element_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked);
+    mask_foreach<uint8_t, element_width, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         auto const read_bit =
             static_cast<Bit>((vector_elements[vs2_base + (i / element_width)] >> (i % element_width)) & 1);
@@ -3123,7 +3077,7 @@ inline constexpr void sxf_iterate(void *const vector_field, unsigned const vd, u
         {
             first_found |= read_bit;
         }
-    }
+    });
 }
 
 template <typename VectorElementType, MaskType Mask, auto Op, typename OpType>
@@ -3135,16 +3089,8 @@ inline constexpr bool sat_vv_iterate(void *const vector_field, uint16_t const vs
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     auto sat = false;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, SatResultOp>)
         {
@@ -3169,7 +3115,7 @@ inline constexpr bool sat_vv_iterate(void *const vector_field, uint16_t const vs
         {
             static_assert(false, "Invalid operation for sat vv (or not implemented)");
         }
-    }
+    });
     return sat;
 }
 
@@ -3184,16 +3130,8 @@ inline constexpr bool narrowing_sat_wv_iterate(void *const vector_field, uint16_
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
     auto sat = false;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, AveragingSatResultOp>)
         {
@@ -3207,7 +3145,7 @@ inline constexpr bool narrowing_sat_wv_iterate(void *const vector_field, uint16_
         {
             static_assert(false, "Invalid operation for narrowing sat vv (or not implemented)");
         }
-    }
+    });
     return sat;
 }
 
@@ -3220,16 +3158,8 @@ inline constexpr bool sat_vxi_iterate(void *const vector_field, uint16_t const v
     auto *const vector_elements = static_cast<VectorElementType *>(vector_field);
     auto sat = false;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, SatResultOp>)
         {
@@ -3253,7 +3183,7 @@ inline constexpr bool sat_vxi_iterate(void *const vector_field, uint16_t const v
         {
             static_assert(false, "Invalid operation for sat vv (or not implemented)");
         }
-    }
+    });
     return sat;
 }
 
@@ -3268,16 +3198,8 @@ inline constexpr bool narrowing_sat_wxi_iterate(void *const vector_field, uint16
     auto *const wide_elements = static_cast<WideElementType *>(vector_field);
     auto sat = false;
 
-    for (size_t i = vstart; i < vl; ++i)
-    {
-        if constexpr (Mask == MaskType::Masked)
-        {
-            auto const element_mask_bit = static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
-            if (is_masked_element(element_mask_bit))
-            {
-                continue;
-            }
-        }
+    constexpr bool grouped = (Mask == MaskType::Masked) && !MaskDataOp<OpType>;
+    mask_foreach<VectorElementType, sew, grouped>(vector_elements, vstart, vl, [&](size_t i) {
 
         if constexpr (std::is_same_v<OpType, AveragingSatResultOp>)
         {
@@ -3291,7 +3213,7 @@ inline constexpr bool narrowing_sat_wxi_iterate(void *const vector_field, uint16
         {
             static_assert(false, "Invalid operation for narrowing sat vxi (or not implemented)");
         }
-    }
+    });
     return sat;
 }
 

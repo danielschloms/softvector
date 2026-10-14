@@ -96,3 +96,41 @@ no indirect calls.
 
 All 46 golden unit tests pass after the refactor (0 failures), and checksums are
 bit-identical across runs, confirming the optimization is semantics-neutral.
+
+## Results: word-level masked-lane skipping
+
+The RVV mask is stored as a flat bit array in the vector register file: the mask bit
+for element `i` is `vector_elements[i/sew] >> (i%sew)`. Because an element is exactly
+`Sew` bits wide, one element `vector_elements[g]` is precisely one mask word of `Sew`
+lanes. A `mask_foreach<Elm, Sew, Grouped>` helper exploits that:
+
+- a mask word of all **zeros** -> the whole group is inactive, so it is skipped free;
+- a mask word of all **ones** (a fully-active group) -> it degrades to the flat
+  unmasked loop, so the body auto-vectorises;
+- a **mixed** word -> the original per-lane fallback (bit-identical).
+
+The helper is used by every templated element-wise kernel
+(`vv/vxi/reduce/widening/narrowing/sat/unary/vext/sxf_iterate`) with the SEW and
+element view that each loop already uses to read the mask. Mask-as-data ops and
+unmasked loops are unaffected (`Grouped == false`).
+
+Measured at `--vlen 1024 --reps 1000000`:
+
+| case                        | unmasked | masked (dense/all-ones) | masked (mixed) |
+|-----------------------------|----------|-------------------------|----------------|
+| `vxor_vv_sew32`             | 5.6 ns   | 5.8 ns  (1.03x)          | 13.5 ns        |
+| `vxor_vv_sew8`              | 5.6 ns   | 8.4 ns  (1.50x)          | —              |
+| `vwadd_vv_sew8`             | 6.8 ns   | 7.8 ns  (1.14x)          | —              |
+| `vsadd_vv_sew8`             | 459 ns   | 458 ns  (1.00x)          | —              |
+
+The wins: an all-ones mask now costs ~the same as the unmasked instruction (mask
+penalty eliminated), and all-zeros/sparse masks skip whole words. A **mixed**
+(arbitrary predicate) mask is inherently per-element and is not improved. At the
+smaller `--vlen 128` register size the per-lane path is dominated by the fixed
+issue cost, and dense masks track the unmasked number directly (e.g.
+`vxor_vv_sew8` 3.97 ns unmasked vs 4.45 ns dense-masked).
+
+Correctness: the existing 62 benchmark cases produce bit-identical checksums to the
+pre-word-mask baseline, and a dedicated harness confirms `dense-masked == unmasked`
+(for `vxor_vv`, `vwadd_vv`, `vsadd_vv`) and `sparse-masked == per-lane reference`.
+
