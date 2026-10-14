@@ -120,15 +120,21 @@ Measured at `--vlen 1024 --reps 1000000`:
 |-----------------------------|----------|-------------------------|----------------|
 | `vxor_vv_sew32`             | 5.6 ns   | 5.8 ns  (1.03x)          | 13.5 ns        |
 | `vxor_vv_sew8`              | 5.6 ns   | 8.4 ns  (1.50x)          | —              |
-| `vwadd_vv_sew8`             | 6.8 ns   | 7.8 ns  (1.14x)          | —              |
-| `vsadd_vv_sew8`             | 459 ns   | 458 ns  (1.00x)          | —              |
+| `vwadd_vv_sew8`             | 6.8 ns   | 8.1 ns  (1.20x)          | —              |
+| `vsadd_vv_sew8`             | 458 ns   | 457 ns  (1.00x)          | —              |
 
 The wins: an all-ones mask now costs ~the same as the unmasked instruction (mask
-penalty eliminated), and all-zeros/sparse masks skip whole words. A **mixed**
+penalty eliminated — note the saturating `vsadd_vv` is fully free because it is
+compute-bound), and all-zeros/sparse masks skip whole words. A **mixed**
 (arbitrary predicate) mask is inherently per-element and is not improved. At the
 smaller `--vlen 128` register size the per-lane path is dominated by the fixed
 issue cost, and dense masks track the unmasked number directly (e.g.
 `vxor_vv_sew8` 3.97 ns unmasked vs 4.45 ns dense-masked).
+
+The same word-skipping applies to the widening, narrowing and saturating iterate
+paths too; a dedicated harness confirms their all-ones mask is behaviourally
+identical to the unmasked instruction (`vwadd_vv_sew8` and `vsadd_vv_sew8` dense
+`==` unmasked).
 
 Correctness: the existing 62 benchmark cases produce bit-identical checksums to the
 pre-word-mask baseline, and a dedicated harness confirms `dense-masked == unmasked`

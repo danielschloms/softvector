@@ -2468,6 +2468,21 @@ inline constexpr auto is_masked_instruction(bool const instruction_mask_bit) -> 
     return !instruction_mask_bit;
 }
 
+// Merge `bit` into the SEW-wide mask word `dest[word_index]` at bit-position
+// `bit_pos`, leaving every other bit of that word untouched. `bit` is shifted into
+// place first, so a zero clears the target bit and a one sets it. Used by the
+// mask-producing ("bit result") instructions to store a per-lane 0/1 result into
+// the destination mask register.
+template <typename Elm>
+inline constexpr void store_element_bit(Elm *const dest, unsigned const word_index, unsigned const bit_pos,
+                                        unsigned const bit)
+{
+    using U = std::make_unsigned_t<Elm>;
+    U const clear = static_cast<U>(U{1} << bit_pos);
+    dest[word_index] = static_cast<Elm>((static_cast<U>(dest[word_index]) & static_cast<U>(~clear)) |
+                                        (static_cast<U>(bit) << bit_pos));
+}
+
 // ---------------------------------------------------------------------------
 // Word-level masked iteration
 //
@@ -2633,23 +2648,13 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
         }
         else if constexpr (std::is_same_v<OpType, BitResultOp>)
         {
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i]) << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i]));
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewData>)
         {
-            // Compute result
-            auto const result =
-                Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew))
-                << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew)));
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewMaskData>)
         {
@@ -2657,14 +2662,9 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i],
-                                   static_cast<SewType>(sew), mask_data_bit)
-                                << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], vector_elements[vs1_base + i], static_cast<SewType>(sew),
+                                 mask_data_bit));
         }
         else if constexpr (std::is_same_v<OpType, AccumulatorOp>)
         {
@@ -2684,10 +2684,7 @@ inline constexpr void vv_iterate(void *const vector_field, uint16_t const vstart
         {
             Bit const lhs = static_cast<Bit>((vector_elements[vs2_base + (i / sew)] >> (i % sew)) & 1);
             Bit const rhs = static_cast<Bit>((vector_elements[vs1_base + (i / sew)] >> (i % sew)) & 1);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= Op(lhs, rhs) << (i % sew);
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew, Op(lhs, rhs));
         }
         else if constexpr (std::is_same_v<OpType, AveragingOp>)
         {
@@ -2863,21 +2860,12 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
         }
         else if constexpr (std::is_same_v<OpType, BitResultOp>)
         {
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], scalar) << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew, Op(vector_elements[vs2_base + i], scalar));
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewData>)
         {
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew)) << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew)));
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpMaskData>)
         {
@@ -2885,12 +2873,8 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], scalar, mask_data_bit) << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], scalar, mask_data_bit));
         }
         else if constexpr (std::is_same_v<OpType, BitResultOpSewMaskData>)
         {
@@ -2898,13 +2882,8 @@ inline constexpr void vxi_iterate(void *const vector_field, uint16_t const vstar
             auto const mask_data_bit =
                 (Mask == MaskType::Masked) && static_cast<bool>((vector_elements[i / sew] >> (i % sew)) & 1);
 
-            // Compute result
-            auto const result = Op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew), mask_data_bit)
-                                << (i % sew);
-            // Clear bit
-            vector_elements[vd_base + (i / sew)] &= ~(1_u64 << (i % sew));
-            // Conditionally set bit
-            vector_elements[vd_base + (i / sew)] |= result;
+            store_element_bit(vector_elements, vd_base + (i / sew), i % sew,
+                              Op(vector_elements[vs2_base + i], scalar, static_cast<SewType>(sew), mask_data_bit));
         }
         else if constexpr (std::is_same_v<OpType, AccumulatorOp>)
         {
@@ -3064,10 +3043,8 @@ inline constexpr void sxf_iterate(void *const vector_field, unsigned const vd, u
             write_bit = (read_bit && !first_found);
         }
 
-        // Clear bit
-        vector_elements[vd_base + (i / element_width)] &= ~(1_u64 << (i % element_width));
-        // Conditionally set bit
-        vector_elements[vd_base + (i / element_width)] |= write_bit << (i % element_width);
+        // Write the (possibly carried) bit for this lane into the destination word.
+        store_element_bit(vector_elements, vd_base + (i / element_width), i % element_width, write_bit);
 
         if constexpr (Sxf == SxfType::Sif)
         {
