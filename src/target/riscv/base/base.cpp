@@ -21,11 +21,12 @@
 
 #include "base/base.hpp"
 
-int8_t VTYPE::decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul)
+int8_t VTYPE::decode(uint32_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, uint8_t *z_lmul, uint8_t *n_lmul, uint8_t *lambda)
 {
     *ta = extractTA(vtype);
     *ma = extractMA(vtype);
     *sew = 8 << extractSEW(vtype);
+    *lambda = 1U << (extractLAMBDA(vtype) - 1);
 
     uint8_t _flmul = extractLMUL(vtype);
 
@@ -61,11 +62,15 @@ int8_t VTYPE::decode(uint16_t vtype, uint8_t *ta, uint8_t *ma, uint32_t *sew, ui
     return (1);
 }
 
-uint16_t VTYPE::encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma)
+uint32_t VTYPE::encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta, uint8_t ma, uint8_t lambda)
 {
-    uint16_t vtype = 0;
+    uint32_t vtype = 0;
     uint8_t lmulF = -1;
     int16_t sewF = -1;
+    uint8_t lambdaF = 0;
+    if (lambda != 0){
+        lambdaF = __builtin_ctz(lambda) + 1;
+    }
 
     sew = sew >> 3;
     while (sew)
@@ -102,36 +107,43 @@ uint16_t VTYPE::encode(uint16_t sew, uint8_t z_lmul, uint8_t n_lmul, uint8_t ta,
         }
     }
 
-    vtype = (ma ? 0x80 : 0) | (ta ? 0x40 : 0) | ((sewF) << 3) | (lmulF & 0x7);
+    vtype = (lambdaF << OFFSETS::OFFLAMBDA) | (ma ? 0x80 : 0) | (ta ? 0x40 : 0) | ((sewF) << 3) | (lmulF & 0x7);
 
     return (vtype);
 }
 
-uint8_t VTYPE::extractSEW(uint16_t pVTYPE)
+uint8_t VTYPE::extractSEW(uint32_t pVTYPE)
 {
     uint8_t x = 0;
     x |= (pVTYPE & MASK::MSKSEW) >> OFFSETS::OFFSEW;
     return (x);
 }
 
-uint8_t VTYPE::extractLMUL(uint16_t pVTYPE)
+uint8_t VTYPE::extractLMUL(uint32_t pVTYPE)
 {
     uint8_t x = 0;
     x |= (pVTYPE & MASK::MSKLMUL);
     return (x);
 }
 
-uint8_t VTYPE::extractTA(uint16_t pVTYPE)
+uint8_t VTYPE::extractTA(uint32_t pVTYPE)
 {
     uint8_t x = 0;
     x = (pVTYPE & MASK::MSKTA) ? 1 : 0;
     return (x);
 }
 
-uint8_t VTYPE::extractMA(uint16_t pVTYPE)
+uint8_t VTYPE::extractMA(uint32_t pVTYPE)
 {
     uint8_t x = 0;
     x = (pVTYPE & MASK::MSKMA) ? 1 : 0;
+    return (x);
+}
+
+uint8_t VTYPE::extractLAMBDA(uint32_t pVTYPE)
+{
+    uint8_t x = 0;
+    x |= (pVTYPE & MASK::MSKLAMBDA) >> OFFSETS::OFFLAMBDA;
     return (x);
 }
 
